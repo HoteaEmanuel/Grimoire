@@ -78,7 +78,7 @@ export function SidebarContent({
                 href={`/dashboard/items/${type.slug}`}
                 icon={Icon}
                 iconColor={type.color}
-                label={type.name}
+                label={type.name+'s'}
                 count={itemCountByType[type.id]}
                 collapsed={sidebarCollapsed}
                 active={pathname === `/dashboard/items/${type.slug}`}
