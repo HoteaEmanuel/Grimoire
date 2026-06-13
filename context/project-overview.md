@@ -24,15 +24,15 @@
 
 Developers scatter their essential resources across too many places:
 
-| Resource | Where it lives today |
-|---|---|
-| Code snippets | VS Code, Notion, GitHub Gists |
-| AI prompts | Chat histories, random `.txt` files |
-| Context files | Buried inside project directories |
-| Useful links | Browser bookmarks |
-| Documentation | Random folders, Notion pages |
+| Resource          | Where it lives today                   |
+| ----------------- | -------------------------------------- |
+| Code snippets     | VS Code, Notion, GitHub Gists          |
+| AI prompts        | Chat histories, random `.txt` files    |
+| Context files     | Buried inside project directories      |
+| Useful links      | Browser bookmarks                      |
+| Documentation     | Random folders, Notion pages           |
 | Terminal commands | `.bashrc`, shell history, sticky notes |
-| Project templates | GitHub Gists, local zip archives |
+| Project templates | GitHub Gists, local zip archives       |
 
 This forces constant context switching, causes knowledge loss, and leads to inconsistent workflows. **Grimoire** is a single, fast, AI-enhanced hub that replaces all of the above.
 
@@ -40,12 +40,12 @@ This forces constant context switching, causes knowledge loss, and leads to inco
 
 ## 2. Target Users
 
-| Persona | Core Need |
-|---|---|
-| **Everyday Developer** | Quickly grab snippets, commands, and links without breaking flow |
-| **AI-first Developer** | Store and refine prompts, system messages, context files, and workflows |
-| **Content Creator / Educator** | Manage code blocks, explanations, and course notes in one place |
-| **Full-stack Builder** | Collect patterns, boilerplates, and API examples across projects |
+| Persona                        | Core Need                                                               |
+| ------------------------------ | ----------------------------------------------------------------------- |
+| **Everyday Developer**         | Quickly grab snippets, commands, and links without breaking flow        |
+| **AI-first Developer**         | Store and refine prompts, system messages, context files, and workflows |
+| **Content Creator / Educator** | Manage code blocks, explanations, and course notes in one place         |
+| **Full-stack Builder**         | Collect patterns, boilerplates, and API examples across projects        |
 
 ---
 
@@ -57,15 +57,15 @@ Items are the core unit of the app. Each item has a **type** that determines how
 
 **System types** (built-in, not editable by users):
 
-| Type | Content Kind | Pro Only |
-|---|---|---|
-| `snippet` | text | No |
-| `prompt` | text | No |
-| `note` | text | No |
-| `command` | text | No |
-| `link` | url | No |
-| `file` | file upload | Yes |
-| `image` | file upload | Yes |
+| Type      | Content Kind | Pro Only |
+| --------- | ------------ | -------- |
+| `snippet` | text         | No       |
+| `prompt`  | text         | No       |
+| `note`    | text         | No       |
+| `command` | text         | No       |
+| `link`    | url          | No       |
+| `file`    | file upload  | Yes      |
+| `image`   | file upload  | Yes      |
 
 > Users will eventually be able to create **custom types** (planned Pro feature).
 
@@ -80,6 +80,7 @@ Items can be created and accessed quickly via a **slide-in drawer** — no full 
 Collections group items of any type. Items can belong to **multiple collections** simultaneously (many-to-many relationship).
 
 Examples:
+
 - `React Patterns` — snippets, notes
 - `Context Files` — files
 - `Python Snippets` — snippets
@@ -90,6 +91,7 @@ Examples:
 ### C. Search
 
 Full-text search across:
+
 - Item title
 - Item content
 - Tags
@@ -123,12 +125,12 @@ Powered by **NextAuth v5** (Auth.js).
 
 ### F. AI Features (Pro only)
 
-| Feature | Description |
-|---|---|
-| **Auto-tag suggestions** | AI suggests relevant tags when saving an item |
-| **AI Summary** | One-line summary generated for long items |
-| **Explain This Code** | Plain-English explanation of a snippet or command |
-| **Prompt Optimizer** | Rewrites and improves AI prompts for clarity and effectiveness |
+| Feature                  | Description                                                    |
+| ------------------------ | -------------------------------------------------------------- |
+| **Auto-tag suggestions** | AI suggests relevant tags when saving an item                  |
+| **AI Summary**           | One-line summary generated for long items                      |
+| **Explain This Code**    | Plain-English explanation of a snippet or command              |
+| **Prompt Optimizer**     | Rewrites and improves AI prompts for clarity and effectiveness |
 
 > During development, all features (including AI and Pro-only types) are accessible to every user.
 
@@ -409,19 +411,19 @@ erDiagram
 
 ## 6. Tech Stack
 
-| Layer | Technology | Notes |
-|---|---|---|
-| **Framework** | Next.js 15 / React 19 | App Router, SSR + client components |
-| **Language** | TypeScript | Strict mode enabled |
-| **Database** | PostgreSQL via Neon | Serverless Postgres |
-| **ORM** | Prisma 6 | Migrations only — no `db push` |
-| **Auth** | NextAuth v5 (Auth.js) | Email/password + GitHub OAuth |
-| **File Storage** | Cloudflare R2 | S3-compatible API |
-| **AI** | OpenAI `gpt-4o-mini` | Used for tagging, summaries, explain, optimize |
-| **CSS** | Tailwind CSS v4 | Utility-first |
-| **Components** | shadcn/ui | Built on Radix UI primitives |
-| **Payments** | Stripe | Subscriptions + webhooks |
-| **Caching** | Redis (Upstash) | Optional; session caching, rate limiting |
+| Layer            | Technology            | Notes                                          |
+| ---------------- | --------------------- | ---------------------------------------------- |
+| **Framework**    | Next.js 15 / React 19 | App Router, SSR + client components            |
+| **Language**     | TypeScript            | Strict mode enabled                            |
+| **Database**     | PostgreSQL via Neon   | Serverless Postgres                            |
+| **ORM**          | Prisma 6              | Migrations only — no `db push`                 |
+| **Auth**         | NextAuth v5 (Auth.js) | Email/password + GitHub OAuth                  |
+| **File Storage** | Cloudflare R2         | S3-compatible API                              |
+| **AI**           | OpenAI `gpt-4o-mini`  | Used for tagging, summaries, explain, optimize |
+| **CSS**          | Tailwind CSS v4       | Utility-first                                  |
+| **Components**   | shadcn/ui             | Built on Radix UI primitives                   |
+| **Payments**     | Stripe                | Subscriptions + webhooks                       |
+| **Caching**      | Redis (Upstash)       | Optional; session caching, rate limiting       |
 
 > **AI model note:** Use `gpt-4o-mini` for cost-effective AI features. Upgrade to `gpt-4o` for prompt optimizer if quality demands it.
 
@@ -467,15 +469,15 @@ erDiagram
 
 ## 8. Item Types Reference
 
-| Type | Slug | Icon (Lucide) | Color | Hex | Content Kind | Pro Only |
-|---|---|---|---|---|---|---|
-| Snippet | `snippets` | `Code` | Blue | `#3b82f6` | TEXT | No |
-| Prompt | `prompts` | `Sparkles` | Purple | `#8b5cf6` | TEXT | No |
-| Note | `notes` | `StickyNote` | Yellow | `#fde047` | TEXT | No |
-| Command | `commands` | `Terminal` | Orange | `#f97316` | TEXT | No |
-| Link | `links` | `Link` | Emerald | `#10b981` | URL | No |
-| File | `files` | `File` | Gray | `#6b7280` | FILE | Yes |
-| Image | `images` | `Image` | Pink | `#ec4899` | FILE | Yes |
+| Type    | Slug       | Icon (Lucide) | Color   | Hex       | Content Kind | Pro Only |
+| ------- | ---------- | ------------- | ------- | --------- | ------------ | -------- |
+| Snippet | `snippets` | `Code`        | Blue    | `#3b82f6` | TEXT         | No       |
+| Prompt  | `prompts`  | `Sparkles`    | Purple  | `#8b5cf6` | TEXT         | No       |
+| Note    | `notes`    | `StickyNote`  | Yellow  | `#fde047` | TEXT         | No       |
+| Command | `commands` | `Terminal`    | Orange  | `#f97316` | TEXT         | No       |
+| Link    | `links`    | `Link`        | Emerald | `#10b981` | URL          | No       |
+| File    | `files`    | `File`        | Gray    | `#6b7280` | FILE         | Yes      |
+| Image   | `images`   | `Image`       | Pink    | `#ec4899` | FILE         | Yes      |
 
 **Usage in code:**
 
@@ -492,13 +494,57 @@ import {
 } from "lucide-react";
 
 export const SYSTEM_ITEM_TYPES = [
-  { name: "Snippet",  slug: "snippets", icon: Code,       color: "#3b82f6", contentKind: "TEXT" },
-  { name: "Prompt",   slug: "prompts",  icon: Sparkles,   color: "#8b5cf6", contentKind: "TEXT" },
-  { name: "Note",     slug: "notes",    icon: StickyNote, color: "#fde047", contentKind: "TEXT" },
-  { name: "Command",  slug: "commands", icon: Terminal,    color: "#f97316", contentKind: "TEXT" },
-  { name: "Link",     slug: "links",    icon: Link,        color: "#10b981", contentKind: "URL"  },
-  { name: "File",     slug: "files",    icon: File,        color: "#6b7280", contentKind: "FILE", isPro: true },
-  { name: "Image",    slug: "images",   icon: Image,       color: "#ec4899", contentKind: "FILE", isPro: true },
+  {
+    name: "Snippet",
+    slug: "snippets",
+    icon: Code,
+    color: "#3b82f6",
+    contentKind: "TEXT",
+  },
+  {
+    name: "Prompt",
+    slug: "prompts",
+    icon: Sparkles,
+    color: "#8b5cf6",
+    contentKind: "TEXT",
+  },
+  {
+    name: "Note",
+    slug: "notes",
+    icon: StickyNote,
+    color: "#fde047",
+    contentKind: "TEXT",
+  },
+  {
+    name: "Command",
+    slug: "commands",
+    icon: Terminal,
+    color: "#f97316",
+    contentKind: "TEXT",
+  },
+  {
+    name: "Link",
+    slug: "links",
+    icon: Link,
+    color: "#10b981",
+    contentKind: "URL",
+  },
+  {
+    name: "File",
+    slug: "files",
+    icon: File,
+    color: "#6b7280",
+    contentKind: "FILE",
+    isPro: true,
+  },
+  {
+    name: "Image",
+    slug: "images",
+    icon: Image,
+    color: "#ec4899",
+    contentKind: "FILE",
+    isPro: true,
+  },
 ] as const;
 ```
 
@@ -508,19 +554,19 @@ export const SYSTEM_ITEM_TYPES = [
 
 ### Plans
 
-| Feature | Free | Pro ($8/mo · $72/yr) |
-|---|---|---|
-| Items | 50 total | Unlimited |
-| Collections | 3 | Unlimited |
-| Item types | All except file & image | All types |
-| File & image uploads | ✗ | ✓ |
-| Custom types | ✗ | ✓ (planned) |
-| Basic search | ✓ | ✓ |
-| AI auto-tagging | ✗ | ✓ |
-| AI code explanation | ✗ | ✓ |
-| AI prompt optimizer | ✗ | ✓ |
-| Export (JSON / ZIP) | ✗ | ✓ |
-| Priority support | ✗ | ✓ |
+| Feature              | Free                    | Pro ($8/mo · $72/yr) |
+| -------------------- | ----------------------- | -------------------- |
+| Items                | 50 total                | Unlimited            |
+| Collections          | 3                       | Unlimited            |
+| Item types           | All except file & image | All types            |
+| File & image uploads | ✗                       | ✓                    |
+| Custom types         | ✗                       | ✓ (planned)          |
+| Basic search         | ✓                       | ✓                    |
+| AI auto-tagging      | ✗                       | ✓                    |
+| AI code explanation  | ✗                       | ✓                    |
+| AI prompt optimizer  | ✗                       | ✓                    |
+| Export (JSON / ZIP)  | ✗                       | ✓                    |
+| Priority support     | ✗                       | ✓                    |
 
 ### Stripe Integration
 
@@ -538,14 +584,14 @@ export const SYSTEM_ITEM_TYPES = [
 
 ### Design Language
 
-| Attribute | Value |
-|---|---|
-| Style | Modern, minimal, developer-focused |
-| Default mode | Dark (light mode available via toggle) |
-| Typography | Clean, generous whitespace, monospace for code |
-| Borders | Subtle, low-contrast |
-| Shadows | Soft, layered |
-| References | Notion, Linear, Raycast |
+| Attribute    | Value                                          |
+| ------------ | ---------------------------------------------- |
+| Style        | Modern, minimal, developer-focused             |
+| Default mode | Dark (light mode available via toggle)         |
+| Typography   | Clean, generous whitespace, monospace for code |
+| Borders      | Subtle, low-contrast                           |
+| Shadows      | Soft, layered                                  |
+| References   | Notion, Linear, Raycast                        |
 
 ### Layout
 
@@ -596,9 +642,9 @@ export const SYSTEM_ITEM_TYPES = [
 
 ### Responsive Behaviour
 
-| Breakpoint | Sidebar behaviour |
-|---|---|
-| `≥ 1024px` | Persistent sidebar, collapsible |
+| Breakpoint | Sidebar behaviour                                                 |
+| ---------- | ----------------------------------------------------------------- |
+| `≥ 1024px` | Persistent sidebar, collapsible                                   |
 | `< 1024px` | Sidebar hidden; accessible via hamburger menu as a drawer overlay |
 
 ### Micro-interactions
@@ -691,3 +737,11 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 - File uploads go directly to R2 via a server-generated signed URL — never through the Next.js API route body.
 - All AI calls are server-side only (API routes) — never expose `OPENAI_API_KEY` to the client.
 - Tag names are unique per user (enforced at DB level with `@@unique([name, userId])`).
+
+### Screenshots
+
+Refer to the screenshots below as a visual reference for the UI/UX guidelines and layout.
+
+- @context/design/image.png
+- @context/design/image1.png
+- @context/design/image2.png
