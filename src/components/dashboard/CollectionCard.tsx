@@ -1,13 +1,35 @@
-import Link from "next/link";
-import { Layers } from "lucide-react";
+import Link from "next/link"
+import {
+  Code,
+  Sparkles,
+  StickyNote,
+  Terminal,
+  Link as LinkIcon,
+  File,
+  Image,
+  Layers,
+  type LucideIcon,
+} from "lucide-react"
+import type { CollectionTypeIcon } from "@/lib/db/collections"
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Code,
+  Sparkles,
+  StickyNote,
+  Terminal,
+  Link: LinkIcon,
+  File,
+  Image,
+}
 
 interface CollectionCardProps {
-  id: string;
-  name: string;
-  description?: string | null;
-  itemCount: number;
-  dominantTypeColor: string;
-  isFavorite: boolean;
+  id: string
+  name: string
+  description?: string | null
+  itemCount: number
+  dominantTypeColor: string
+  isFavorite: boolean
+  typeIcons?: CollectionTypeIcon[]
 }
 
 export function CollectionCard({
@@ -16,6 +38,7 @@ export function CollectionCard({
   description,
   itemCount,
   dominantTypeColor,
+  typeIcons = [],
 }: CollectionCardProps) {
   return (
     <Link href={`/dashboard/collections/${id}`}>
@@ -48,11 +71,31 @@ export function CollectionCard({
           {description && (
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>
           )}
-          <p className="text-xs text-muted-foreground/60 mt-3 font-medium">
-            {itemCount} {itemCount === 1 ? "item" : "items"}
-          </p>
+
+          <div className="flex items-center justify-between mt-3">
+            <p className="text-xs text-muted-foreground/60 font-medium">
+              {itemCount} {itemCount === 1 ? "item" : "items"}
+            </p>
+            {typeIcons.length > 0 && (
+              <div className="flex items-center gap-1">
+                {typeIcons.map(({ iconName, color }) => {
+                  const Icon = ICON_MAP[iconName]
+                  if (!Icon) return null
+                  return (
+                    <span
+                      key={iconName}
+                      className="w-5 h-5 rounded flex items-center justify-center"
+                      style={{ background: `${color}18` }}
+                    >
+                      <Icon size={11} style={{ color }} />
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Link>
-  );
+  )
 }
