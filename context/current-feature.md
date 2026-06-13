@@ -1,10 +1,24 @@
 ## Current Feature
 
+Dashboard Phase 3 — Main content area
+
 ## Status
+
+In Progress
 
 ## Goals
 
+- 4 stats cards at the top: total items, total collections, favorite items, favorite collections
+- Recent Collections section
+- Pinned Items section
+- 10 Recent Items section
+- Use mock data from `src/lib/mock-data.js`
+
 ## Notes
+
+- Reference screenshot: `context/screenshots/dashboard-ui-main.png`
+- Stats cards are not in the screenshot but are required
+- Import mock data directly until database is implemented
 
 ## History
 
