@@ -1,10 +1,23 @@
 ## Current Feature
 
-**Prisma + Neon PostgreSQL Setup**
+**Seed Data**
 
 ## Status
 
 Completed
+
+## Goals
+
+- Rewrite `prisma/seed.ts` to follow `context/features/seed-spec.md`
+- Hash user password with bcryptjs (12 rounds)
+- Seed system item types, collections, and items per spec
+- Make seed fully idempotent (reset user data before recreating)
+
+## Notes
+
+- Full reset strategy: delete all items/collections/tags for the seed user, then recreate
+- User upsert + system item types upsert are safe across re-runs
+- Seed is dev-only — never runs in production
 
 ## Goals
 
