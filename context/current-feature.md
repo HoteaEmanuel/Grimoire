@@ -1,14 +1,14 @@
 ## Current Feature
 
-<!-- The current feature and short description. -->
+Dashboard Phase 1 — see full spec at [@context/features/dashboard-phase-1-spec.md](features/dashboard-phase-1-spec.md)
 
 ## Status
 
-<!-- The current status of the feature Not Started | In Progress | Completed. -->
+In Progress
 
 ## Goals
 
-<!-- Goals and requirements for the feature. -->
+<!-- Defined in the spec file above. -->
 
 ## Notes
 
