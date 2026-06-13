@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Layers, Star, BookMarked, Hash } from "lucide-react";
 import { AnimatedWand } from "@/components/dashboard/AnimatedWand";
 import { StatsCard } from "@/components/dashboard/StatsCard";

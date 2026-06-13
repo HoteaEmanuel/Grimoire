@@ -19,7 +19,6 @@ export type CollectionWithMeta = {
 };
 
 export async function getRecentCollections(): Promise<CollectionWithMeta[]> {
-  await new Promise(resolve => setTimeout(resolve, 3000));
   const user = await prisma.user.findUnique({
     where: { email: SEED_USER_EMAIL },
     select: { id: true },
