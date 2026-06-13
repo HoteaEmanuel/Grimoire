@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Code,
@@ -12,7 +13,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { mockItemTypes, mockCollections, mockItems, mockUser } from "@/lib/mock-data";
+import type { SidebarItemType } from "@/lib/db/items";
+import type { SidebarCollection } from "@/lib/db/collections";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { SidebarCollectionItem } from "./SidebarCollectionItem";
 import { SidebarSection } from "./SidebarSection";
@@ -32,6 +34,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
 interface SidebarContentProps {
   sidebarCollapsed?: boolean;
   onClose?: () => void;
+  itemTypes: SidebarItemType[];
+  collections: SidebarCollection[];
 }
 
 function CollectionSubLabel({
@@ -52,24 +56,19 @@ function CollectionSubLabel({
 export function SidebarContent({
   sidebarCollapsed = false,
   onClose,
+  itemTypes,
+  collections,
 }: SidebarContentProps) {
   const pathname = usePathname();
 
-  const itemCountByType = mockItemTypes.reduce<Record<string, number>>((acc, type) => {
-    acc[type.id] = mockItems.filter((item) => item.itemTypeId === type.id).length;
-    return acc;
-  }, {});
-
-  const favoriteCollections = mockCollections.filter((c) => c.isFavorite);
-  const recentCollections = [...mockCollections]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 4);
+  const favoriteCollections = collections.filter((c) => c.isFavorite);
+  const recentCollections = collections.filter((c) => !c.isFavorite).slice(0, 4);
 
   return (
     <>
       <nav className="flex-1 overflow-y-auto py-3 space-y-4">
         <SidebarSection title="Items" collapsed={sidebarCollapsed}>
-          {mockItemTypes.map((type) => {
+          {itemTypes.map((type) => {
             const Icon = ICON_MAP[type.icon];
             if (!Icon) return null;
             return (
@@ -78,8 +77,8 @@ export function SidebarContent({
                 href={`/dashboard/items/${type.slug}`}
                 icon={Icon}
                 iconColor={type.color}
-                label={type.name+'s'}
-                count={itemCountByType[type.id]}
+                label={type.name + "s"}
+                count={type.count}
                 collapsed={sidebarCollapsed}
                 active={pathname === `/dashboard/items/${type.slug}`}
                 onClick={onClose}
@@ -115,28 +114,42 @@ export function SidebarContent({
             </>
           )}
 
-          <CollectionSubLabel
-            label="Recent"
-            sidebarCollapsed={sidebarCollapsed}
-          />
-          {recentCollections.map((col) => (
-            <SidebarCollectionItem
-              key={col.id}
-              href={`/dashboard/collections/${col.id}`}
-              name={col.name}
-              color={col.dominantTypeColor}
-              isFavorite={col.isFavorite}
-              collapsed={sidebarCollapsed}
+          {recentCollections.length > 0 && (
+            <>
+              <CollectionSubLabel
+                label="Recent"
+                sidebarCollapsed={sidebarCollapsed}
+              />
+              {recentCollections.map((col) => (
+                <SidebarCollectionItem
+                  key={col.id}
+                  href={`/dashboard/collections/${col.id}`}
+                  name={col.name}
+                  color={col.dominantTypeColor}
+                  isFavorite={false}
+                  collapsed={sidebarCollapsed}
+                  onClick={onClose}
+                />
+              ))}
+            </>
+          )}
+
+          {!sidebarCollapsed && (
+            <Link
+              href="/dashboard/collections"
               onClick={onClose}
-            />
-          ))}
+              className="block px-2 pt-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            >
+              View all collections →
+            </Link>
+          )}
         </SidebarCollapsibleSection>
       </nav>
 
       <SidebarUserFooter
-        name={mockUser.name}
-        email={mockUser.email}
-        image={mockUser.image}
+        name="Emanuel Hotea"
+        email="emanuelhotea1@gmail.com"
+        image={null}
         collapsed={sidebarCollapsed}
       />
     </>

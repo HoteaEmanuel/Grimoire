@@ -5,8 +5,16 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { SidebarContent } from "./SidebarContent";
+import type { SidebarItemType } from "@/lib/db/items";
+import type { SidebarCollection } from "@/lib/db/collections";
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+interface DashboardShellProps {
+  children: React.ReactNode;
+  sidebarItemTypes: SidebarItemType[];
+  sidebarCollections: SidebarCollection[];
+}
+
+export function DashboardShell({ children, sidebarItemTypes, sidebarCollections }: DashboardShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -19,6 +27,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Sidebar
           collapsed={collapsed}
           onToggleCollapse={() => setCollapsed((prev) => !prev)}
+          itemTypes={sidebarItemTypes}
+          collections={sidebarCollections}
         />
 
         {/* Mobile sidebar via Sheet */}
@@ -33,7 +43,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 GRIMOIRE
               </span>
             </div>
-            <SidebarContent onClose={() => setMobileOpen(false)} />
+            <SidebarContent
+              onClose={() => setMobileOpen(false)}
+              itemTypes={sidebarItemTypes}
+              collections={sidebarCollections}
+            />
           </SheetContent>
         </Sheet>
 

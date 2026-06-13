@@ -4,13 +4,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarContent } from "./SidebarContent";
 import { cn } from "@/lib/utils";
+import type { SidebarItemType } from "@/lib/db/items";
+import type { SidebarCollection } from "@/lib/db/collections";
 
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
+  itemTypes: SidebarItemType[];
+  collections: SidebarCollection[];
 }
 
-export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, itemTypes, collections }: SidebarProps) {
   return (
     <aside
       className={cn(
@@ -39,7 +43,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </Button>
       </div>
 
-      <SidebarContent sidebarCollapsed={collapsed} />
+      <SidebarContent sidebarCollapsed={collapsed} itemTypes={itemTypes} collections={collections} />
     </aside>
   );
 }
