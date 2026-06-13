@@ -1,38 +1,33 @@
-import { Layers, Star, BookMarked, Hash } from "lucide-react";
-import { AnimatedWand } from "@/components/dashboard/AnimatedWand";
-import { mockItems, mockCollections, mockItemTypes } from "@/lib/mock-data";
-import { StatsCard } from "@/components/dashboard/StatsCard";
-import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { ItemCard } from "@/components/dashboard/ItemCard";
+import { Layers, Star, BookMarked, Hash } from "lucide-react"
+import { AnimatedWand } from "@/components/dashboard/AnimatedWand"
+import { mockItems, mockItemTypes } from "@/lib/mock-data"
+import { StatsCard } from "@/components/dashboard/StatsCard"
+import { CollectionCard } from "@/components/dashboard/CollectionCard"
+import { ItemCard } from "@/components/dashboard/ItemCard"
+import { getRecentCollections, getCollectionStats } from "@/lib/db/collections"
 
 function getTypeMeta(typeId: string) {
-  const type = mockItemTypes.find((t) => t.id === typeId);
-  return { name: type?.name ?? "Item", color: type?.color ?? "#6b7280" };
+  const type = mockItemTypes.find((t) => t.id === typeId)
+  return { name: type?.name ?? "Item", color: type?.color ?? "#6b7280" }
 }
 
-export default function DashboardPage() {
-  const totalItems = mockItems.length;
-  const totalCollections = mockCollections.length;
-  const favoriteItems = mockItems.filter((i) => i.isFavorite).length;
-  const favoriteCollections = mockCollections.filter(
-    (c) => c.isFavorite,
-  ).length;
+export default async function DashboardPage() {
+  const [recentCollections, collectionStats] = await Promise.all([
+    getRecentCollections(),
+    getCollectionStats(),
+  ])
 
-  const recentCollections = [...mockCollections]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
-    .slice(0, 6);
+  const totalItems = mockItems.length
+  const favoriteItems = mockItems.filter((i) => i.isFavorite).length
 
-  const pinnedItems = mockItems.filter((i) => i.isPinned);
+  const pinnedItems = mockItems.filter((i) => i.isPinned)
 
   const recentItems = [...mockItems]
     .sort(
       (a, b) =>
         new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime(),
     )
-    .slice(0, 10);
+    .slice(0, 10)
 
   return (
     <div className="space-y-8">
@@ -62,7 +57,7 @@ export default function DashboardPage() {
         />
         <StatsCard
           label="Collections"
-          value={totalCollections}
+          value={collectionStats.totalCollections}
           icon={Layers}
           iconColor="#8b5cf6"
         />
@@ -74,7 +69,7 @@ export default function DashboardPage() {
         />
         <StatsCard
           label="Favorite Collections"
-          value={favoriteCollections}
+          value={collectionStats.favoriteCollections}
           icon={BookMarked}
           iconColor="#10b981"
         />
@@ -95,6 +90,7 @@ export default function DashboardPage() {
               itemCount={col.itemCount}
               dominantTypeColor={col.dominantTypeColor}
               isFavorite={col.isFavorite}
+              typeIcons={col.typeIcons}
             />
           ))}
         </div>
@@ -108,7 +104,7 @@ export default function DashboardPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {pinnedItems.map((item) => {
-              const { name, color } = getTypeMeta(item.itemTypeId);
+              const { name, color } = getTypeMeta(item.itemTypeId)
               return (
                 <ItemCard
                   key={item.id}
@@ -120,7 +116,7 @@ export default function DashboardPage() {
                   isPinned
                   language={item.language}
                 />
-              );
+              )
             })}
           </div>
         </section>
@@ -133,7 +129,7 @@ export default function DashboardPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {recentItems.map((item) => {
-            const { name, color } = getTypeMeta(item.itemTypeId);
+            const { name, color } = getTypeMeta(item.itemTypeId)
             return (
               <ItemCard
                 key={item.id}
@@ -145,10 +141,10 @@ export default function DashboardPage() {
                 isPinned={item.isPinned}
                 language={item.language}
               />
-            );
+            )
           })}
         </div>
       </section>
     </div>
-  );
+  )
 }
