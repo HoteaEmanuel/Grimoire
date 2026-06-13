@@ -1,33 +1,20 @@
-import { Layers, Star, BookMarked, Hash } from "lucide-react"
-import { AnimatedWand } from "@/components/dashboard/AnimatedWand"
-import { mockItems, mockItemTypes } from "@/lib/mock-data"
-import { StatsCard } from "@/components/dashboard/StatsCard"
-import { CollectionCard } from "@/components/dashboard/CollectionCard"
-import { ItemCard } from "@/components/dashboard/ItemCard"
-import { getRecentCollections, getCollectionStats } from "@/lib/db/collections"
-
-function getTypeMeta(typeId: string) {
-  const type = mockItemTypes.find((t) => t.id === typeId)
-  return { name: type?.name ?? "Item", color: type?.color ?? "#6b7280" }
-}
+import { Layers, Star, BookMarked, Hash } from "lucide-react";
+import { AnimatedWand } from "@/components/dashboard/AnimatedWand";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { CollectionCard } from "@/components/dashboard/CollectionCard";
+import { ItemCard } from "@/components/dashboard/ItemCard";
+import { getRecentCollections, getCollectionStats } from "@/lib/db/collections";
+import { getPinnedItems, getRecentItems, getItemStats } from "@/lib/db/items";
 
 export default async function DashboardPage() {
-  const [recentCollections, collectionStats] = await Promise.all([
-    getRecentCollections(),
-    getCollectionStats(),
-  ])
-
-  const totalItems = mockItems.length
-  const favoriteItems = mockItems.filter((i) => i.isFavorite).length
-
-  const pinnedItems = mockItems.filter((i) => i.isPinned)
-
-  const recentItems = [...mockItems]
-    .sort(
-      (a, b) =>
-        new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime(),
-    )
-    .slice(0, 10)
+  const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] =
+    await Promise.all([
+      getRecentCollections(),
+      getCollectionStats(),
+      getPinnedItems(),
+      getRecentItems(10),
+      getItemStats(),
+    ]);
 
   return (
     <div className="space-y-8">
@@ -51,7 +38,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           label="Total Items"
-          value={totalItems}
+          value={itemStats.totalItems}
           icon={Hash}
           iconColor="#3b82f6"
         />
@@ -63,7 +50,7 @@ export default async function DashboardPage() {
         />
         <StatsCard
           label="Favorite Items"
-          value={favoriteItems}
+          value={itemStats.favoriteItems}
           icon={Star}
           iconColor="#f59e0b"
         />
@@ -103,21 +90,18 @@ export default async function DashboardPage() {
             Pinned Items
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {pinnedItems.map((item) => {
-              const { name, color } = getTypeMeta(item.itemTypeId)
-              return (
-                <ItemCard
-                  key={item.id}
-                  title={item.title}
-                  description={item.description}
-                  typeName={name}
-                  typeColor={color}
-                  tags={item.tags}
-                  isPinned
-                  language={item.language}
-                />
-              )
-            })}
+            {pinnedItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                title={item.title}
+                description={item.description}
+                typeName={item.typeName}
+                typeColor={item.typeColor}
+                tags={item.tags}
+                isPinned
+                language={item.language}
+              />
+            ))}
           </div>
         </section>
       )}
@@ -128,23 +112,20 @@ export default async function DashboardPage() {
           Recent Items
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {recentItems.map((item) => {
-            const { name, color } = getTypeMeta(item.itemTypeId)
-            return (
-              <ItemCard
-                key={item.id}
-                title={item.title}
-                description={item.description}
-                typeName={name}
-                typeColor={color}
-                tags={item.tags}
-                isPinned={item.isPinned}
-                language={item.language}
-              />
-            )
-          })}
+          {recentItems.map((item) => (
+            <ItemCard
+              key={item.id}
+              title={item.title}
+              description={item.description}
+              typeName={item.typeName}
+              typeColor={item.typeColor}
+              tags={item.tags}
+              isPinned={item.isPinned}
+              language={item.language}
+            />
+          ))}
         </div>
       </section>
     </div>
-  )
+  );
 }
