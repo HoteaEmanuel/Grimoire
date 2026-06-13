@@ -69,20 +69,26 @@ export default async function DashboardPage() {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Recent Collections
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {recentCollections.map((col) => (
-            <CollectionCard
-              key={col.id}
-              id={col.id}
-              name={col.name}
-              description={col.description}
-              itemCount={col.itemCount}
-              dominantTypeColor={col.dominantTypeColor}
-              isFavorite={col.isFavorite}
-              typeIcons={col.typeIcons}
-            />
-          ))}
-        </div>
+        {recentCollections.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recentCollections.map((col) => (
+              <CollectionCard
+                key={col.id}
+                id={col.id}
+                name={col.name}
+                description={col.description}
+                itemCount={col.itemCount}
+                dominantTypeColor={col.dominantTypeColor}
+                isFavorite={col.isFavorite}
+                typeIcons={col.typeIcons}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground/60">
+            No collections yet. Create one to start organizing your items.
+          </p>
+        )}
       </section>
 
       {/* Pinned Items */}
@@ -113,20 +119,26 @@ export default async function DashboardPage() {
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Recent Items
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {recentItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              title={item.title}
-              description={item.description}
-              typeName={item.typeName}
-              typeColor={item.typeColor}
-              tags={item.tags}
-              isPinned={item.isPinned}
-              language={item.language}
-            />
-          ))}
-        </div>
+        {recentItems.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recentItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                title={item.title}
+                description={item.description}
+                typeName={item.typeName}
+                typeColor={item.typeColor}
+                tags={item.tags}
+                isPinned={item.isPinned}
+                language={item.language}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground/60">
+            No items yet. Add your first snippet, prompt, or note to get started.
+          </p>
+        )}
       </section>
     </div>
   );

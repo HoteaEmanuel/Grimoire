@@ -134,6 +134,12 @@ export function SidebarContent({
             </>
           )}
 
+          {favoriteCollections.length === 0 && recentCollections.length === 0 && !sidebarCollapsed && (
+            <p className="px-2 py-1 text-[11px] text-muted-foreground/50">
+              No collections yet.
+            </p>
+          )}
+
           {!sidebarCollapsed && (
             <Link
               href="/dashboard/collections"
