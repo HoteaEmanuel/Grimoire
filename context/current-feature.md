@@ -14,4 +14,4 @@
 
 ## History
 
-<!-- Keep this updated with a brief history of the feature development. -->
+- **Initial setup - 2026-06-13** — Initial Next.js 15 + Tailwind CSS v4 project setup. Initialized git repository, connected to remote, and pushed to `main`.
