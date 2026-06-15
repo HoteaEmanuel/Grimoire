@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type LucideIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +19,7 @@ interface SidebarNavItemProps {
   count?: number;
   collapsed: boolean;
   active?: boolean;
+  isPro?: boolean;
   onClick?: () => void;
 }
 
@@ -29,6 +31,7 @@ export function SidebarNavItem({
   count,
   collapsed,
   active,
+  isPro,
   onClick,
 }: SidebarNavItemProps) {
   const item = (
@@ -52,11 +55,18 @@ export function SidebarNavItem({
       {!collapsed && (
         <>
           <span>{label}</span>
-          {count !== undefined && count > 0 && (
-            <span className="ml-auto text-xs text-muted-foreground/90 tabular-nums">
-              {count}
-            </span>
-          )}
+          <span className="ml-auto flex items-center gap-1.5">
+            {isPro && (
+              <Badge className="h-4 px-1.5 text-[9px] font-bold tracking-wider rounded-sm border bg-[oklch(0.62_0.18_290/0.15)] text-[oklch(0.75_0.16_290)] border-[oklch(0.62_0.18_290/0.35)]">
+                PRO
+              </Badge>
+            )}
+            {count !== undefined && count > 0 && (
+              <span className="text-xs text-muted-foreground/90 tabular-nums">
+                {count}
+              </span>
+            )}
+          </span>
         </>
       )}
     </Link>
