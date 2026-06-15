@@ -73,6 +73,7 @@
     --border: oklch(1 0 0 / 8%);
     --input: oklch(1 0 0 / 10%);
     --ring: oklch(0.72 0.15 60);
+    --radius: 0.625rem;
     --sidebar: oklch(0.15 0.02 55);
     --sidebar-foreground: oklch(0.93 0.02 70);
     --sidebar-primary: oklch(0.72 0.15 60);
