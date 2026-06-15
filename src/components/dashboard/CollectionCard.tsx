@@ -1,26 +1,7 @@
 import Link from "next/link"
-import {
-  Code,
-  Sparkles,
-  StickyNote,
-  Terminal,
-  Link as LinkIcon,
-  File,
-  Image,
-  Layers,
-  type LucideIcon,
-} from "lucide-react"
+import { Layers } from "lucide-react"
 import type { CollectionTypeIcon } from "@/lib/db/collections"
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  Code,
-  Sparkles,
-  StickyNote,
-  Terminal,
-  Link: LinkIcon,
-  File,
-  Image,
-}
+import { ICON_MAP } from "@/lib/item-types"
 
 interface CollectionCardProps {
   id: string
@@ -28,7 +9,6 @@ interface CollectionCardProps {
   description?: string | null
   itemCount: number
   dominantTypeColor: string
-  isFavorite: boolean
   typeIcons?: CollectionTypeIcon[]
 }
 

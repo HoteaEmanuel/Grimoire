@@ -7,16 +7,26 @@ import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { getRecentCollections, getCollectionStats } from "@/lib/db/collections";
 import { getPinnedItems, getRecentItems, getItemStats } from "@/lib/db/items";
+import { getDevUser } from "@/lib/db/user";
 
 export default async function DashboardPage() {
-  const [recentCollections, collectionStats, pinnedItems, recentItems, itemStats] =
-    await Promise.all([
-      getRecentCollections(),
-      getCollectionStats(),
-      getPinnedItems(),
-      getRecentItems(10),
-      getItemStats(),
-    ]);
+  const user = await getDevUser();
+  const userId = user?.id ?? "";
+
+  const [
+    recentCollections,
+    collectionStats,
+    pinnedItems,
+    recentItems,
+    itemStats,
+  ] = await Promise.all([
+    getRecentCollections(userId),
+    getCollectionStats(userId),
+    getPinnedItems(userId),
+    getRecentItems(userId, 10),
+    getItemStats(userId),
+  ]);
+
 
   return (
     <div className="space-y-8">
@@ -79,7 +89,6 @@ export default async function DashboardPage() {
                 description={col.description}
                 itemCount={col.itemCount}
                 dominantTypeColor={col.dominantTypeColor}
-                isFavorite={col.isFavorite}
                 typeIcons={col.typeIcons}
               />
             ))}
@@ -136,7 +145,8 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <p className="text-sm text-muted-foreground/60">
-            No items yet. Add your first snippet, prompt, or note to get started.
+            No items yet. Add your first snippet, prompt, or note to get
+            started.
           </p>
         )}
       </section>

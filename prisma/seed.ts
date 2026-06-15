@@ -14,12 +14,15 @@ async function main() {
   // ── User ─────────────────────────────────────────────────────────────────
   const passwordHash = await bcrypt.hash("12345678", 12)
 
+  const seedEmail = process.env.SEED_USER_EMAIL
+  if (!seedEmail) throw new Error("SEED_USER_EMAIL env var is required to run the seed")
+
   const user = await prisma.user.upsert({
-    where: { email: "emanuelhotea1@gmail.com" },
+    where: { email: seedEmail },
     update: { password: passwordHash, emailVerified: new Date(), isPro: true },
     create: {
       name: "Emanuel Hotea",
-      email: "emanuelhotea1@gmail.com",
+      email: seedEmail,
       password: passwordHash,
       emailVerified: new Date(),
       isPro: true,
@@ -63,11 +66,15 @@ async function main() {
     "zod", "validation", "testing", "vitest",
   ]
 
-  const tags: Record<string, string> = {}
-  for (const name of tagNames) {
-    const record = await prisma.tag.create({ data: { name, userId: user.id } })
-    tags[name] = record.id
-  }
+  await prisma.tag.createMany({
+    data: tagNames.map((name) => ({ name, userId: user.id })),
+  })
+
+  const tagRecords = await prisma.tag.findMany({
+    where: { userId: user.id },
+    select: { id: true, name: true },
+  })
+  const tags: Record<string, string> = Object.fromEntries(tagRecords.map((t) => [t.name, t.id]))
 
   // ── Helper ────────────────────────────────────────────────────────────────
   type ItemSeed = {

@@ -119,6 +119,10 @@ model Item {
   itemType    ItemType         @relation(fields: [itemTypeId], references: [id])
   tags        TagsOnItems[]
   collections ItemCollection[]
+
+  @@index([userId])
+  @@index([userId, lastUsedAt])
+  @@index([userId, isPinned])
 }
 
 // ─────────────────────────────────────────────
@@ -138,6 +142,9 @@ model Collection {
 
   user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   items ItemCollection[]
+
+  @@index([userId])
+  @@index([userId, updatedAt])
 }
 
 // ─────────────────────────────────────────────
@@ -153,6 +160,7 @@ model ItemCollection {
   collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
   @@id([itemId, collectionId])
+  @@index([collectionId])
 }
 
 model Tag {

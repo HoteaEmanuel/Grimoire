@@ -12,9 +12,10 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   itemTypes: SidebarItemType[];
   collections: SidebarCollection[];
+  user: { name: string; email: string; image?: string | null } | null;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, itemTypes, collections }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, itemTypes, collections, user }: SidebarProps) {
   return (
     <aside
       className={cn(
@@ -43,7 +44,7 @@ export function Sidebar({ collapsed, onToggleCollapse, itemTypes, collections }:
         </Button>
       </div>
 
-      <SidebarContent sidebarCollapsed={collapsed} itemTypes={itemTypes} collections={collections} />
+      <SidebarContent sidebarCollapsed={collapsed} itemTypes={itemTypes} collections={collections} user={user} />
     </aside>
   );
 }

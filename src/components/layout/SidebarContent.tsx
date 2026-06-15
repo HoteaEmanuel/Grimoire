@@ -2,40 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Code,
-  Sparkles,
-  StickyNote,
-  Terminal,
-  Link as LinkIcon,
-  File,
-  Image,
-  type LucideIcon,
-} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type { SidebarItemType } from "@/lib/db/items";
 import type { SidebarCollection } from "@/lib/db/collections";
+import { ICON_MAP } from "@/lib/item-types";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { SidebarCollectionItem } from "./SidebarCollectionItem";
 import { SidebarSection } from "./SidebarSection";
 import { SidebarCollapsibleSection } from "./SidebarCollapsibleSection";
 import { SidebarUserFooter } from "./SidebarUserFooter";
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  Code,
-  Sparkles,
-  StickyNote,
-  Terminal,
-  Link: LinkIcon,
-  File,
-  Image,
-};
-
 interface SidebarContentProps {
   sidebarCollapsed?: boolean;
   onClose?: () => void;
   itemTypes: SidebarItemType[];
   collections: SidebarCollection[];
+  user: { name: string; email: string; image?: string | null } | null;
 }
 
 function CollectionSubLabel({
@@ -58,6 +40,7 @@ export function SidebarContent({
   onClose,
   itemTypes,
   collections,
+  user,
 }: SidebarContentProps) {
   const pathname = usePathname();
 
@@ -158,9 +141,9 @@ export function SidebarContent({
       </nav>
 
       <SidebarUserFooter
-        name="Emanuel Hotea"
-        email="emanuelhotea1@gmail.com"
-        image={null}
+        name={user?.name ?? ""}
+        email={user?.email ?? ""}
+        image={user?.image ?? null}
         collapsed={sidebarCollapsed}
       />
     </>
