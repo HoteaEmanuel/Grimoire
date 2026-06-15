@@ -62,7 +62,9 @@ export function SidebarContent({
   const pathname = usePathname();
 
   const favoriteCollections = collections.filter((c) => c.isFavorite);
-  const recentCollections = collections.filter((c) => !c.isFavorite).slice(0, 4);
+  const recentCollections = collections
+    .filter((c) => !c.isFavorite)
+    .slice(0, 4);
 
   return (
     <>
@@ -81,6 +83,7 @@ export function SidebarContent({
                 count={type.count}
                 collapsed={sidebarCollapsed}
                 active={pathname === `/dashboard/items/${type.slug}`}
+                isPro={type.slug === "files" || type.slug === "images"}
                 onClick={onClose}
               />
             );
@@ -134,11 +137,13 @@ export function SidebarContent({
             </>
           )}
 
-          {favoriteCollections.length === 0 && recentCollections.length === 0 && !sidebarCollapsed && (
-            <p className="px-2 py-1 text-[11px] text-muted-foreground/50">
-              No collections yet.
-            </p>
-          )}
+          {favoriteCollections.length === 0 &&
+            recentCollections.length === 0 &&
+            !sidebarCollapsed && (
+              <p className="px-2 py-1 text-[11px] text-muted-foreground/50">
+                No collections yet.
+              </p>
+            )}
 
           {!sidebarCollapsed && (
             <Link
