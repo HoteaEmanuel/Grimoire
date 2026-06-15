@@ -413,7 +413,7 @@ erDiagram
 
 | Layer            | Technology            | Notes                                          |
 | ---------------- | --------------------- | ---------------------------------------------- |
-| **Framework**    | Next.js 15 / React 19 | App Router, SSR + client components            |
+| **Framework**    | Next.js 16 / React 19 | App Router, SSR + client components            |
 | **Language**     | TypeScript            | Strict mode enabled                            |
 | **Database**     | PostgreSQL via Neon   | Serverless Postgres                            |
 | **ORM**          | Prisma 6              | Migrations only — no `db push`                 |
@@ -737,6 +737,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 - File uploads go directly to R2 via a server-generated signed URL — never through the Next.js API route body.
 - All AI calls are server-side only (API routes) — never expose `OPENAI_API_KEY` to the client.
 - Tag names are unique per user (enforced at DB level with `@@unique([name, userId])`).
+- When adding a new completed feature to the current feature spec, update the `History` section with a timestamp and brief description leaving a line space between different features.
 
 ### Screenshots
 
