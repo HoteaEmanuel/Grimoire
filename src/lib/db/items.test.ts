@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { prisma } from "@/lib/prisma";
-import { getItemById, getItemCardsByType } from "./items";
+import { getItemById, getItemCardsByType, updateItem } from "./items";
 
 const mockPrismaItem = {
   id: "item-1",
@@ -66,6 +66,94 @@ describe("getItemById", () => {
 
     expect(result).toBeNull();
     expect(consoleSpy).toHaveBeenCalledWith("[getItemById]", expect.any(Error));
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("updateItem", () => {
+  const updatedPrismaItem = {
+    id: "item-1",
+    title: "Updated Title",
+    description: "Updated desc",
+    contentKind: "TEXT" as const,
+    content: "new content",
+    url: null,
+    fileUrl: null,
+    fileName: null,
+    fileSize: null,
+    language: "python",
+    isFavorite: false,
+    isPinned: false,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-05"),
+    lastUsedAt: null,
+    itemType: { name: "Snippet", slug: "snippets", color: "#3b82f6", icon: "Code" },
+    tags: [{ tag: { name: "python" } }],
+    collections: [],
+  };
+
+  const txMock = {
+    tagsOnItems: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    item: { update: vi.fn().mockResolvedValue(updatedPrismaItem) },
+  };
+
+  beforeEach(() => {
+    txMock.tagsOnItems.deleteMany.mockResolvedValue({ count: 1 });
+    txMock.item.update.mockResolvedValue(updatedPrismaItem);
+    vi.mocked(prisma.$transaction).mockImplementation(
+      async (fn: unknown) => (typeof fn === "function" ? fn(txMock) : Promise.resolve()),
+    );
+  });
+
+  const data = {
+    title: "Updated Title",
+    description: "Updated desc",
+    content: "new content",
+    url: null,
+    language: "python",
+    tags: ["python"],
+  };
+
+  it("deletes existing tags and updates item in a transaction", async () => {
+    const result = await updateItem("user-1", "item-1", data);
+
+    expect(txMock.tagsOnItems.deleteMany).toHaveBeenCalledWith({ where: { itemId: "item-1" } });
+    expect(txMock.item.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1", userId: "user-1" } }),
+    );
+    expect(result).toMatchObject({
+      id: "item-1",
+      title: "Updated Title",
+      language: "python",
+      tags: ["python"],
+      collections: [],
+    });
+  });
+
+  it("passes correct data fields to item.update", async () => {
+    await updateItem("user-1", "item-1", data);
+
+    expect(txMock.item.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          title: "Updated Title",
+          description: "Updated desc",
+          content: "new content",
+          url: null,
+          language: "python",
+        }),
+      }),
+    );
+  });
+
+  it("returns null and logs error on transaction failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(prisma.$transaction).mockRejectedValue(new Error("TX failed"));
+
+    const result = await updateItem("user-1", "item-1", data);
+
+    expect(result).toBeNull();
+    expect(consoleSpy).toHaveBeenCalledWith("[updateItem]", expect.any(Error));
     consoleSpy.mockRestore();
   });
 });
