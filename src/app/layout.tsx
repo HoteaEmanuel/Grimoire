@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Cinzel, JetBrains_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,6 +37,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-background text-foreground">
           <TooltipProvider>{children}</TooltipProvider>
+        <Toaster richColors position="top-right" />
         </body>
     </html>
   );

@@ -7,11 +7,11 @@ import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { getRecentCollections, getCollectionStats } from "@/lib/db/collections";
 import { getPinnedItems, getRecentItems, getItemStats } from "@/lib/db/items";
-import { getDevUser } from "@/lib/db/user";
+import { auth } from "@/auth";
 
 export default async function DashboardPage() {
-  const user = await getDevUser();
-  const userId = user?.id ?? "";
+  const session = await auth();
+  const userId = session?.user?.id ?? "";
 
   const [
     recentCollections,
