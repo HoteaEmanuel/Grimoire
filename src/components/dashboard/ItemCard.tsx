@@ -2,6 +2,7 @@ import { Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface ItemCardProps {
+  id?: string;
   title: string;
   description?: string | null;
   typeName: string;
@@ -9,9 +10,11 @@ interface ItemCardProps {
   tags: string[];
   isPinned?: boolean;
   language?: string | null;
+  onClick?: (id: string) => void;
 }
 
 export function ItemCard({
+  id,
   title,
   description,
   typeName,
@@ -19,10 +22,12 @@ export function ItemCard({
   tags,
   isPinned,
   language,
+  onClick,
 }: ItemCardProps) {
   return (
     <div
       className="tome-card group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.01]"
+      onClick={id && onClick ? () => onClick(id) : undefined}
       style={{
         background: `linear-gradient(135deg, ${typeColor}18 0%, oklch(0.17 0.022 55) 55%, oklch(0.14 0.016 50) 100%)`,
       }}
