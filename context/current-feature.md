@@ -1,30 +1,14 @@
-## Current Feature: Items List View
+## Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
-
-- Create dynamic route `/dashboard/items/[type]` serving all 7 item type pages
-- Validate the `[type]` param against `SYSTEM_ITEM_TYPES`; return 404 for unknown slugs
-- Fetch items from the DB filtered by type, owned by the authenticated user
-- Render a responsive grid of `ItemCard` components (3 columns on `md` and up)
-- Each card has a left border colored by its item type hex color
-- Follow existing codebase patterns (server page → client grid component)
 
 ## Notes
 
-- Route: `/dashboard/items/[type]` — `[type]` matches `ItemType.slug` (e.g., `snippets`, `notes`)
-- This is a read-only listing view; no drawer, create, or edit in this phase
-- Ordering: pinned items first, then by `lastUsedAt` desc, then `createdAt` desc
-- Use `getItemsByType` from `src/lib/db/items.ts` (add this function — see `docs/item-crud-architecture.md`)
-- `ItemFull` type and `getItemsByType` query are designed in the CRUD architecture doc
-- The sidebar already links to these routes via `SidebarNavItem` components
-
 ## History
 
-- **Rate Limiting for Auth - 2026-06-16** — Installed `@upstash/ratelimit` + `@upstash/redis`. Created `src/lib/rate-limit.ts` with sliding window limiters for all 5 auth endpoints, `getIP()` helper (reads `x-forwarded-for`), `checkRateLimit()` (fails open if Upstash is unavailable), and `rateLimitResponse()` (429 + `Retry-After` header + dynamic "try again in X minutes" message). Sign-in rate limiting uses a pre-check pattern: `SignInForm` calls `POST /api/auth/signin-check` (5/15 min, IP+email) before `signIn()` to surface the 429 as a toast without NextAuth intercepting it. Register (3/1 hr, IP), forgot-password (5/1 hr, IP), reset-password (5/15 min, IP), and resend-verification (5/15 min, IP+email) are rate-limited directly in their route handlers. All forms handle 429 with `toast.error()` using the server's error message; `SignInForm` and `RegisterForm` also set inline `serverError`.
+
 
 - **Initial setup - 2026-06-13** — Initial Next.js 15 + Tailwind CSS v4 project setup. Initialized git repository, connected to remote, and pushed to `main`.
 
@@ -61,3 +45,8 @@ In Progress
 - **Profile Page - 2026-06-16** — Created `/profile` route protected by proxy. User info card shows avatar (GitHub image or initials fallback), name, email, and joined date. Usage stats section displays total items, total collections, and a per-type breakdown with color-coded progress bars using `ICON_MAP`. Change password card (shown only when `hasPassword` is true) uses `ChangePasswordForm` with react-hook-form + Zod + `useChangePassword` mutation (axios + TanStack Query). Delete account uses `AlertDialog` confirmation; on confirm calls `useDeleteAccount` mutation then `signOut` to `/sign-in?toast=account-deleted`; `AuthToast` handles the param. Mutations extracted to `src/lib/mutations/profile.ts`. Installed `@tanstack/react-query` with `QueryClientProvider` in root layout via `src/components/Providers.tsx`. Installed shadcn `alert-dialog` (Base UI backed). Auth forms (`SignInForm`, `RegisterForm`) spacing improved: `max-w-md` container, `p-8` card padding, `space-y-5` field gaps. Global `cursor: pointer` added for `button, [role="button"]` in `globals.css` base layer.
 
 - **Auth Security Fixes - 2026-06-16** — Created `.claude/agents/auth-auditor.md` subagent for targeted auth-only security reviews. Ran full audit and applied all findings: removed `allowDangerousEmailAccountLinking` from GitHub provider (account hijack via email match); SHA-256-hashed all `VerificationToken` values before DB storage so a DB read yields no usable tokens; fixed registration orphan bug (user+token cleaned up if `sendVerificationEmail` throws); changed expired-token redirect from `/sign-in` to `/verify-email` so the error stays visible; extracted shared `RESET_PREFIX` constant and `hashToken` helper to `src/lib/auth-constants.ts`. Guarded dev-only `console.log` token URLs in `email.ts` behind `NODE_ENV !== "production"`. Added `AUTH_URL` to `.env.production` to prevent email links pointing to localhost in production.
+
+
+- **Items List View - 2026-06-16** — Added `ItemFull` type and `getItemsByType(userId, typeSlug)` to `src/lib/db/items.ts` (ordered: pinned first → lastUsedAt desc → createdAt desc). Created `src/app/dashboard/items/[type]/page.tsx` — validates slug against `SYSTEM_ITEM_TYPES`, 404s on unknown types, fetches items server-side. Created `src/components/items/ItemsGrid.tsx` — responsive 3-column grid reusing existing `ItemCard`; type-colored empty state with `PackageOpen` icon and Cinzel heading. Added `loading.tsx` with 6 skeleton cards and `not-found.tsx` with `BookX` icon and themed glow matching dashboard design tokens.
+
+- **Rate Limiting for Auth - 2026-06-16** — Installed `@upstash/ratelimit` + `@upstash/redis`. Created `src/lib/rate-limit.ts` with sliding window limiters for all 5 auth endpoints, `getIP()` helper (reads `x-forwarded-for`), `checkRateLimit()` (fails open if Upstash is unavailable), and `rateLimitResponse()` (429 + `Retry-After` header + dynamic "try again in X minutes" message). Sign-in rate limiting uses a pre-check pattern: `SignInForm` calls `POST /api/auth/signin-check` (5/15 min, IP+email) before `signIn()` to surface the 429 as a toast without NextAuth intercepting it. Register (3/1 hr, IP), forgot-password (5/1 hr, IP), reset-password (5/15 min, IP), and resend-verification (5/15 min, IP+email) are rate-limited directly in their route handlers. All forms handle 429 with `toast.error()` using the server's error message; `SignInForm` and `RegisterForm` also set inline `serverError`.
