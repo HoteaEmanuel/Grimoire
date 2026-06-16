@@ -27,8 +27,13 @@ export function RegisterForm() {
   async function onSubmit(data: RegisterInput) {
     setServerError(null)
     try {
-      await axios.post("/api/auth/register", data)
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+      const res = await axios.post("/api/auth/register", data)
+      if (res.data.verified) {
+        toast.success("Account created! Please sign in.")
+        router.push("/sign-in")
+      } else {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+      }
     } catch (err) {
       const message = err instanceof AxiosError
         ? (err.response?.data?.error ?? "Something went wrong")

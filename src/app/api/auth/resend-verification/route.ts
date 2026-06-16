@@ -7,6 +7,10 @@ import { sendVerificationEmail } from "@/lib/email"
 const schema = z.object({ email: z.email() })
 
 export async function POST(req: Request) {
+  if (process.env.EMAIL_VERIFICATION_ENABLED === "false") {
+    return NextResponse.json({ success: true })
+  }
+
   try {
     const body = await req.json()
     const result = schema.safeParse(body)

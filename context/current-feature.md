@@ -1,10 +1,23 @@
-## Current Feature
+## Current Feature: Email Verification Toggle
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- Add an `EMAIL_VERIFICATION_ENABLED` env variable (default `true`) that controls whether email verification is required
+- When `false`: registration skips token creation and email sending, sets `emailVerified` immediately, and bypasses the proxy block on unverified users
+- When `false`: `/api/auth/resend-verification` returns a clear error or no-op
+- No code paths should crash or behave unexpectedly regardless of the flag value
+- The toggle is checked in exactly 3 places: the register route, the resend-verification route, and the proxy
+
 ## Notes
+
+- Resend free tier only allows sending to the account owner's email (emanuelhotea1@gmail.com) until a domain is linked, making registration unusable for other emails in dev
+- An env var is the right approach — simple, explicit, no UI needed
+- Touch only the 3 files listed in Goals; do not refactor unrelated auth code
+- The flag should default to `true` (verification on) so production stays safe if the var is omitted
 
 ## History
 

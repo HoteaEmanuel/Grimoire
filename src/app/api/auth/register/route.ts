@@ -23,21 +23,29 @@ export async function POST(req: Request) {
     }
 
     const hashed = await bcrypt.hash(password, 12)
+    const verificationEnabled = process.env.EMAIL_VERIFICATION_ENABLED !== "false"
 
     await prisma.user.create({
-      data: { name, email, password: hashed },
+      data: {
+        name,
+        email,
+        password: hashed,
+        emailVerified: verificationEnabled ? null : new Date(),
+      },
     })
 
-    const token = crypto.randomBytes(32).toString("hex")
-    const expires = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+    if (verificationEnabled) {
+      const token = crypto.randomBytes(32).toString("hex")
+      const expires = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
 
-    await prisma.verificationToken.create({
-      data: { identifier: email, token, expires },
-    })
+      await prisma.verificationToken.create({
+        data: { identifier: email, token, expires },
+      })
 
-    await sendVerificationEmail(email, token)
+      await sendVerificationEmail(email, token)
+    }
 
-    return NextResponse.json({ success: true }, { status: 201 })
+    return NextResponse.json({ success: true, verified: !verificationEnabled }, { status: 201 })
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

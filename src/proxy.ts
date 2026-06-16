@@ -13,8 +13,9 @@ export const proxy = auth(function middleware(req) {
     }
 
     // Block unverified credentials users from the dashboard
+    const verificationEnabled = process.env.EMAIL_VERIFICATION_ENABLED !== "false"
     const emailVerified = req.auth?.user?.emailVerified
-    if (!emailVerified) {
+    if (verificationEnabled && !emailVerified) {
       const email = req.auth?.user?.email ?? ""
       const url = new URL("/verify-email", nextUrl)
       if (email) url.searchParams.set("email", email)
