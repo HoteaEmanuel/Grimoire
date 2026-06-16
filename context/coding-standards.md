@@ -48,14 +48,6 @@ Example v4 configuration:
 }
 ```
 
-## File Organization
-
-- Components: `src/components/[feature]/ComponentName.tsx`
-- Pages: `src/app/[route]/page.tsx`
-- Server Actions: `src/actions/[feature].ts`
-- Types: `src/types/[feature].ts`
-- Lib/Utils: `src/lib/[utility].ts`
-
 ## Naming
 
 - Components: PascalCase (`ItemCard.tsx`)
@@ -90,8 +82,41 @@ Example v4 configuration:
 - Return `{ success, data, error }` pattern from actions
 - Display user-friendly error messages via toast
 
-## Code Quality
+## Testing
 
-- No commented-out code unless specified
-- No unused imports or variables
-- Keep functions under 50 lines when possible
+- Framework: **Vitest** — server actions and utilities only, no component tests
+- Test files: `src/**/*.test.ts` (never inside `src/components/`)
+- Environment: `node` — do not use jsdom or browser APIs in tests
+- Co-locate tests with source when possible: `src/lib/auth-constants.test.ts` alongside `src/lib/auth-constants.ts`
+
+**Mocking:**
+- Global mocks for `next/headers`, `next/cache`, `@/lib/prisma`, and `@/auth` are registered in `src/tests/setup.ts`
+- Control return values per test with `vi.mocked(prisma.user.findUnique).mockResolvedValue(...)`
+- Always call `vi.clearAllMocks()` in `beforeEach` if a test file shares mock state
+
+**What to test:**
+- Pure utility functions (validation, formatting, hashing)
+- Server action logic: auth checks, input validation, error branches
+- DB helper functions in `src/lib/db/` — mock Prisma, assert correct query args
+
+**What not to test:**
+- React components or hooks
+- Next.js routing or middleware
+- Third-party library internals
+
+**Commands:**
+```bash
+npm run test            # single run
+npm run test:watch      # watch mode
+npm run test:coverage   # coverage report (src/lib + src/actions only)
+```
+
+## File Organization
+
+- Components: `src/components/[feature]/ComponentName.tsx`
+- Pages: `src/app/[route]/page.tsx`
+- Server Actions: `src/actions/[feature].ts`
+- Types: `src/types/[feature].ts`
+- Lib/Utils: `src/lib/[utility].ts`
+- Tests: `src/[feature]/[file].test.ts` (mirror source path)
+- Test setup: `src/tests/setup.ts`
