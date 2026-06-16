@@ -1,26 +1,10 @@
-## Current Feature: Forgot Password
+## Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Add a "Forgot password?" link on the `/sign-in` page that navigates to a `/forgot-password` page
-- `/forgot-password` page has an email input; on submit, generate a password-reset token using the existing `VerificationToken` model and send a reset email via Resend
-- `GET /api/auth/forgot-password` — accepts `email`, creates a `VerificationToken` with a 15-min expiry (identifier = `reset:{email}`), sends a reset-password email with the token link
-- `/reset-password?token=...` page — validates the token, shows a new-password + confirm-password form, on submit calls a reset endpoint
-- `POST /api/auth/reset-password` — validates token, hashes new password, updates `User.password`, deletes the used token, redirects to `/sign-in?toast=password-reset`
-- `AuthToast` handles the `password-reset` param to show a success toast on sign-in
-- Token reuse prevention: token is deleted immediately after successful use
-- Expired/invalid token shows a clear error with a link back to `/forgot-password`
-
 ## Notes
-
-- Reuse existing `VerificationToken` model — use a namespaced identifier like `reset:{email}` to avoid collisions with email-verification tokens
-- Follow the same email style as `sendVerificationEmail` in `src/lib/email.ts`
-- Follow the same Zod + react-hook-form pattern as the existing auth forms
-- `EMAIL_VERIFICATION_ENABLED` toggle does not affect password reset — it should always work
 
 ## History
 
@@ -53,3 +37,5 @@ In Progress
 - **Email Verification - 2026-06-16** — Installed `resend` SDK. Created `src/lib/email.ts` with `sendVerificationEmail` (light-mode HTML email, console logs link in dev). Registration generates a 15-min `VerificationToken` and sends the email. `GET /api/auth/verify-email` validates token, sets `emailVerified`, redirects to `/sign-in?toast=email-verified`. `POST /api/auth/resend-verification` deletes stale tokens and issues a fresh one. `/verify-email` page shows check-your-inbox UI with `ResendVerificationButton` (60s cooldown). Proxy blocks unverified credentials users from `/dashboard` and redirects to `/verify-email`. `emailVerified` stored in JWT and exposed on session via `authConfig` session callback. `AuthToast` handles `email-verified`, `token-expired`, `invalid-token` params. `SignInForm` adds a persistent "Resend verification" link so returning users are never stuck.
 
 - **Email Verification Toggle - 2026-06-16** — Added `EMAIL_VERIFICATION_ENABLED` env variable (default `true`). When set to `false`: registration sets `emailVerified` immediately (skips token creation and email sending), `RegisterForm` redirects to `/sign-in` with a success toast instead of `/verify-email`, the proxy skips the unverified-user block, and `/api/auth/resend-verification` becomes a no-op. Safe for production — omitting the var keeps verification on.
+
+- **Forgot Password - 2026-06-16** — Added "Forgot password?" link inline with the Password label in `SignInForm`. Created `/forgot-password` page with `ForgotPasswordForm` — submits to `POST /api/auth/forgot-password` which generates a `VerificationToken` with identifier `reset:{email}` (namespaced to avoid collision with email-verification tokens), 15-min expiry, and sends a reset email via Resend. `/reset-password?token=&email=` page renders `ResetPasswordForm` — submits to `POST /api/auth/reset-password` which validates the token namespace and expiry, hashes the new password, and atomically updates `User.password` + deletes the token in a `$transaction`. On success, redirects to `/sign-in?toast=password-reset`; `AuthToast` handles the param. Expired/invalid tokens redirect to `/forgot-password?error=token-expired` with an inline error banner. OAuth-only accounts (no password set) are silently skipped to avoid enumeration. `EMAIL_VERIFICATION_ENABLED` does not affect this flow.
