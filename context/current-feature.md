@@ -1,24 +1,10 @@
-## Current Feature: Profile Page
+## Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Create `/profile` route with authentication protection
-- Display user info: email, name, avatar (GitHub avatar or initials fallback), account creation date
-- Show usage stats: total items, total collections, item count breakdown by type
-- Add change password action (email/password users only — hidden for OAuth-only accounts)
-- Add delete account action with confirmation dialog to prevent accidental deletion
-
 ## Notes
-
-- Avatar: use GitHub avatar from session if available, otherwise generate initials from name or email
-- Change password button must not appear for GitHub OAuth-only users (no password set)
-- Delete account needs a confirmation dialog before proceeding
-- Item type breakdown covers: snippets, prompts, notes, commands, links, files, images
-- Follow existing patterns: server component data fetching, Prisma queries in `src/lib/db/`, shadcn/ui components
 
 ## History
 
@@ -53,3 +39,5 @@ In Progress
 - **Email Verification Toggle - 2026-06-16** — Added `EMAIL_VERIFICATION_ENABLED` env variable (default `true`). When set to `false`: registration sets `emailVerified` immediately (skips token creation and email sending), `RegisterForm` redirects to `/sign-in` with a success toast instead of `/verify-email`, the proxy skips the unverified-user block, and `/api/auth/resend-verification` becomes a no-op. Safe for production — omitting the var keeps verification on.
 
 - **Forgot Password - 2026-06-16** — Added "Forgot password?" link inline with the Password label in `SignInForm`. Created `/forgot-password` page with `ForgotPasswordForm` — submits to `POST /api/auth/forgot-password` which generates a `VerificationToken` with identifier `reset:{email}` (namespaced to avoid collision with email-verification tokens), 15-min expiry, and sends a reset email via Resend. `/reset-password?token=&email=` page renders `ResetPasswordForm` — submits to `POST /api/auth/reset-password` which validates the token namespace and expiry, hashes the new password, and atomically updates `User.password` + deletes the token in a `$transaction`. On success, redirects to `/sign-in?toast=password-reset`; `AuthToast` handles the param. Expired/invalid tokens redirect to `/forgot-password?error=token-expired` with an inline error banner. OAuth-only accounts (no password set) are silently skipped to avoid enumeration. `EMAIL_VERIFICATION_ENABLED` does not affect this flow.
+
+- **Profile Page - 2026-06-16** — Created `/profile` route protected by proxy. User info card shows avatar (GitHub image or initials fallback), name, email, and joined date. Usage stats section displays total items, total collections, and a per-type breakdown with color-coded progress bars using `ICON_MAP`. Change password card (shown only when `hasPassword` is true) uses `ChangePasswordForm` with react-hook-form + Zod + `useChangePassword` mutation (axios + TanStack Query). Delete account uses `AlertDialog` confirmation; on confirm calls `useDeleteAccount` mutation then `signOut` to `/sign-in?toast=account-deleted`; `AuthToast` handles the param. Mutations extracted to `src/lib/mutations/profile.ts`. Installed `@tanstack/react-query` with `QueryClientProvider` in root layout via `src/components/Providers.tsx`. Installed shadcn `alert-dialog` (Base UI backed). Auth forms (`SignInForm`, `RegisterForm`) spacing improved: `max-w-md` container, `p-8` card padding, `space-y-5` field gaps. Global `cursor: pointer` added for `button, [role="button"]` in `globals.css` base layer.
