@@ -2,6 +2,8 @@
 
 ## Status
 
+Not Started
+
 ## Goals
 
 ## Notes
@@ -53,3 +55,5 @@
 - **Vitest Setup - 2026-06-16** — Installed `vitest`, `@vitest/coverage-v8`, and `vite-tsconfig-paths`. Created `vitest.config.ts` with `node` environment, native Vite tsconfig path resolution, and `passWithNoTests`. Created `src/tests/setup.ts` with global mocks for `next/headers`, `next/cache`, `@/lib/prisma`, and `@/auth`. Added `test`, `test:watch`, and `test:coverage` scripts to `package.json`. Updated `context/ai-interaction.md` (step 4) and `context/coding-standards.md` with testing section covering what to test, mocking patterns, and commands. Scope: server actions and utilities only — no component tests.
 
 - **Unit Tests — Auth Utilities - 2026-06-16** — Wrote 38 passing tests across 3 files. `src/lib/auth-constants.test.ts`: `hashToken` (determinism, format, known SHA-256 value) and `safeCompare` (equal/unequal/different-length strings). `src/lib/schemas/auth.test.ts`: all 5 Zod schemas (valid input, invalid email, short password, mismatched confirm, and `changePasswordSchema`-specific same-password rule). `src/lib/rate-limit.test.ts`: `getIP` (header parsing, whitespace trimming, fallback), `rateLimitResponse` (status 429, Retry-After header, singular/plural minutes), `checkRateLimit` (allow, block, fail-open on Upstash error).
+
+- **Item Drawer - 2026-06-16** — Right-side slide-in drawer for full item detail view. Installed shadcn `Drawer` (vaul) and `zustand`. Added `getItemById` (full data + collections) and `getItemCardsByType` (card-level only) to `src/lib/db/items.ts`. Created `GET /api/items/[id]` with auth check. `ItemCard` gains optional `id` + `onClick` props. `ItemDrawer` client component subscribes to `useItemDrawerStore` (Zustand) — fetches via axios on open, shows loading skeleton, displays description/content/url/file info/language/tags/collections/date, action bar with Favorite (yellow star), Pin (slate fill), Copy, Edit, Delete. `ItemGridWithDrawer` client wrapper subscribes only to `openDrawer` action (never re-renders on selection change). `ItemDrawer` mounted as singleton in `dashboard/layout.tsx`. Items type page refactored to `getItemCardsByType` (card-level queries only). Dashboard page uses `ItemGridWithDrawer` for pinned and recent item sections. Added `formatDate`, `formatFileSize`, `copyToClipboard` to `src/lib/utils.ts`. Unit tests: 13 new tests across `src/lib/utils.test.ts` (7) and `src/lib/db/items.test.ts` (6); Prisma mock in `setup.ts` extended with `findFirst` and `groupBy`.
