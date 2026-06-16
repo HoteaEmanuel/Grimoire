@@ -35,6 +35,12 @@ export function RegisterForm() {
         router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
       }
     } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 429) {
+        const msg = err.response.data?.error ?? "Too many registration attempts. Please try again later."
+        toast.error(msg)
+        setServerError(msg)
+        return
+      }
       const message = err instanceof AxiosError
         ? (err.response?.data?.error ?? "Something went wrong")
         : "Something went wrong"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 
@@ -23,7 +23,11 @@ export function ResendVerificationButton({ email }: { email: string }) {
       await axios.post("/api/auth/resend-verification", { email })
       toast.success("Verification email sent! Check your inbox.")
       setCooldown(COOLDOWN_SECONDS)
-    } catch {
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 429) {
+        toast.error(err.response.data?.error ?? "Too many attempts. Please try again later.")
+        return
+      }
       toast.error("Failed to send email. Please try again.")
     } finally {
       setLoading(false)

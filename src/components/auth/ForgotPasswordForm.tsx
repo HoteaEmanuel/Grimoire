@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,7 +25,11 @@ export function ForgotPasswordForm() {
     try {
       await axios.post("/api/auth/forgot-password", data)
       setSent(true)
-    } catch {
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 429) {
+        toast.error(err.response.data?.error ?? "Too many attempts. Please try again later.")
+        return
+      }
       toast.error("Something went wrong. Please try again.")
     }
   }

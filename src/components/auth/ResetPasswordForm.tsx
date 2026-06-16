@@ -32,7 +32,9 @@ export function ResetPasswordForm({ token, email }: Props) {
       router.push("/sign-in?toast=password-reset")
     } catch (err) {
       const error = err as AxiosError<{ error?: string }>
-      if (error.response?.data?.error === "token-expired") {
+      if (error.response?.status === 429) {
+        toast.error(error.response.data?.error ?? "Too many attempts. Please try again later.")
+      } else if (error.response?.data?.error === "token-expired") {
         toast.error("This reset link has expired.")
         router.push("/forgot-password?error=token-expired")
       } else {
