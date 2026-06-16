@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
-import { updateItem } from "./items";
+import { updateItem, deleteItem } from "./items";
+import { prisma } from "@/lib/prisma";
 
 vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
@@ -164,6 +165,78 @@ describe("updateItem server action", () => {
       const result = await updateItem("item-1", { title: "Title", tags: [] });
 
       expect(result).toEqual({ success: false, error: "Failed to save changes" });
+    });
+  });
+});
+
+describe("deleteItem server action", () => {
+  describe("auth checks", () => {
+    it("returns error when unauthenticated", async () => {
+      vi.mocked(auth).mockResolvedValue(null);
+
+      const result = await deleteItem("item-1");
+
+      expect(result).toEqual({ success: false, error: "Unauthorized" });
+      expect(prisma.item.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it("returns error when session has no user id", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: {} } as never);
+
+      const result = await deleteItem("item-1");
+
+      expect(result).toEqual({ success: false, error: "Unauthorized" });
+    });
+  });
+
+  describe("ownership check", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("returns error when item not found or belongs to another user", async () => {
+      vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 0 });
+
+      const result = await deleteItem("item-999");
+
+      expect(result).toEqual({ success: false, error: "Item not found" });
+    });
+
+    it("passes userId as ownership filter to deleteMany", async () => {
+      vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 1 });
+
+      await deleteItem("item-1");
+
+      expect(prisma.item.deleteMany).toHaveBeenCalledWith({
+        where: { id: "item-1", userId: "user-1" },
+      });
+    });
+  });
+
+  describe("successful delete", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+      vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 1 });
+    });
+
+    it("returns success when item is deleted", async () => {
+      const result = await deleteItem("item-1");
+
+      expect(result).toEqual({ success: true });
+    });
+  });
+
+  describe("db error", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("returns error when prisma throws", async () => {
+      vi.mocked(prisma.item.deleteMany).mockRejectedValue(new Error("DB error"));
+
+      const result = await deleteItem("item-1");
+
+      expect(result).toEqual({ success: false, error: "Failed to delete item" });
     });
   });
 });
