@@ -387,6 +387,112 @@ export async function updateItem(
   }
 }
 
+export type CreateItemData = {
+  typeSlug: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+};
+
+const SLUG_TO_CONTENT_KIND: Record<string, "TEXT" | "URL" | "FILE"> = {
+  snippets: "TEXT",
+  prompts: "TEXT",
+  notes: "TEXT",
+  commands: "TEXT",
+  links: "URL",
+  files: "FILE",
+  images: "FILE",
+};
+
+export async function createItem(userId: string, data: CreateItemData): Promise<ItemDetail | null> {
+  try {
+    const itemType = await prisma.itemType.findUnique({
+      where: { slug: data.typeSlug },
+      select: { id: true },
+    });
+
+    if (!itemType) return null;
+
+    const contentKind = SLUG_TO_CONTENT_KIND[data.typeSlug] ?? "TEXT";
+
+    const created = await prisma.item.create({
+      data: {
+        userId,
+        itemTypeId: itemType.id,
+        contentKind,
+        title: data.title,
+        description: data.description,
+        content: data.content,
+        url: data.url,
+        language: data.language,
+        tags: {
+          create: data.tags.map((name) => ({
+            tag: {
+              connectOrCreate: {
+                where: { name_userId: { name, userId } },
+                create: { name, userId },
+              },
+            },
+          })),
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        contentKind: true,
+        content: true,
+        url: true,
+        fileUrl: true,
+        fileName: true,
+        fileSize: true,
+        language: true,
+        isFavorite: true,
+        isPinned: true,
+        createdAt: true,
+        updatedAt: true,
+        lastUsedAt: true,
+        itemType: { select: { name: true, slug: true, color: true, icon: true } },
+        tags: { select: { tag: { select: { name: true } } } },
+        collections: { select: { collection: { select: { id: true, name: true } } } },
+      },
+    });
+
+    return {
+      id: created.id,
+      title: created.title,
+      description: created.description,
+      contentKind: created.contentKind,
+      content: created.content,
+      url: created.url,
+      fileUrl: created.fileUrl,
+      fileName: created.fileName,
+      fileSize: created.fileSize,
+      language: created.language,
+      isFavorite: created.isFavorite,
+      isPinned: created.isPinned,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+      lastUsedAt: created.lastUsedAt,
+      typeName: created.itemType.name,
+      typeSlug: created.itemType.slug,
+      typeColor: created.itemType.color,
+      typeIconName: created.itemType.icon,
+      tags: created.tags.map((t) => t.tag.name),
+      collections: created.collections.map((c) => ({
+        id: c.collection.id,
+        name: c.collection.name,
+      })),
+    };
+  } catch (err) {
+    console.error("[createItem]", err);
+    return null;
+  }
+}
+
 export type SidebarItemType = {
   id: string;
   name: string;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { prisma } from "@/lib/prisma";
-import { getItemById, getItemCardsByType, updateItem } from "./items";
+import { getItemById, getItemCardsByType, updateItem, createItem } from "./items";
 
 const mockPrismaItem = {
   id: "item-1",
@@ -154,6 +154,157 @@ describe("updateItem", () => {
 
     expect(result).toBeNull();
     expect(consoleSpy).toHaveBeenCalledWith("[updateItem]", expect.any(Error));
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("createItem", () => {
+  const mockCreatedItem = {
+    id: "item-new",
+    title: "New Snippet",
+    description: null,
+    contentKind: "TEXT" as const,
+    content: "console.log('new')",
+    url: null,
+    fileUrl: null,
+    fileName: null,
+    fileSize: null,
+    language: "typescript",
+    isFavorite: false,
+    isPinned: false,
+    createdAt: new Date("2024-01-10"),
+    updatedAt: new Date("2024-01-10"),
+    lastUsedAt: null,
+    itemType: { name: "Snippet", slug: "snippets", color: "#3b82f6", icon: "Code" },
+    tags: [{ tag: { name: "react" } }],
+    collections: [],
+  };
+
+  beforeEach(() => {
+    vi.mocked(prisma.itemType.findUnique).mockResolvedValue({ id: "type-1" } as never);
+    vi.mocked(prisma.item.create).mockResolvedValue(mockCreatedItem as never);
+  });
+
+  it("looks up item type by slug", async () => {
+    await createItem("user-1", {
+      typeSlug: "snippets",
+      title: "New Snippet",
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+    });
+
+    expect(prisma.itemType.findUnique).toHaveBeenCalledWith({
+      where: { slug: "snippets" },
+      select: { id: true },
+    });
+  });
+
+  it("returns null when item type not found", async () => {
+    vi.mocked(prisma.itemType.findUnique).mockResolvedValue(null);
+
+    const result = await createItem("user-1", {
+      typeSlug: "snippets",
+      title: "New Snippet",
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+    });
+
+    expect(result).toBeNull();
+    expect(prisma.item.create).not.toHaveBeenCalled();
+  });
+
+  it("creates item with correct contentKind for text types", async () => {
+    await createItem("user-1", {
+      typeSlug: "snippets",
+      title: "New Snippet",
+      description: null,
+      content: "code",
+      url: null,
+      language: "typescript",
+      tags: [],
+    });
+
+    expect(prisma.item.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          userId: "user-1",
+          itemTypeId: "type-1",
+          contentKind: "TEXT",
+          title: "New Snippet",
+          language: "typescript",
+        }),
+      }),
+    );
+  });
+
+  it("creates item with URL contentKind for link type", async () => {
+    vi.mocked(prisma.itemType.findUnique).mockResolvedValue({ id: "type-link" } as never);
+
+    await createItem("user-1", {
+      typeSlug: "links",
+      title: "My Link",
+      description: null,
+      content: null,
+      url: "https://example.com",
+      language: null,
+      tags: [],
+    });
+
+    expect(prisma.item.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          contentKind: "URL",
+          url: "https://example.com",
+        }),
+      }),
+    );
+  });
+
+  it("returns mapped item on success", async () => {
+    const result = await createItem("user-1", {
+      typeSlug: "snippets",
+      title: "New Snippet",
+      description: null,
+      content: "console.log('new')",
+      url: null,
+      language: "typescript",
+      tags: ["react"],
+    });
+
+    expect(result).toMatchObject({
+      id: "item-new",
+      title: "New Snippet",
+      contentKind: "TEXT",
+      typeName: "Snippet",
+      typeSlug: "snippets",
+      typeColor: "#3b82f6",
+      tags: ["react"],
+      collections: [],
+    });
+  });
+
+  it("returns null and logs error on DB failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(prisma.item.create).mockRejectedValue(new Error("DB error"));
+
+    const result = await createItem("user-1", {
+      typeSlug: "snippets",
+      title: "New Snippet",
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+    });
+
+    expect(result).toBeNull();
+    expect(consoleSpy).toHaveBeenCalledWith("[createItem]", expect.any(Error));
     consoleSpy.mockRestore();
   });
 });
