@@ -3,6 +3,7 @@ import crypto from "crypto"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { sendVerificationEmail } from "@/lib/email"
+import { hashToken } from "@/lib/auth-constants"
 
 const schema = z.object({ email: z.email() })
 
@@ -35,14 +36,14 @@ export async function POST(req: Request) {
     // Delete all existing tokens for this email and issue a fresh one
     await prisma.verificationToken.deleteMany({ where: { identifier: email } })
 
-    const token = crypto.randomBytes(32).toString("hex")
+    const rawToken = crypto.randomBytes(32).toString("hex")
     const expires = new Date(Date.now() + 15 * 60 * 1000)
 
     await prisma.verificationToken.create({
-      data: { identifier: email, token, expires },
+      data: { identifier: email, token: hashToken(rawToken), expires },
     })
 
-    await sendVerificationEmail(email, token)
+    await sendVerificationEmail(email, rawToken)
 
     return NextResponse.json({ success: true })
   } catch {

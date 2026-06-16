@@ -9,7 +9,9 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"
   const url = `${base}/reset-password?token=${token}&email=${encodeURIComponent(email)}`
 
-  console.log(`\n[DEV] Password reset link for ${email}:\n${url}\n`)
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`\n[DEV] Password reset link for ${email}:\n${url}\n`)
+  }
 
   await resend.emails.send({
     from: FROM,
@@ -123,7 +125,9 @@ export async function sendVerificationEmail(email: string, token: string) {
     process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000"
   const url = `${base}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`
 
-  console.log(`\n[DEV] Verification link for ${email}:\n${url}\n`)
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`\n[DEV] Verification link for ${email}:\n${url}\n`)
+  }
 
   await resend.emails.send({
     from: FROM,

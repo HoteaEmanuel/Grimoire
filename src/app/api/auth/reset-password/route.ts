@@ -2,14 +2,13 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { RESET_PREFIX, hashToken } from "@/lib/auth-constants"
 
 const schema = z.object({
   token: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 })
-
-const RESET_PREFIX = "reset:"
 
 export async function POST(req: Request) {
   try {
@@ -20,10 +19,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 })
     }
 
-    const { token, email, password } = result.data
+    const { token: rawToken, email, password } = result.data
 
     const record = await prisma.verificationToken.findUnique({
-      where: { token },
+      where: { token: hashToken(rawToken) },
     })
 
     if (
@@ -31,7 +30,7 @@ export async function POST(req: Request) {
       record.identifier !== `${RESET_PREFIX}${email}` ||
       record.expires < new Date()
     ) {
-      await prisma.verificationToken.deleteMany({ where: { token } })
+      await prisma.verificationToken.deleteMany({ where: { token: hashToken(rawToken) } })
       return NextResponse.json(
         { error: "token-expired" },
         { status: 400 },
@@ -46,7 +45,7 @@ export async function POST(req: Request) {
         data: { password: hashed },
       }),
       prisma.verificationToken.delete({
-        where: { token },
+        where: { token: hashToken(rawToken) },
       }),
     ])
 

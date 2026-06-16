@@ -3,10 +3,9 @@ import crypto from "crypto"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { sendPasswordResetEmail } from "@/lib/email"
+import { RESET_PREFIX, hashToken } from "@/lib/auth-constants"
 
 const schema = z.object({ email: z.email() })
-
-const RESET_PREFIX = "reset:"
 
 export async function POST(req: Request) {
   try {
@@ -35,14 +34,14 @@ export async function POST(req: Request) {
       where: { identifier: `${RESET_PREFIX}${email}` },
     })
 
-    const token = crypto.randomBytes(32).toString("hex")
+    const rawToken = crypto.randomBytes(32).toString("hex")
     const expires = new Date(Date.now() + 15 * 60 * 1000)
 
     await prisma.verificationToken.create({
-      data: { identifier: `${RESET_PREFIX}${email}`, token, expires },
+      data: { identifier: `${RESET_PREFIX}${email}`, token: hashToken(rawToken), expires },
     })
 
-    await sendPasswordResetEmail(email, token)
+    await sendPasswordResetEmail(email, rawToken)
 
     return NextResponse.json({ success: true })
   } catch {

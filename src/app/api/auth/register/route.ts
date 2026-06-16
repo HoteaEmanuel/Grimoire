@@ -4,6 +4,7 @@ import crypto from "crypto"
 import { prisma } from "@/lib/prisma"
 import { registerSchema } from "@/lib/schemas/auth"
 import { sendVerificationEmail } from "@/lib/email"
+import { hashToken } from "@/lib/auth-constants"
 
 export async function POST(req: Request) {
   try {
@@ -35,14 +36,24 @@ export async function POST(req: Request) {
     })
 
     if (verificationEnabled) {
-      const token = crypto.randomBytes(32).toString("hex")
+      const rawToken = crypto.randomBytes(32).toString("hex")
       const expires = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
 
       await prisma.verificationToken.create({
-        data: { identifier: email, token, expires },
+        data: { identifier: email, token: hashToken(rawToken), expires },
       })
 
-      await sendVerificationEmail(email, token)
+      try {
+        await sendVerificationEmail(email, rawToken)
+      } catch {
+        // Email delivery failed — clean up so the user can retry registration
+        await prisma.verificationToken.deleteMany({ where: { identifier: email } })
+        await prisma.user.delete({ where: { email } })
+        return NextResponse.json(
+          { error: "Failed to send verification email. Please try again." },
+          { status: 500 },
+        )
+      }
     }
 
     return NextResponse.json({ success: true, verified: !verificationEnabled }, { status: 201 })
