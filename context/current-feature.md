@@ -1,26 +1,10 @@
-## Current Feature: Email Verification on Register
+## Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- After a user registers with email/password, send a verification email via Resend before granting access
-- The email contains a unique, time-limited verification link
-- Clicking the link marks the user's email as verified (`emailVerified` field in DB)
-- Unverified users are blocked from accessing `/dashboard` and shown a "check your email" screen
-- Resend API key (`RESEND_API_KEY`) is already in `.env`
-
 ## Notes
-
-- Use Resend's Node.js SDK (`resend` npm package) to send emails
-- Generate a secure token (e.g. via `crypto.randomBytes`) and store it in the `VerificationToken` table (already in Prisma schema via NextAuth)
-- The verification link should be: `/api/auth/verify-email?token=<token>&email=<email>`
-- After clicking the link, redirect the user to `/sign-in` with a success toast
-- GitHub OAuth users skip email verification entirely (already trusted)
-- Do not require verification to be resent immediately — defer resend flow to a later feature
-- Proxy / middleware should check `emailVerified` for credentials-based users and redirect unverified users to `/verify-email` (a simple "check your inbox" page)
 
 ## History
 
@@ -49,3 +33,5 @@ In Progress
 - **Auth Credentials - 2026-06-16** — Added Credentials provider for email/password auth using split config pattern: `auth.config.ts` holds a placeholder (`authorize: () => null`, `credentials` fields for default UI) and `auth.ts` overrides with real bcrypt validation via Prisma lookup. Created `POST /api/auth/register` with Zod v4 schema validation (name, email, password, confirmPassword) — validates format, matching passwords, duplicate emails, and hashes with bcrypt (12 rounds). Installed `zod` as a direct dependency.
 
 - **Auth UI - 2026-06-16** — Custom `/sign-in` and `/register` pages under `(auth)` route group with centered layout. Extracted `SignInForm` and `RegisterForm` client components using `react-hook-form` + `@hookform/resolvers` with shared Zod schemas at `src/lib/schemas/auth.ts`. Added reusable `PasswordInput` component with show/hide toggle (Eye/EyeOff icons, `pr-10` to prevent text overlap). Installed `sonner` for toast notifications — success toasts on credentials sign-in, GitHub OAuth sign-in (via `?toast=signin` URL param + `AuthToast` client component), and registration. Updated `auth.config.ts` with `pages: { signIn: "/sign-in" }` and `proxy.ts` to redirect to `/sign-in`. Added `jwt` callback to `auth.ts` to capture GitHub avatar from raw provider `profile.avatar_url` (bypasses account-linking gap where `user.image` stays null in DB). Updated `dashboard/layout.tsx` and `page.tsx` to use real `auth()` session instead of `getDevUser()`. Updated `SidebarUserFooter` with Base UI `DropdownMenu` — avatar + name trigger opens dropdown with Profile link and Sign out. Installed `dropdown-menu` shadcn component.
+
+- **Email Verification - 2026-06-16** — Installed `resend` SDK. Created `src/lib/email.ts` with `sendVerificationEmail` (light-mode HTML email, console logs link in dev). Registration generates a 15-min `VerificationToken` and sends the email. `GET /api/auth/verify-email` validates token, sets `emailVerified`, redirects to `/sign-in?toast=email-verified`. `POST /api/auth/resend-verification` deletes stale tokens and issues a fresh one. `/verify-email` page shows check-your-inbox UI with `ResendVerificationButton` (60s cooldown). Proxy blocks unverified credentials users from `/dashboard` and redirects to `/verify-email`. `emailVerified` stored in JWT and exposed on session via `authConfig` session callback. `AuthToast` handles `email-verified`, `token-expired`, `invalid-token` params. `SignInForm` adds a persistent "Resend verification" link so returning users are never stuck.
