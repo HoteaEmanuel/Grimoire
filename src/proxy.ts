@@ -7,8 +7,19 @@ export const proxy = auth(function middleware(req) {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
 
-  if (nextUrl.pathname.startsWith("/dashboard") && !isLoggedIn) {
-    return Response.redirect(new URL("/sign-in", nextUrl))
+  if (nextUrl.pathname.startsWith("/dashboard")) {
+    if (!isLoggedIn) {
+      return Response.redirect(new URL("/sign-in", nextUrl))
+    }
+
+    // Block unverified credentials users from the dashboard
+    const emailVerified = req.auth?.user?.emailVerified
+    if (!emailVerified) {
+      const email = req.auth?.user?.email ?? ""
+      const url = new URL("/verify-email", nextUrl)
+      if (email) url.searchParams.set("email", email)
+      return Response.redirect(url)
+    }
   }
 })
 

@@ -1,3 +1,6 @@
+import { Suspense } from "react"
+import { AuthToast } from "@/components/auth/AuthToast"
+
 export default function AuthLayout({
   children,
 }: {
@@ -5,6 +8,9 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Suspense>
+        <AuthToast />
+      </Suspense>
       {children}
     </div>
   )
