@@ -24,6 +24,9 @@ export function AuthToast() {
     } else if (errorParam === "invalid-token") {
       toast.error("Invalid verification link.")
       router.replace("/sign-in")
+    } else if (toastParam === "password-reset") {
+      toast.success("Password reset successfully! You can now sign in.")
+      router.replace("/sign-in")
     }
   }, [searchParams, router])
 

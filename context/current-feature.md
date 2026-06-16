@@ -1,10 +1,26 @@
-## Current Feature
+## Current Feature: Forgot Password
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- Add a "Forgot password?" link on the `/sign-in` page that navigates to a `/forgot-password` page
+- `/forgot-password` page has an email input; on submit, generate a password-reset token using the existing `VerificationToken` model and send a reset email via Resend
+- `GET /api/auth/forgot-password` — accepts `email`, creates a `VerificationToken` with a 15-min expiry (identifier = `reset:{email}`), sends a reset-password email with the token link
+- `/reset-password?token=...` page — validates the token, shows a new-password + confirm-password form, on submit calls a reset endpoint
+- `POST /api/auth/reset-password` — validates token, hashes new password, updates `User.password`, deletes the used token, redirects to `/sign-in?toast=password-reset`
+- `AuthToast` handles the `password-reset` param to show a success toast on sign-in
+- Token reuse prevention: token is deleted immediately after successful use
+- Expired/invalid token shows a clear error with a link back to `/forgot-password`
+
 ## Notes
+
+- Reuse existing `VerificationToken` model — use a namespaced identifier like `reset:{email}` to avoid collisions with email-verification tokens
+- Follow the same email style as `sendVerificationEmail` in `src/lib/email.ts`
+- Follow the same Zod + react-hook-form pattern as the existing auth forms
+- `EMAIL_VERIFICATION_ENABLED` toggle does not affect password reset — it should always work
 
 ## History
 
