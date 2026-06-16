@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
+import { toast } from "sonner";
 import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
 import {
   Star,
@@ -14,12 +16,51 @@ import {
   Globe,
   FolderOpen,
   Tag,
+  Check,
 } from "lucide-react";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { formatDate, formatFileSize, copyToClipboard } from "@/lib/utils";
+import { updateItem } from "@/actions/items";
 import type { ItemDetail } from "@/lib/db/items";
+
+const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
+const CODE_TYPES = new Set(["snippets", "commands"]);
+const TAG_RE = /^[a-z0-9_-]+$/;
+
+const LANGUAGES = [
+  "bash",
+  "c",
+  "cpp",
+  "css",
+  "dart",
+  "dockerfile",
+  "go",
+  "graphql",
+  "html",
+  "java",
+  "javascript",
+  "json",
+  "kotlin",
+  "lua",
+  "markdown",
+  "php",
+  "powershell",
+  "python",
+  "ruby",
+  "rust",
+  "scala",
+  "sql",
+  "swift",
+  "toml",
+  "typescript",
+  "xml",
+  "yaml",
+];
 
 function DrawerSkeleton() {
   return (
@@ -38,30 +79,59 @@ function DrawerSkeleton() {
   );
 }
 
+type EditState = {
+  title: string;
+  description: string;
+  content: string;
+  url: string;
+  language: string;
+  tags: string;
+};
+
+function toEditState(item: ItemDetail): EditState {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    content: item.content ?? "",
+    url: item.url ?? "",
+    language: item.language ?? "",
+    tags: item.tags.join(", "),
+  };
+}
+
 export function ItemDrawer() {
   const { selectedId, open, closeDrawer } = useItemDrawerStore();
   const [item, setItem] = useState<ItemDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  const fetchItem = useCallback(async (id: string) => {
-    setLoading(true);
-    setItem(null);
-    try {
-      const { data } = await axios.get<ItemDetail>(`/api/items/${id}`);
-      setItem(data);
-    } catch {
-      // silently fail — drawer will stay empty
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [editing, setEditing] = useState(false);
+  const [editState, setEditState] = useState<EditState | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   useEffect(() => {
-    if (open && selectedId) {
-      fetchItem(selectedId);
+    if (!open || !selectedId) return;
+
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setItem(null);
+      setEditing(false);
+      setEditState(null);
+      try {
+        const { data } = await axios.get<ItemDetail>(`/api/items/${selectedId}`);
+        if (!cancelled) setItem(data);
+      } catch {
+        // silently fail — drawer will stay empty
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }, [open, selectedId, fetchItem]);
+
+    load();
+    return () => { cancelled = true; };
+  }, [open, selectedId]);
 
   const handleCopy = async () => {
     if (!item) return;
@@ -70,12 +140,67 @@ export function ItemDrawer() {
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
+    } else {
+      toast.error("Failed to copy to clipboard");
     }
   };
 
+  const handleEditStart = () => {
+    if (!item) return;
+    setEditState(toEditState(item));
+    setEditing(true);
+  };
+
+  const handleEditCancel = () => {
+    setEditing(false);
+    setEditState(null);
+  };
+
+  const handleSave = () => {
+    if (!item || !editState) return;
+
+    const tags = editState.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    startTransition(async () => {
+      const result = await updateItem(item.id, {
+        title: editState.title,
+        description: editState.description || null,
+        content: editState.content || null,
+        url: editState.url || null,
+        language: editState.language || null,
+        tags,
+      });
+
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+
+      setItem(result.data);
+      setEditing(false);
+      setEditState(null);
+      toast.success("Item saved");
+      router.refresh();
+    });
+  };
+
+  const field = (key: keyof EditState, value: string) =>
+    setEditState((prev) => (prev ? { ...prev, [key]: value } : prev));
+
+  const hasInvalidTags = editState
+    ? editState.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .some((t) => !TAG_RE.test(t))
+    : false;
+
   return (
     <Drawer open={open} onOpenChange={(v) => !v && closeDrawer()} direction="right">
-      <DrawerContent className="w-full sm:max-w-lg! fixed right-0 inset-y-0 rounded-l-xl border-l border-border bg-card flex flex-col overflow-hidden">
+      <DrawerContent className="w-full sm:max-w-lg! fixed right-0 inset-y-0 rounded-l-xl border-l border-border bg-card flex flex-col overflow-hidden outline-none">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 px-6 py-5 border-b border-border shrink-0">
           {loading || !item ? (
@@ -83,6 +208,14 @@ export function ItemDrawer() {
               <Skeleton className="h-5 w-16 rounded" />
               <Skeleton className="h-6 w-40 rounded" />
             </div>
+          ) : editing && editState ? (
+            <Input
+              className="text-base font-semibold flex-1 min-w-0 h-auto py-1"
+              value={editState.title}
+              onChange={(e) => field("title", e.target.value)}
+              placeholder="Title"
+              autoFocus
+            />
           ) : (
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <Badge
@@ -98,9 +231,9 @@ export function ItemDrawer() {
             </div>
           )}
           <DrawerClose asChild>
-            <button className="shrink-0 p-1.5 rounded-md hover:bg-white/8 text-muted-foreground hover:text-foreground transition-colors">
+            <Button variant="ghost" size="icon-sm" className="shrink-0 text-muted-foreground">
               <X size={15} />
-            </button>
+            </Button>
           </DrawerClose>
         </div>
 
@@ -108,6 +241,126 @@ export function ItemDrawer() {
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {loading || !item ? (
             <DrawerSkeleton />
+          ) : editing && editState ? (
+            <div className="space-y-4">
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
+                <Textarea
+                  value={editState.description}
+                  onChange={(e) => field("description", e.target.value)}
+                  placeholder="Optional description"
+                />
+              </div>
+
+              {/* Content — text types only */}
+              {TEXT_TYPES.has(item.typeSlug) && (
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider">Content</label>
+                  <Textarea
+                    className="font-mono"
+                    value={editState.content}
+                    onChange={(e) => field("content", e.target.value)}
+                    placeholder="Content"
+                  />
+                </div>
+              )}
+
+              {/* Language — snippet/command only */}
+              {CODE_TYPES.has(item.typeSlug) && (
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider">Language</label>
+                  <select
+                    value={editState.language}
+                    onChange={(e) => field("language", e.target.value)}
+                    className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+                  >
+                    <option value="">Select language</option>
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang} value={lang} className="bg-popover">
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* URL — link type only */}
+              {item.typeSlug === "links" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider">URL</label>
+                  <Input
+                    type="url"
+                    value={editState.url}
+                    onChange={(e) => field("url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+              )}
+
+              {/* Tags */}
+              {(() => {
+                const parsed = editState.tags
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean);
+                return (
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground uppercase tracking-wider">Tags</label>
+                    <Input
+                      aria-invalid={hasInvalidTags}
+                      value={editState.tags}
+                      onChange={(e) => field("tags", e.target.value)}
+                      placeholder="react, hooks, typescript"
+                    />
+                    {parsed.length > 0 ? (
+                      <>
+                        <div className="flex flex-wrap gap-1">
+                          {parsed.map((tag, i) => {
+                            const valid = TAG_RE.test(tag);
+                            return (
+                              <span
+                                key={i}
+                                className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                                  valid
+                                    ? "bg-white/5 border-white/8 text-muted-foreground"
+                                    : "bg-destructive/10 border-destructive/40 text-destructive"
+                                }`}
+                              >
+                                #{tag}
+                              </span>
+                            );
+                          })}
+                        </div>
+                        {hasInvalidTags && (
+                          <p className="text-[11px] text-destructive">
+                            Tags may only contain lowercase letters, numbers, hyphens, and underscores.
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground">
+                        Comma-separated · lowercase, numbers, hyphens, underscores
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Non-editable info */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="uppercase tracking-wider w-24 shrink-0">Type</span>
+                  <span>{item.typeName}</span>
+                </div>
+                {item.collections.length > 0 && (
+                  <div className="flex items-start gap-3 text-xs text-muted-foreground">
+                    <FolderOpen size={12} className="mt-0.5 shrink-0" />
+                    <span>{item.collections.map((c) => c.name).join(", ")}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="space-y-6">
               {item.description && (
@@ -195,68 +448,71 @@ export function ItemDrawer() {
         </div>
 
         {/* Action bar */}
-        <div className="shrink-0 border-t border-border px-6 py-4 flex items-center gap-1">
-          <ActionButton
-            title="Favorite"
-            disabled={!item}
-            active={item?.isFavorite}
-            activeColor="#f59e0b"
-          >
-            <Star size={15} fill={item?.isFavorite ? "#f59e0b" : "none"} />
-          </ActionButton>
-          <ActionButton title="Pin" disabled={!item} active={item?.isPinned} activeColor="#94a3b8">
-            <Pin size={15} fill={item?.isPinned ? "#94a3b8" : "none"} />
-          </ActionButton>
-          <ActionButton title={copied ? "Copied!" : "Copy"} disabled={!item} onClick={handleCopy}>
-            <Copy size={15} />
-          </ActionButton>
-          <ActionButton title="Edit" disabled={!item}>
-            <Pencil size={15} />
-          </ActionButton>
-          <div className="ml-auto">
-            <ActionButton title="Delete" disabled={!item} destructive>
-              <Trash2 size={15} />
-            </ActionButton>
+        {editing ? (
+          <div className="shrink-0 border-t border-border px-6 py-4 flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={isPending || !editState?.title.trim() || hasInvalidTags}
+            >
+              <Check />
+              {isPending ? "Saving…" : "Save"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleEditCancel} disabled={isPending}>
+              Cancel
+            </Button>
           </div>
-        </div>
+        ) : (
+          <div className="shrink-0 border-t border-border px-6 py-4 flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title="Favorite"
+              disabled={!item}
+              style={item?.isFavorite ? { color: "#f59e0b" } : undefined}
+            >
+              <Star size={15} fill={item?.isFavorite ? "#f59e0b" : "none"} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title="Pin"
+              disabled={!item}
+              style={item?.isPinned ? { color: "#94a3b8" } : undefined}
+            >
+              <Pin size={15} fill={item?.isPinned ? "#94a3b8" : "none"} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title={copied ? "Copied!" : "Copy"}
+              disabled={!item}
+              onClick={handleCopy}
+              style={copied ? { color: "#22c55e" } : undefined}
+            >
+              {copied ? <Check size={15} /> : <Copy size={15} />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title="Edit"
+              disabled={!item}
+              onClick={handleEditStart}
+            >
+              <Pencil size={15} />
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon-sm"
+              title="Delete"
+              disabled={!item}
+              className="ml-auto"
+            >
+              <Trash2 size={15} />
+            </Button>
+          </div>
+        )}
       </DrawerContent>
     </Drawer>
-  );
-}
-
-interface ActionButtonProps {
-  title: string;
-  disabled?: boolean;
-  active?: boolean;
-  activeColor?: string;
-  destructive?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-}
-
-function ActionButton({
-  title,
-  disabled,
-  active,
-  activeColor,
-  destructive,
-  onClick,
-  children,
-}: ActionButtonProps) {
-  return (
-    <button
-      title={title}
-      disabled={disabled}
-      onClick={onClick}
-      className={[
-        "p-2 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-        destructive
-          ? "text-destructive/70 hover:bg-destructive/10 hover:text-destructive"
-          : "text-muted-foreground hover:bg-white/8 hover:text-foreground",
-      ].join(" ")}
-      style={active && activeColor ? { color: activeColor } : undefined}
-    >
-      {children}
-    </button>
   );
 }

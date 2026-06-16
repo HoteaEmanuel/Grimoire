@@ -298,6 +298,95 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
   }
 }
 
+export type UpdateItemData = {
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+};
+
+export async function updateItem(
+  userId: string,
+  itemId: string,
+  data: UpdateItemData,
+): Promise<ItemDetail | null> {
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.tagsOnItems.deleteMany({ where: { itemId } });
+
+      return tx.item.update({
+        where: { id: itemId, userId },
+        data: {
+          title: data.title,
+          description: data.description,
+          content: data.content,
+          url: data.url,
+          language: data.language,
+          tags: {
+            create: data.tags.map((name) => ({
+              tag: {
+                connectOrCreate: {
+                  where: { name_userId: { name, userId } },
+                  create: { name, userId },
+                },
+              },
+            })),
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          contentKind: true,
+          content: true,
+          url: true,
+          fileUrl: true,
+          fileName: true,
+          fileSize: true,
+          language: true,
+          isFavorite: true,
+          isPinned: true,
+          createdAt: true,
+          updatedAt: true,
+          lastUsedAt: true,
+          itemType: { select: { name: true, slug: true, color: true, icon: true } },
+          tags: { select: { tag: { select: { name: true } } } },
+          collections: { select: { collection: { select: { id: true, name: true } } } },
+        },
+      });
+    });
+
+    return {
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      contentKind: updated.contentKind,
+      content: updated.content,
+      url: updated.url,
+      fileUrl: updated.fileUrl,
+      fileName: updated.fileName,
+      fileSize: updated.fileSize,
+      language: updated.language,
+      isFavorite: updated.isFavorite,
+      isPinned: updated.isPinned,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+      lastUsedAt: updated.lastUsedAt,
+      typeName: updated.itemType.name,
+      typeSlug: updated.itemType.slug,
+      typeColor: updated.itemType.color,
+      typeIconName: updated.itemType.icon,
+      tags: updated.tags.map((t) => t.tag.name),
+      collections: updated.collections.map((c) => ({ id: c.collection.id, name: c.collection.name })),
+    };
+  } catch (err) {
+    console.error("[updateItem]", err);
+    return null;
+  }
+}
+
 export type SidebarItemType = {
   id: string;
   name: string;
