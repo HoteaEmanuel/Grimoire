@@ -106,6 +106,12 @@
   * {
     @apply border-border outline-ring/50;
     }
+  html {
+    color-scheme: dark;
+    /* Firefox scrollbar */
+    scrollbar-color: oklch(0.35 0.045 55) oklch(0.17 0.022 55);
+    scrollbar-width: thin;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
@@ -117,6 +123,25 @@
   code, pre, kbd {
     font-family: var(--font-mono);
     }
+}
+
+/* ── Scrollbar (WebKit) ── */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: oklch(0.17 0.022 55);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.35 0.045 55);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.10 60);
+}
+.dark ::-webkit-scrollbar-corner {
+  background: oklch(0.17 0.022 55);
 }
 
 /* ── Wand animations ── */
