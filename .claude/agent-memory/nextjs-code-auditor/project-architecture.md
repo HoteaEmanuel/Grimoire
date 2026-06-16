@@ -1,20 +1,41 @@
 ---
 name: project-architecture
-description: Grimoire codebase architectural decisions and confirmed-correct conventions as of June 2026 audit
+description: Grimoire codebase architectural decisions and confirmed-correct conventions — updated after auth implementation (June 2026)
 metadata:
   type: project
 ---
 
-Grimoire is a Next.js 16 App Router app. Auth is not yet implemented (NextAuth v5 planned but absent). All data queries are hardcoded to a single seed user email (`emanuelhotea1@gmail.com`) — auth is explicitly a future feature, not a bug to flag.
+Grimoire is a Next.js 16 App Router app (React 19, TypeScript strict, Tailwind v4, Prisma 6 + Neon, NextAuth v5, Resend email). Auth is now fully implemented.
 
-**Why:** Project is in early dashboard/UI phase. All users are effectively "Pro" for now per spec. Auth gates are intentionally deferred.
+**Auth pattern (split config):**
+- `src/auth.config.ts` — edge-compatible, no Prisma; GitHub + Credentials placeholder (`authorize: () => null`)
+- `src/auth.ts` — full config with PrismaAdapter, bcrypt Credentials, JWT/session callbacks
+- `src/proxy.ts` — named export `proxy` (not default `middleware`); protects `/dashboard/*`, blocks unverified credentials users, redirects to `/verify-email`
+- JWT callback: stores `emailVerified` and GitHub avatar (`profile.avatar_url`) in token
+- `allowDangerousEmailAccountLinking: true` on GitHub provider — intentional for linking OAuth to seeded user
 
-**How to apply:** Do not flag missing auth checks as security issues in future audits. Flag the hardcoded email as a High issue when auth *is* added but not yet wired to queries.
+**DB layer:** All queries in `src/lib/db/items.ts` and `src/lib/db/collections.ts`. Accept `userId` param (from real session now, not seed email). Use `select` to avoid large fields. Try/catch with graceful empty returns on all 7 functions.
 
-Confirmed correct conventions:
+**Indexes confirmed present:** `Item(userId)`, `Item(userId, lastUsedAt)`, `Item(userId, isPinned)`, `Collection(userId)`, `Collection(userId, updatedAt)`, `ItemCollection(collectionId)`.
+
+**No `any` types** in src/. One `as unknown as` in `prisma.ts` (standard globalThis pattern — correct).
+
+**Confirmed correct conventions:**
 - Tailwind CSS v4 with `@theme` in globals.css — no tailwind.config.ts (correct)
 - `prisma migrate dev` only (no `db push` — spec forbids it)
-- `force-dynamic` on dashboard layout and page (correct, no auth session caching yet)
-- `Promise.all` used on dashboard page for parallel fetches (correct)
-- `as unknown as { prisma: PrismaClient }` in prisma.ts (standard Next.js singleton pattern)
-- shadcn/ui components in `src/components/ui/` (correct location)
+- `force-dynamic` on dashboard layout and page (correct for auth session)
+- `Promise.all` used on dashboard page and layout for parallel fetches (correct)
+- `shadcn/ui` components in `src/components/ui/` (correct location)
+- `resend-verification` always returns 200 to avoid user enumeration (correct security pattern)
+- `verify-email` uses Prisma `$transaction` to atomically update + delete token (correct)
+- `ICON_MAP` now extracted to `src/lib/item-types.ts` (deduplication done)
+- `SidebarUserFooter` marked `'use client'` (correct)
+- `DashboardShell` is server component; `DesktopSidebarController` + `MobileSheetController` are client (correct split)
+
+**Issues to watch in future audits:**
+- No rate limiting on auth API routes (`/api/auth/register`, `/api/auth/resend-verification`) — spam/DoS vector
+- `auth()` is called in both `dashboard/layout.tsx` AND `dashboard/page.tsx` — two JWT decodes per full page load
+- `resend-verification` route accepts raw email string, no Zod validation
+- `verify-email` GET route has no try/catch around Prisma calls
+- `getDevUser()` in `src/lib/db/user.ts` appears unused now that real auth is wired
+- Naive pluralization: `type.name + "s"` in SidebarContent line 65 would produce "Linkss" — but item types are "Snippet", "Prompt", "Note", "Command", "Link", "File", "Image" so "Links" actually becomes "Links" + "s" = "Linkss" — confirmed bug

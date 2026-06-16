@@ -1,0 +1,8 @@
+- generic [ref=e3]:
+  - paragraph [ref=e5]: Sign in failed. Check the details you provided are correct.
+  - button "Sign in with GitHub" [ref=e8]:
+    - generic [ref=e9]: Sign in with GitHub
+    - img [ref=e10]
+  - generic [ref=e11]:
+    - separator [ref=e12]: or
+    - button "Sign in with Credentials" [ref=e14]

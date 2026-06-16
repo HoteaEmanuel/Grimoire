@@ -1,29 +1,25 @@
 ---
 name: audit-findings-june2026
-description: Recurring anti-patterns and real issues found in June 2026 audit of Grimoire codebase
+description: Issues found in the second full audit (June 2026) — post-auth implementation
 metadata:
   type: project
 ---
 
-Key issues found in first full audit (June 2026):
+All prior issues from first audit (hardcoded emails, missing indexes, missing try/catch, duplicate ICON_MAP, DashboardShell client split) have been resolved.
 
-**Critical:**
-- Hardcoded real email address (`emanuelhotea1@gmail.com`) in production query files `src/lib/db/items.ts` and `src/lib/db/collections.ts` — used as the user identity stand-in before auth is wired up.
-- Same email hardcoded in `src/components/layout/SidebarContent.tsx` (line 162) in the user footer.
+**Issues found in second audit (post-auth, June 2026):**
 
-**High:**
-- No error handling (no try/catch) in any db query function in `src/lib/db/items.ts` or `src/lib/db/collections.ts`. Uncaught Prisma errors will bubble up as 500s with no user-friendly fallback.
-- `getPinnedItems` and `getRecentItems` both call `getUserId()` separately, each making their own `prisma.user.findUnique` call. When called in parallel via `Promise.all` on dashboard page, this becomes 2 redundant user lookups per page load. Pattern also exists in collections.ts (3 separate user lookups).
-- Missing database indexes on `Item.userId`, `Item.lastUsedAt`, `Collection.userId`, `Collection.updatedAt`, `ItemCollection.collectionId` — these are the columns most queried/sorted.
+**HIGH:**
+- No rate limiting on `/api/auth/register` or `/api/auth/resend-verification` — registration spam / email bombing vector. Fix: add IP-based rate limiting (Upstash Redis / middleware).
+- `allowDangerousEmailAccountLinking: true` on GitHub provider — if attacker registers an unverified email account that matches a victim's GitHub email, then victim signs in with GitHub, the accounts link. Currently partially mitigated because credentials users must verify email before dashboard access, but the attack window between registration and verification is real.
+- `/api/auth/verify-email` GET route has no try/catch — a Prisma error during the transaction will return an unhandled 500 with a stack trace instead of a redirect to the error page.
+- `/api/auth/resend-verification` accepts `email` with no Zod validation — no max length, no format check (only `typeof email !== "string"` check).
 
-**Medium:**
-- `getRecentCollections` and `getSidebarCollections` fetch ALL items inside each collection (deep nested include) just to compute dominant type color — this is an unbounded data load for large collections.
-- Duplicate `ICON_MAP` defined in both `src/components/layout/SidebarContent.tsx` and `src/components/dashboard/CollectionCard.tsx` — should be extracted to a shared utility.
-- `isFavorite` prop accepted but never used in `CollectionCard` component.
-- `getSidebarItemTypes` fetches `prisma.itemType.findMany` without a `select` clause — pulls all columns when only id/name/slug/icon/color are needed.
-- `DashboardShell` is a client component purely for `useState` — could be split so the shell layout is a server component and only the state-bearing interactivity is a small client component.
+**MEDIUM:**
+- `auth()` called in both `dashboard/layout.tsx` and `dashboard/page.tsx` — two JWT decode operations per full page load. Pass userId or session as a prop from layout to page, or use a shared `getCachedSession()` helper.
+- `SidebarContent.tsx` line 65: `type.name + "s"` naive pluralization — "Link" becomes "Links" then adds another "s" = "Linkss". Seed type names: Snippet→Snippets, Prompt→Prompts, Note→Notes, Command→Commands, Link→**Linkss** (bug), File→Files, Image→Images.
+- `src/lib/db/user.ts` `getDevUser()` appears to be dead code — dashboard layout/page now use real `auth()` session. Should be deleted or clearly marked as dev-only utility.
 
-**Low:**
-- `SidebarUserFooter` is not a `'use client'` component but is rendered inside `SidebarContent` which is. No bug, but clarifying the boundary would be cleaner.
-- Dark/light CSS custom properties are fully duplicated between `:root` and `.dark` blocks in globals.css — since the app is dark-only with a fixed `.dark` class on `<html>`, `:root` values are never read.
-- `CollectionCard` unused `Layers` import from lucide-react (used, actually — confirmed in render).
+**LOW:**
+- `SignInForm.tsx` `handleResend()`: the cooldown timer starts even if the API call fails (interval is set before the try/catch resolves). Actually the cooldown is only set inside the `try` block before the `finally` (line 69 sets router.push then line 70 sets cooldown). But if `router.push` throws, cooldown still won't be set. Minor edge case.
+- `verify-email/route.ts`: base URL resolution (`AUTH_URL ?? NEXTAUTH_URL ?? localhost`) is duplicated in both `email.ts` and `verify-email/route.ts`. Should be a shared constant in `src/lib/constants.ts`.

@@ -1,14 +1,15 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Button } from "./button";
 
-type PasswordInputProps = Omit<React.ComponentProps<typeof Input>, "type">
+type PasswordInputProps = Omit<React.ComponentProps<typeof Input>, "type">;
 
 export function PasswordInput({ className, ...props }: PasswordInputProps) {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false);
 
   return (
     <div className="relative">
@@ -27,5 +28,5 @@ export function PasswordInput({ className, ...props }: PasswordInputProps) {
         {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
       </button>
     </div>
-  )
+  );
 }

@@ -1,0 +1,22 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e37]:
+    - img [ref=e40]
+    - generic [ref=e44]:
+      - heading "Check your inbox" [level=1] [ref=e45]
+      - paragraph [ref=e46]: We sent a verification link to unverified@example.com. Click the link to activate your account.
+      - paragraph [ref=e47]: The link expires in 15 minutes.
+    - paragraph [ref=e49]:
+      - text: Didn't receive the email? Check your spam folder or
+      - link "register again" [ref=e50] [cursor=pointer]:
+        - /url: /register
+      - text: with the same address.
+    - link "Back to sign in" [ref=e51] [cursor=pointer]:
+      - /url: /sign-in
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e52]:
+        - img [ref=e54]
+        - generic [ref=e58]: Signed in successfully
+  - button "Open Next.js Dev Tools" [ref=e32] [cursor=pointer]:
+    - img [ref=e33]
+  - alert [ref=e36]

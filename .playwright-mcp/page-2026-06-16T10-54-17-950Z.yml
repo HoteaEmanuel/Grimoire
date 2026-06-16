@@ -1,0 +1,42 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Welcome back" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Sign in to your Grimoire
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - text: Email
+          - textbox "Email" [ref=e10]:
+            - /placeholder: you@example.com
+            - text: testverify@example.com
+        - generic [ref=e11]:
+          - text: Password
+          - generic [ref=e12]:
+            - textbox "Password" [ref=e13]:
+              - /placeholder: ••••••••
+              - text: TestPass123!
+            - button "Show password" [ref=e14]:
+              - img [ref=e15]
+        - button "Sign in" [ref=e18]
+      - generic [ref=e23]: or
+      - button "Sign in with GitHub" [ref=e24]:
+        - img
+        - text: Sign in with GitHub
+      - paragraph [ref=e25]:
+        - text: Don't have an account?
+        - link "Register" [ref=e26] [cursor=pointer]:
+          - /url: /register
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e37]:
+        - img [ref=e39]
+        - generic [ref=e43]: Signed in successfully
+  - button "Open Next.js Dev Tools" [ref=e44] [cursor=pointer]:
+    - generic [ref=e47]:
+      - text: Rendering
+      - generic [ref=e48]:
+        - generic [ref=e49]: .
+        - generic [ref=e50]: .
+        - generic [ref=e51]: .
+  - alert [ref=e36]
