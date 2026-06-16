@@ -8,6 +8,9 @@
 
 ## History
 
+- **Auth Setup - 2026-06-16** — Installed `next-auth@beta` and `@auth/prisma-adapter`. Split config pattern: `src/auth.config.ts` (edge-compatible, GitHub provider only) and `src/auth.ts` (full config with PrismaAdapter + JWT strategy + session callback to expose `user.id`). Created `src/proxy.ts` with named `export const proxy` per Next.js 16 convention — protects `/dashboard/*` by redirecting unauthenticated users to sign-in. Created `src/app/api/auth/[...nextauth]/route.ts` handler and `src/types/next-auth.d.ts` to augment Session with `user.id`. Added `allowDangerousEmailAccountLinking: true` to link GitHub OAuth to existing seeded user.
+
+
 - **Initial setup - 2026-06-13** — Initial Next.js 15 + Tailwind CSS v4 project setup. Initialized git repository, connected to remote, and pushed to `main`.
 
 - **Dashboard Phase 1 - 2026-06-13** — shadcn/ui initialization, `/dashboard` route, dark warm-brown theme, top bar with search + New Item + New Collection buttons, sidebar and main area placeholders.
