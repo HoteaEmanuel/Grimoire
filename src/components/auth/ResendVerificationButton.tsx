@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import axios from "axios"
 import { toast } from "sonner"
 
 const COOLDOWN_SECONDS = 60
@@ -18,14 +19,7 @@ export function ResendVerificationButton({ email }: { email: string }) {
   async function handleResend() {
     setLoading(true)
     try {
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
-
-      if (!res.ok) throw new Error()
-
+      await axios.post("/api/auth/resend-verification", { email })
       toast.success("Verification email sent! Check your inbox.")
       setCooldown(COOLDOWN_SECONDS)
     } catch {

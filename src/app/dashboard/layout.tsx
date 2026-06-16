@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AuthToast } from "@/components/auth/AuthToast";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSidebarCollections } from "@/lib/db/collections";
 
@@ -12,7 +12,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await getSession();
   const userId = session?.user?.id ?? "";
 
   const [itemTypes, collections] = await Promise.all([

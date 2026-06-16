@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import axios from "axios"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,11 +58,7 @@ export function SignInForm() {
 
     setResendLoading(true)
     try {
-      await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      })
+      await axios.post("/api/auth/resend-verification", { email })
       toast.success("Verification email sent! Check your inbox.")
       router.push(`/verify-email?email=${encodeURIComponent(email)}`)
 

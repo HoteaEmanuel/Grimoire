@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import axios, { AxiosError } from "axios"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,19 +26,15 @@ export function RegisterForm() {
 
   async function onSubmit(data: RegisterInput) {
     setServerError(null)
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-
-    if (!res.ok) {
-      const body = await res.json()
-      setServerError(body.error ?? "Something went wrong")
-      return
+    try {
+      await axios.post("/api/auth/register", data)
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+    } catch (err) {
+      const message = err instanceof AxiosError
+        ? (err.response?.data?.error ?? "Something went wrong")
+        : "Something went wrong"
+      setServerError(message)
     }
-
-    router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
   }
 
   return (

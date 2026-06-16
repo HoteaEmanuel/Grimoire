@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { sendVerificationEmail } from "@/lib/email"
 
+const schema = z.object({ email: z.email() })
+
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json()
+    const body = await req.json()
+    const result = schema.safeParse(body)
 
-    if (!email || typeof email !== "string") {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 })
+    if (!result.success) {
+      // Return 200 to avoid email enumeration
+      return NextResponse.json({ success: true })
     }
+
+    const { email } = result.data
 
     const user = await prisma.user.findUnique({
       where: { email },

@@ -13,26 +13,30 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/sign-in?error=invalid-token", base))
   }
 
-  const record = await prisma.verificationToken.findUnique({
-    where: { token },
-  })
-
-  if (!record || record.identifier !== email || record.expires < new Date()) {
-    await prisma.verificationToken.deleteMany({ where: { token } })
-    return NextResponse.redirect(new URL("/sign-in?error=token-expired", base))
-  }
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { email },
-      data: { emailVerified: new Date() },
-    }),
-    prisma.verificationToken.delete({
+  try {
+    const record = await prisma.verificationToken.findUnique({
       where: { token },
-    }),
-  ])
+    })
 
-  return NextResponse.redirect(
-    new URL("/sign-in?toast=email-verified", base),
-  )
+    if (!record || record.identifier !== email || record.expires < new Date()) {
+      await prisma.verificationToken.deleteMany({ where: { token } })
+      return NextResponse.redirect(new URL("/sign-in?error=token-expired", base))
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { email },
+        data: { emailVerified: new Date() },
+      }),
+      prisma.verificationToken.delete({
+        where: { token },
+      }),
+    ])
+
+    return NextResponse.redirect(
+      new URL("/sign-in?toast=email-verified", base),
+    )
+  } catch {
+    return NextResponse.redirect(new URL("/sign-in?error=invalid-token", base))
+  }
 }

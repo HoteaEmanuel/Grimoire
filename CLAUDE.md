@@ -34,3 +34,12 @@ npm run lint     # run ESLint
 ## Structure
 
 All routes are file-based under `src/app/`. The root layout (`layout.tsx`) wraps every page and applies global fonts and styles. Pages export a default React component — no pages router, no `getServerSideProps`.
+
+
+## Neon MCP
+
+When using Neon MCP tools, always default to:
+- **Project:** `grimoire` (ID: `proud-queen-90298396`)
+- **Branch:** `development` (ID: `br-restless-moon-asemkg8b`)
+
+NEVER use the `production` branch (ID: `br-falling-butterfly-asmcel0i`) unless explicitly told to do so.
