@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
+import { useUpdateItem, useDeleteItem } from "@/lib/mutations/items";
 import {
   Star,
   Pin,
@@ -24,8 +25,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatDate, formatFileSize, copyToClipboard } from "@/lib/utils";
-import { updateItem } from "@/actions/items";
 import type { ItemDetail } from "@/lib/db/items";
 
 const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
@@ -106,8 +116,20 @@ export function ItemDrawer() {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editState, setEditState] = useState<EditState | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
+
+  const updateMutation = useUpdateItem((updated) => {
+    setItem(updated ?? null);
+    setEditing(false);
+    setEditState(null);
+    router.refresh();
+  });
+
+  const deleteMutation = useDeleteItem(() => {
+    closeDrawer();
+    router.refresh();
+  });
 
   useEffect(() => {
     if (!open || !selectedId) return;
@@ -164,26 +186,16 @@ export function ItemDrawer() {
       .map((t) => t.trim())
       .filter(Boolean);
 
-    startTransition(async () => {
-      const result = await updateItem(item.id, {
+    updateMutation.mutate({
+      id: item.id,
+      data: {
         title: editState.title,
         description: editState.description || null,
         content: editState.content || null,
         url: editState.url || null,
         language: editState.language || null,
         tags,
-      });
-
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-
-      setItem(result.data);
-      setEditing(false);
-      setEditState(null);
-      toast.success("Item saved");
-      router.refresh();
+      },
     });
   };
 
@@ -199,6 +211,7 @@ export function ItemDrawer() {
     : false;
 
   return (
+    <>
     <Drawer open={open} onOpenChange={(v) => !v && closeDrawer()} direction="right">
       <DrawerContent className="w-full sm:max-w-lg! fixed right-0 inset-y-0 rounded-l-xl border-l border-border bg-card flex flex-col overflow-hidden outline-none">
         {/* Header */}
@@ -453,12 +466,12 @@ export function ItemDrawer() {
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={isPending || !editState?.title.trim() || hasInvalidTags}
+              disabled={updateMutation.isPending || !editState?.title.trim() || hasInvalidTags}
             >
               <Check />
-              {isPending ? "Saving…" : "Save"}
+              {updateMutation.isPending ? "Saving…" : "Save"}
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleEditCancel} disabled={isPending}>
+            <Button variant="ghost" size="sm" onClick={handleEditCancel} disabled={updateMutation.isPending}>
               Cancel
             </Button>
           </div>
@@ -507,6 +520,7 @@ export function ItemDrawer() {
               title="Delete"
               disabled={!item}
               className="ml-auto"
+              onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 size={15} />
             </Button>
@@ -514,5 +528,30 @@ export function ItemDrawer() {
         )}
       </DrawerContent>
     </Drawer>
+
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete item?</AlertDialogTitle>
+          <AlertDialogDescription>
+            <strong className="text-foreground">{item?.title}</strong> will be permanently
+            deleted. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              if (item) deleteMutation.mutate(item.id);
+            }}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

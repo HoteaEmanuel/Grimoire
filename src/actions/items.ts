@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { auth } from "@/auth";
 import { updateItem as dbUpdateItem } from "@/lib/db/items";
+import { prisma } from "@/lib/prisma";
 import type { ItemDetail } from "@/lib/db/items";
 
 const updateItemSchema = z.object({
@@ -55,4 +56,27 @@ export async function updateItem(
   }
 
   return { success: true, data: updated };
+}
+
+type DeleteItemResult = { success: true } | { success: false; error: string };
+
+export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    const deleted = await prisma.item.deleteMany({
+      where: { id: itemId, userId: session.user.id },
+    });
+
+    if (deleted.count === 0) {
+      return { success: false, error: "Item not found" };
+    }
+
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to delete item" };
+  }
 }
