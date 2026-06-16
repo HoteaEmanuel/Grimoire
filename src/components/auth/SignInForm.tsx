@@ -15,10 +15,13 @@ import { signInSchema, type SignInInput } from "@/lib/schemas/auth"
 export function SignInForm() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -43,6 +46,38 @@ export function SignInForm() {
 
   async function handleGitHub() {
     await signIn("github", { redirectTo: "/dashboard?toast=signin" })
+  }
+
+  async function handleResend() {
+    const email = getValues("email")
+    if (!email) {
+      toast.error("Enter your email address above first.")
+      return
+    }
+
+    setResendLoading(true)
+    try {
+      await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      toast.success("Verification email sent! Check your inbox.")
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+
+      // Start cooldown
+      setResendCooldown(60)
+      const interval = setInterval(() => {
+        setResendCooldown((c) => {
+          if (c <= 1) { clearInterval(interval); return 0 }
+          return c - 1
+        })
+      }, 1000)
+    } catch {
+      toast.error("Failed to send email. Please try again.")
+    } finally {
+      setResendLoading(false)
+    }
   }
 
   return (
@@ -106,12 +141,31 @@ export function SignInForm() {
         Sign in with GitHub
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-primary hover:underline font-medium">
-          Register
-        </Link>
-      </p>
+      <div className="space-y-2 text-center text-sm text-muted-foreground">
+        <p>
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-primary hover:underline font-medium">
+            Register
+          </Link>
+        </p>
+        <p>
+          Email not verified?{" "}
+          {resendCooldown > 0 ? (
+            <span className="text-muted-foreground/60 tabular-nums">
+              Resend in {resendCooldown}s
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="text-primary hover:underline font-medium disabled:opacity-50"
+            >
+              {resendLoading ? "Sending…" : "Resend verification"}
+            </button>
+          )}
+        </p>
+      </div>
     </div>
   )
 }

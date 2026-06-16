@@ -1,10 +1,26 @@
-## Current Feature
+## Current Feature: Email Verification on Register
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- After a user registers with email/password, send a verification email via Resend before granting access
+- The email contains a unique, time-limited verification link
+- Clicking the link marks the user's email as verified (`emailVerified` field in DB)
+- Unverified users are blocked from accessing `/dashboard` and shown a "check your email" screen
+- Resend API key (`RESEND_API_KEY`) is already in `.env`
+
 ## Notes
+
+- Use Resend's Node.js SDK (`resend` npm package) to send emails
+- Generate a secure token (e.g. via `crypto.randomBytes`) and store it in the `VerificationToken` table (already in Prisma schema via NextAuth)
+- The verification link should be: `/api/auth/verify-email?token=<token>&email=<email>`
+- After clicking the link, redirect the user to `/sign-in` with a success toast
+- GitHub OAuth users skip email verification entirely (already trusted)
+- Do not require verification to be resent immediately — defer resend flow to a later feature
+- Proxy / middleware should check `emailVerified` for credentials-based users and redirect unverified users to `/verify-email` (a simple "check your inbox" page)
 
 ## History
 

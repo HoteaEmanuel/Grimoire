@@ -37,8 +37,7 @@ export function RegisterForm() {
       return
     }
 
-    toast.success("Account created! Please sign in.")
-    router.push("/sign-in")
+    router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
   }
 
   return (

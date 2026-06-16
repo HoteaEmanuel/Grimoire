@@ -6,6 +6,12 @@ export default {
   pages: {
     signIn: "/sign-in",
   },
+  callbacks: {
+    session({ session, token }) {
+      session.user.emailVerified = (token.emailVerified as Date | null) ?? null
+      return session
+    },
+  },
   providers: [
     GitHub({ allowDangerousEmailAccountLinking: true }),
     Credentials({
