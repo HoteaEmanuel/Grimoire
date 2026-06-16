@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
-import { updateItem, deleteItem } from "./items";
+import { updateItem, deleteItem, createItem } from "./items";
 import { prisma } from "@/lib/prisma";
 
 vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
+  createItem: vi.fn(),
 }));
 
 import { updateItem as dbUpdateItem } from "@/lib/db/items";
+import { createItem as dbCreateItem } from "@/lib/db/items";
 
 const mockSession = { user: { id: "user-1" } };
 
@@ -165,6 +167,150 @@ describe("updateItem server action", () => {
       const result = await updateItem("item-1", { title: "Title", tags: [] });
 
       expect(result).toEqual({ success: false, error: "Failed to save changes" });
+    });
+  });
+});
+
+describe("createItem server action", () => {
+  const mockCreatedItem = {
+    id: "item-new",
+    title: "New Snippet",
+    description: null,
+    contentKind: "TEXT" as const,
+    content: "console.log('hi')",
+    url: null,
+    fileUrl: null,
+    fileName: null,
+    fileSize: null,
+    language: "typescript",
+    isFavorite: false,
+    isPinned: false,
+    createdAt: new Date("2024-01-10"),
+    updatedAt: new Date("2024-01-10"),
+    lastUsedAt: null,
+    typeName: "Snippet",
+    typeSlug: "snippets",
+    typeColor: "#3b82f6",
+    typeIconName: "Code",
+    tags: [],
+    collections: [],
+  };
+
+  describe("auth checks", () => {
+    it("returns error when unauthenticated", async () => {
+      vi.mocked(auth).mockResolvedValue(null);
+
+      const result = await createItem({ typeSlug: "snippets", title: "Title" });
+
+      expect(result).toEqual({ success: false, error: "Unauthorized" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("returns error when session has no user id", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: {} } as never);
+
+      const result = await createItem({ typeSlug: "snippets", title: "Title" });
+
+      expect(result).toEqual({ success: false, error: "Unauthorized" });
+    });
+  });
+
+  describe("input validation", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("rejects empty title", async () => {
+      const result = await createItem({ typeSlug: "snippets", title: "" });
+
+      expect(result).toEqual({ success: false, error: "Title is required" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("rejects invalid type slug", async () => {
+      const result = await createItem({ typeSlug: "images" as never, title: "Title" });
+
+      expect(result.success).toBe(false);
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("rejects link without URL", async () => {
+      const result = await createItem({ typeSlug: "links", title: "My Link" });
+
+      expect(result).toEqual({ success: false, error: "URL is required for link items" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("rejects link with invalid URL", async () => {
+      const result = await createItem({ typeSlug: "links", title: "My Link", url: "not-a-url" });
+
+      expect(result.success).toBe(false);
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("accepts link with valid URL", async () => {
+      vi.mocked(dbCreateItem).mockResolvedValue(mockCreatedItem);
+
+      const result = await createItem({ typeSlug: "links", title: "My Link", url: "https://example.com" });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("successful create", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+      vi.mocked(dbCreateItem).mockResolvedValue(mockCreatedItem);
+    });
+
+    it("returns created item on success", async () => {
+      const result = await createItem({ typeSlug: "snippets", title: "New Snippet" });
+
+      expect(result).toEqual({ success: true, data: mockCreatedItem });
+    });
+
+    it("passes userId and form data to db function", async () => {
+      await createItem({
+        typeSlug: "snippets",
+        title: "  My Snippet  ",
+        description: "desc",
+        content: "code",
+        language: "typescript",
+      });
+
+      expect(dbCreateItem).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({
+          typeSlug: "snippets",
+          title: "My Snippet",
+          description: "desc",
+          content: "code",
+          language: "typescript",
+        }),
+      );
+    });
+
+    it("strips content and language for link type", async () => {
+      await createItem({ typeSlug: "links", title: "My Link", url: "https://example.com" });
+
+      expect(dbCreateItem).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({ content: null, language: null, url: "https://example.com" }),
+      );
+    });
+  });
+
+  describe("db failure", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("returns error when db create returns null", async () => {
+      vi.mocked(dbCreateItem).mockResolvedValue(null);
+
+      const result = await createItem({ typeSlug: "snippets", title: "Title" });
+
+      expect(result).toEqual({ success: false, error: "Failed to create item" });
     });
   });
 });

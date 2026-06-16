@@ -2,9 +2,65 @@
 
 import { z } from "zod";
 import { auth } from "@/auth";
-import { updateItem as dbUpdateItem } from "@/lib/db/items";
+import { updateItem as dbUpdateItem, createItem as dbCreateItem } from "@/lib/db/items";
 import { prisma } from "@/lib/prisma";
 import type { ItemDetail } from "@/lib/db/items";
+
+const CREATE_TYPE_SLUGS = ["snippets", "prompts", "notes", "commands", "links"] as const;
+
+const createItemSchema = z.object({
+  typeSlug: z.enum(CREATE_TYPE_SLUGS),
+  title: z.string().trim().min(1, "Title is required"),
+  description: z.string().trim().nullable().optional(),
+  content: z.string().nullable().optional(),
+  url: z
+    .string()
+    .trim()
+    .refine((v) => !v || URL.canParse(v), { message: "Must be a valid URL" })
+    .nullable()
+    .optional(),
+  language: z.string().trim().nullable().optional(),
+  tags: z.array(z.string().trim().min(1)).default([]),
+});
+
+export type CreateItemInput = z.input<typeof createItemSchema>;
+
+type CreateItemResult =
+  | { success: true; data: ItemDetail }
+  | { success: false; error: string };
+
+export async function createItem(formData: CreateItemInput): Promise<CreateItemResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const parsed = createItemSchema.safeParse(formData);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return { success: false, error: first?.message ?? "Invalid input" };
+  }
+
+  if (parsed.data.typeSlug === "links" && !parsed.data.url) {
+    return { success: false, error: "URL is required for link items" };
+  }
+
+  const created = await dbCreateItem(session.user.id, {
+    typeSlug: parsed.data.typeSlug,
+    title: parsed.data.title,
+    description: parsed.data.description ?? null,
+    content: parsed.data.content ?? null,
+    url: parsed.data.url ?? null,
+    language: parsed.data.language ?? null,
+    tags: parsed.data.tags,
+  });
+
+  if (!created) {
+    return { success: false, error: "Failed to create item" };
+  }
+
+  return { success: true, data: created };
+}
 
 const updateItemSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
