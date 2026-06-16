@@ -1,6 +1,16 @@
 "use client";
 
+import { signOut } from "next-auth/react";
+import Link from "next/link";
+import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -27,7 +37,7 @@ export function SidebarUserFooter({
     .join("")
     .toUpperCase();
 
-  const avatar = (
+  const avatarEl = (
     <Avatar className="size-8 shrink-0">
       <AvatarImage src={image ?? undefined} alt={name} />
       <AvatarFallback className="text-xs font-semibold bg-primary/20 text-primary">
@@ -40,30 +50,59 @@ export function SidebarUserFooter({
     <div
       className={cn(
         "shrink-0 border-t border-sidebar-border p-3",
-        collapsed ? "flex justify-center" : "flex items-center gap-3",
+        collapsed ? "flex justify-center" : "flex items-center",
       )}
     >
-      {collapsed ? (
-        <Tooltip>
-          <TooltipTrigger render={<span className="block rounded-full" />}>
-            {avatar}
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p className="font-medium">{name}</p>
-            <p className="text-xs text-muted-foreground">{email}</p>
-          </TooltipContent>
-        </Tooltip>
-      ) : (
-        <>
-          {avatar}
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {name}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">{email}</p>
-          </div>
-        </>
-      )}
+      <DropdownMenu>
+        {collapsed ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <DropdownMenuTrigger
+                  render={
+                    <button className="block rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                  }
+                />
+              }
+            >
+              {avatarEl}
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p className="font-medium">{name}</p>
+              <p className="text-xs text-muted-foreground">{email}</p>
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <DropdownMenuTrigger
+            render={
+              <button className="flex items-center gap-3 min-w-0 w-full text-left rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            }
+          >
+            {avatarEl}
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {name}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">{email}</p>
+            </div>
+          </DropdownMenuTrigger>
+        )}
+
+        <DropdownMenuContent side="top" align={collapsed ? "center" : "start"} className="w-52">
+          <DropdownMenuItem render={<Link href="/profile" />}>
+            <User className="size-4" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => signOut({ callbackUrl: "/sign-in" })}
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
