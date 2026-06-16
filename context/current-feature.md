@@ -8,6 +8,8 @@
 
 ## History
 
+- **Rate Limiting for Auth - 2026-06-16** — Installed `@upstash/ratelimit` + `@upstash/redis`. Created `src/lib/rate-limit.ts` with sliding window limiters for all 5 auth endpoints, `getIP()` helper (reads `x-forwarded-for`), `checkRateLimit()` (fails open if Upstash is unavailable), and `rateLimitResponse()` (429 + `Retry-After` header + dynamic "try again in X minutes" message). Sign-in rate limiting uses a pre-check pattern: `SignInForm` calls `POST /api/auth/signin-check` (5/15 min, IP+email) before `signIn()` to surface the 429 as a toast without NextAuth intercepting it. Register (3/1 hr, IP), forgot-password (5/1 hr, IP), reset-password (5/15 min, IP), and resend-verification (5/15 min, IP+email) are rate-limited directly in their route handlers. All forms handle 429 with `toast.error()` using the server's error message; `SignInForm` and `RegisterForm` also set inline `serverError`.
+
 - **Initial setup - 2026-06-13** — Initial Next.js 15 + Tailwind CSS v4 project setup. Initialized git repository, connected to remote, and pushed to `main`.
 
 - **Dashboard Phase 1 - 2026-06-13** — shadcn/ui initialization, `/dashboard` route, dark warm-brown theme, top bar with search + New Item + New Collection buttons, sidebar and main area placeholders.

@@ -4,6 +4,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { sendVerificationEmail } from "@/lib/email"
 import { hashToken } from "@/lib/auth-constants"
+import { resendVerificationLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
 
 const schema = z.object({ email: z.email() })
 
@@ -22,6 +23,12 @@ export async function POST(req: Request) {
     }
 
     const { email } = result.data
+
+    const { success, retryAfter } = await checkRateLimit(
+      resendVerificationLimiter,
+      `${getIP(req)}:${email}`,
+    )
+    if (!success) return rateLimitResponse(retryAfter)
 
     const user = await prisma.user.findUnique({
       where: { email },

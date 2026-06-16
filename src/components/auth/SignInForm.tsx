@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,19 +30,37 @@ export function SignInForm() {
 
   async function onSubmit(data: SignInInput) {
     setServerError(null)
-    const res = await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    })
 
-    if (res?.error) {
-      setServerError("Invalid email or password")
-      return
+    // Rate limit check — stops before calling signIn() so it never throws on 429
+    try {
+      await axios.post("/api/auth/signin-check", { email: data.email })
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 429) {
+        const msg = err.response.data?.error ?? "Too many sign-in attempts. Please try again later."
+        toast.error(msg)
+        setServerError(msg)
+        return
+      }
+      // Non-429 errors from the check endpoint are non-fatal — proceed with sign-in
     }
 
-    toast.success("Signed in successfully")
-    router.push("/dashboard")
+    try {
+      const res = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      })
+
+      if (res?.error) {
+        setServerError("Invalid email or password")
+        return
+      }
+
+      toast.success("Signed in successfully")
+      router.push("/dashboard")
+    } catch {
+      toast.error("Something went wrong. Please try again.")
+    }
   }
 
   async function handleGitHub() {
@@ -70,7 +88,11 @@ export function SignInForm() {
           return c - 1
         })
       }, 1000)
-    } catch {
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 429) {
+        toast.error(err.response.data?.error ?? "Too many attempts. Please try again later.")
+        return
+      }
       toast.error("Failed to send email. Please try again.")
     } finally {
       setResendLoading(false)

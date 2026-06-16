@@ -5,8 +5,12 @@ import { prisma } from "@/lib/prisma"
 import { registerSchema } from "@/lib/schemas/auth"
 import { sendVerificationEmail } from "@/lib/email"
 import { hashToken } from "@/lib/auth-constants"
+import { registerLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
 
 export async function POST(req: Request) {
+  const { success, retryAfter } = await checkRateLimit(registerLimiter, getIP(req))
+  if (!success) return rateLimitResponse(retryAfter)
+
   try {
     const body = await req.json()
     const result = registerSchema.safeParse(body)

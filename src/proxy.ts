@@ -8,7 +8,7 @@ export const proxy = auth(function middleware(req) {
   const isLoggedIn = !!req.auth
 
   const isProtected =
-    nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/profile");
+    nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/profile")
 
   if (isProtected) {
     if (!isLoggedIn) {

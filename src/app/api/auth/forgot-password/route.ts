@@ -4,10 +4,14 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { sendPasswordResetEmail } from "@/lib/email"
 import { RESET_PREFIX, hashToken } from "@/lib/auth-constants"
+import { forgotPasswordLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
 
 const schema = z.object({ email: z.email() })
 
 export async function POST(req: Request) {
+  const { success, retryAfter } = await checkRateLimit(forgotPasswordLimiter, getIP(req))
+  if (!success) return rateLimitResponse(retryAfter)
+
   try {
     const body = await req.json()
     const result = schema.safeParse(body)
