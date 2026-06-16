@@ -104,6 +104,82 @@ export async function getItemStats(
   }
 }
 
+export type ItemFull = {
+  id: string;
+  title: string;
+  description: string | null;
+  contentKind: "TEXT" | "URL" | "FILE";
+  content: string | null;
+  url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  language: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  lastUsedAt: Date | null;
+  createdAt: Date;
+  typeId: string;
+  typeName: string;
+  typeSlug: string;
+  typeColor: string;
+  typeIconName: string;
+  tags: string[];
+};
+
+export async function getItemsByType(userId: string, typeSlug: string): Promise<ItemFull[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { userId, itemType: { slug: typeSlug } },
+      orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        contentKind: true,
+        content: true,
+        url: true,
+        fileUrl: true,
+        fileName: true,
+        fileSize: true,
+        language: true,
+        isFavorite: true,
+        isPinned: true,
+        lastUsedAt: true,
+        createdAt: true,
+        itemType: { select: { id: true, name: true, slug: true, color: true, icon: true } },
+        tags: { select: { tag: { select: { name: true } } } },
+      },
+    });
+
+    return items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      contentKind: item.contentKind,
+      content: item.content,
+      url: item.url,
+      fileUrl: item.fileUrl,
+      fileName: item.fileName,
+      fileSize: item.fileSize,
+      language: item.language,
+      isFavorite: item.isFavorite,
+      isPinned: item.isPinned,
+      lastUsedAt: item.lastUsedAt,
+      createdAt: item.createdAt,
+      typeId: item.itemType.id,
+      typeName: item.itemType.name,
+      typeSlug: item.itemType.slug,
+      typeColor: item.itemType.color,
+      typeIconName: item.itemType.icon,
+      tags: item.tags.map((t) => t.tag.name),
+    }));
+  } catch (err) {
+    console.error("[getItemsByType]", err);
+    return [];
+  }
+}
+
 export type SidebarItemType = {
   id: string;
   name: string;

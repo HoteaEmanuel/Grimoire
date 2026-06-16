@@ -1,10 +1,26 @@
-## Current Feature
+## Current Feature: Items List View
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- Create dynamic route `/dashboard/items/[type]` serving all 7 item type pages
+- Validate the `[type]` param against `SYSTEM_ITEM_TYPES`; return 404 for unknown slugs
+- Fetch items from the DB filtered by type, owned by the authenticated user
+- Render a responsive grid of `ItemCard` components (3 columns on `md` and up)
+- Each card has a left border colored by its item type hex color
+- Follow existing codebase patterns (server page → client grid component)
+
 ## Notes
+
+- Route: `/dashboard/items/[type]` — `[type]` matches `ItemType.slug` (e.g., `snippets`, `notes`)
+- This is a read-only listing view; no drawer, create, or edit in this phase
+- Ordering: pinned items first, then by `lastUsedAt` desc, then `createdAt` desc
+- Use `getItemsByType` from `src/lib/db/items.ts` (add this function — see `docs/item-crud-architecture.md`)
+- `ItemFull` type and `getItemsByType` query are designed in the CRUD architecture doc
+- The sidebar already links to these routes via `SidebarNavItem` components
 
 ## History
 
