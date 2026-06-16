@@ -78,9 +78,9 @@ export function SignInForm() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 space-y-5">
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <div className="space-y-1.5">
+    <div className="bg-card border border-border rounded-xl p-8 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-foreground">
             Email
           </label>
@@ -97,7 +97,7 @@ export function SignInForm() {
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label htmlFor="password" className="text-sm font-medium text-foreground">
               Password

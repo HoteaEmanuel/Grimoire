@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Cinzel, JetBrains_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,9 +37,11 @@ export default function RootLayout({
       className={`${inter.variable} ${cinzel.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
+        <Providers>
           <TooltipProvider>{children}</TooltipProvider>
+        </Providers>
         <Toaster richColors position="top-right" />
-        </body>
+      </body>
     </html>
   );
 }

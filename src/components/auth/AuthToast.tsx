@@ -27,6 +27,9 @@ export function AuthToast() {
     } else if (toastParam === "password-reset") {
       toast.success("Password reset successfully! You can now sign in.")
       router.replace("/sign-in")
+    } else if (toastParam === "account-deleted") {
+      toast.success("Your account has been deleted.")
+      router.replace("/sign-in")
     }
   }, [searchParams, router])
 
