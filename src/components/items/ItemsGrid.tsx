@@ -1,9 +1,9 @@
 import { PackageOpen } from "lucide-react";
-import type { ItemFull } from "@/lib/db/items";
-import { ItemCard } from "@/components/dashboard/ItemCard";
+import type { ItemWithMeta } from "@/lib/db/items";
+import { ItemGridWithDrawer } from "@/components/items/ItemGridWithDrawer";
 
 interface ItemsGridProps {
-  items: ItemFull[];
+  items: ItemWithMeta[];
   typeName: string;
   typeColor: string;
 }
@@ -37,19 +37,9 @@ export function ItemsGrid({ items, typeName, typeColor }: ItemsGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {items.map((item) => (
-        <ItemCard
-          key={item.id}
-          title={item.title}
-          description={item.description}
-          typeName={item.typeName}
-          typeColor={item.typeColor}
-          tags={item.tags}
-          isPinned={item.isPinned}
-          language={item.language}
-        />
-      ))}
-    </div>
+    <ItemGridWithDrawer
+      items={items}
+      className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+    />
   );
 }

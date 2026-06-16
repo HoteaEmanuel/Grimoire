@@ -12,16 +12,19 @@ vi.mock("next/cache", () => ({
 }));
 
 // Mock Prisma — individual tests override specific methods via vi.mocked()
+const prismaMock = {
+  user: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+  item: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn(), groupBy: vi.fn() },
+  itemType: { findUnique: vi.fn(), findMany: vi.fn() },
+  collection: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn() },
+  tag: { findMany: vi.fn(), upsert: vi.fn(), delete: vi.fn() },
+  verificationToken: { create: vi.fn(), findUnique: vi.fn(), delete: vi.fn() },
+  $transaction: vi.fn((fn: unknown) => (typeof fn === "function" ? fn({}) : Promise.resolve())),
+};
+
 vi.mock("@/lib/prisma", () => ({
-  default: {
-    user: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
-    item: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn() },
-    itemType: { findUnique: vi.fn(), findMany: vi.fn() },
-    collection: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn() },
-    tag: { findMany: vi.fn(), upsert: vi.fn(), delete: vi.fn() },
-    verificationToken: { create: vi.fn(), findUnique: vi.fn(), delete: vi.fn() },
-    $transaction: vi.fn((fn: unknown) => (typeof fn === "function" ? fn({}) : Promise.resolve())),
-  },
+  default: prismaMock,
+  prisma: prismaMock,
 }));
 
 // Mock next-auth — tests control session via vi.mocked(auth).mockResolvedValue(...)

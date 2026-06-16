@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AuthToast } from "@/components/auth/AuthToast";
+import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { getSession } from "@/lib/session";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSidebarCollections } from "@/lib/db/collections";
@@ -38,6 +39,7 @@ export default async function DashboardLayout({
         <AuthToast />
       </Suspense>
       {children}
+      <ItemDrawer />
     </DashboardShell>
   );
 }

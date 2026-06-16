@@ -4,7 +4,7 @@ import { Layers, Star, BookMarked, Hash } from "lucide-react";
 import { AnimatedWand } from "@/components/dashboard/AnimatedWand";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { ItemCard } from "@/components/dashboard/ItemCard";
+import { ItemGridWithDrawer } from "@/components/items/ItemGridWithDrawer";
 import { getRecentCollections, getCollectionStats } from "@/lib/db/collections";
 import { getPinnedItems, getRecentItems, getItemStats } from "@/lib/db/items";
 import { getSession } from "@/lib/session";
@@ -106,20 +106,7 @@ export default async function DashboardPage() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             Pinned Items
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {pinnedItems.map((item) => (
-              <ItemCard
-                key={item.id}
-                title={item.title}
-                description={item.description}
-                typeName={item.typeName}
-                typeColor={item.typeColor}
-                tags={item.tags}
-                isPinned
-                language={item.language}
-              />
-            ))}
-          </div>
+          <ItemGridWithDrawer items={pinnedItems} />
         </section>
       )}
 
@@ -129,20 +116,7 @@ export default async function DashboardPage() {
           Recent Items
         </h2>
         {recentItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {recentItems.map((item) => (
-              <ItemCard
-                key={item.id}
-                title={item.title}
-                description={item.description}
-                typeName={item.typeName}
-                typeColor={item.typeColor}
-                tags={item.tags}
-                isPinned={item.isPinned}
-                language={item.language}
-              />
-            ))}
-          </div>
+          <ItemGridWithDrawer items={recentItems} />
         ) : (
           <p className="text-sm text-muted-foreground/60">
             No items yet. Add your first snippet, prompt, or note to get

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { SYSTEM_ITEM_TYPES } from "@/lib/item-types";
-import { getItemsByType } from "@/lib/db/items";
+import { getItemCardsByType } from "@/lib/db/items";
 import { getSession } from "@/lib/session";
 import { ItemsGrid } from "@/components/items/ItemsGrid";
 
@@ -16,7 +16,7 @@ export default async function ItemTypePage({
   const session = await getSession();
   const userId = session?.user?.id ?? "";
 
-  const items = await getItemsByType(userId, type);
+  const items = await getItemCardsByType(userId, type);
 
   return (
     <div className="p-6">
