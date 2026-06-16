@@ -1,23 +1,10 @@
-## Current Feature: Email Verification Toggle
+## Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Add an `EMAIL_VERIFICATION_ENABLED` env variable (default `true`) that controls whether email verification is required
-- When `false`: registration skips token creation and email sending, sets `emailVerified` immediately, and bypasses the proxy block on unverified users
-- When `false`: `/api/auth/resend-verification` returns a clear error or no-op
-- No code paths should crash or behave unexpectedly regardless of the flag value
-- The toggle is checked in exactly 3 places: the register route, the resend-verification route, and the proxy
-
 ## Notes
-
-- Resend free tier only allows sending to the account owner's email (emanuelhotea1@gmail.com) until a domain is linked, making registration unusable for other emails in dev
-- An env var is the right approach — simple, explicit, no UI needed
-- Touch only the 3 files listed in Goals; do not refactor unrelated auth code
-- The flag should default to `true` (verification on) so production stays safe if the var is omitted
 
 ## History
 
@@ -48,3 +35,5 @@ In Progress
 - **Auth UI - 2026-06-16** — Custom `/sign-in` and `/register` pages under `(auth)` route group with centered layout. Extracted `SignInForm` and `RegisterForm` client components using `react-hook-form` + `@hookform/resolvers` with shared Zod schemas at `src/lib/schemas/auth.ts`. Added reusable `PasswordInput` component with show/hide toggle (Eye/EyeOff icons, `pr-10` to prevent text overlap). Installed `sonner` for toast notifications — success toasts on credentials sign-in, GitHub OAuth sign-in (via `?toast=signin` URL param + `AuthToast` client component), and registration. Updated `auth.config.ts` with `pages: { signIn: "/sign-in" }` and `proxy.ts` to redirect to `/sign-in`. Added `jwt` callback to `auth.ts` to capture GitHub avatar from raw provider `profile.avatar_url` (bypasses account-linking gap where `user.image` stays null in DB). Updated `dashboard/layout.tsx` and `page.tsx` to use real `auth()` session instead of `getDevUser()`. Updated `SidebarUserFooter` with Base UI `DropdownMenu` — avatar + name trigger opens dropdown with Profile link and Sign out. Installed `dropdown-menu` shadcn component.
 
 - **Email Verification - 2026-06-16** — Installed `resend` SDK. Created `src/lib/email.ts` with `sendVerificationEmail` (light-mode HTML email, console logs link in dev). Registration generates a 15-min `VerificationToken` and sends the email. `GET /api/auth/verify-email` validates token, sets `emailVerified`, redirects to `/sign-in?toast=email-verified`. `POST /api/auth/resend-verification` deletes stale tokens and issues a fresh one. `/verify-email` page shows check-your-inbox UI with `ResendVerificationButton` (60s cooldown). Proxy blocks unverified credentials users from `/dashboard` and redirects to `/verify-email`. `emailVerified` stored in JWT and exposed on session via `authConfig` session callback. `AuthToast` handles `email-verified`, `token-expired`, `invalid-token` params. `SignInForm` adds a persistent "Resend verification" link so returning users are never stuck.
+
+- **Email Verification Toggle - 2026-06-16** — Added `EMAIL_VERIFICATION_ENABLED` env variable (default `true`). When set to `false`: registration sets `emailVerified` immediately (skips token creation and email sending), `RegisterForm` redirects to `/sign-in` with a success toast instead of `/verify-email`, the proxy skips the unverified-user block, and `/api/auth/resend-verification` becomes a no-op. Safe for production — omitting the var keeps verification on.
