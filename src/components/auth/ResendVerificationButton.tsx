@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 
 const COOLDOWN_SECONDS = 60
 
@@ -39,12 +40,14 @@ export function ResendVerificationButton({ email }: { email: string }) {
   }
 
   return (
-    <button
+    <Button
+      variant="link"
+      size="sm"
       onClick={handleResend}
       disabled={loading}
-      className="text-xs text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+      className="h-auto p-0 text-xs"
     >
       {loading ? "Sending…" : "Resend verification email"}
-    </button>
+    </Button>
   )
 }

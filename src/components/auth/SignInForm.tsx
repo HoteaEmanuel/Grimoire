@@ -160,14 +160,16 @@ export function SignInForm() {
               Resend in {resendCooldown}s
             </span>
           ) : (
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="sm"
               onClick={handleResend}
               disabled={resendLoading}
-              className="text-primary hover:underline font-medium disabled:opacity-50"
+              className="h-auto p-0 font-medium"
             >
               {resendLoading ? "Sending…" : "Resend verification"}
-            </button>
+            </Button>
           )}
         </p>
       </div>
