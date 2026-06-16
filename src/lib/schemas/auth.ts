@@ -41,6 +41,10 @@ export const changePasswordSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
+  })
 
 export type SignInInput = z.infer<typeof signInSchema>
 export type RegisterInput = z.infer<typeof registerSchema>

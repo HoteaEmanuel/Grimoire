@@ -13,6 +13,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true })
   }
 
+  const { success: ipOk, retryAfter: ipRetry } = await checkRateLimit(
+    resendVerificationLimiter,
+    getIP(req),
+  )
+  if (!ipOk) return rateLimitResponse(ipRetry)
+
   try {
     const body = await req.json()
     const result = schema.safeParse(body)

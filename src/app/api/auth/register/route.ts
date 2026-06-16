@@ -21,14 +21,15 @@ export async function POST(req: Request) {
     }
 
     const { name, email, password } = result.data
+    const verificationEnabled = process.env.EMAIL_VERIFICATION_ENABLED !== "false"
 
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) {
-      return NextResponse.json({ error: "Email already in use" }, { status: 409 })
+      // Return the same response as a successful registration to avoid email enumeration
+      return NextResponse.json({ success: true, verified: !verificationEnabled }, { status: 201 })
     }
 
     const hashed = await bcrypt.hash(password, 12)
-    const verificationEnabled = process.env.EMAIL_VERIFICATION_ENABLED !== "false"
 
     await prisma.user.create({
       data: {

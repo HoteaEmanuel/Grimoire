@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import authConfig from "./auth.config"
+import { applyEmailVerified } from "@/lib/auth-session"
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -32,7 +33,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (token.id) session.user.id = token.id as string
       if (token.picture) session.user.image = token.picture as string
-      session.user.emailVerified = (token.emailVerified as Date | null) ?? null
+      applyEmailVerified(session, token)
       return session
     },
   },

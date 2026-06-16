@@ -1,6 +1,7 @@
 import GitHub from "next-auth/providers/github"
 import Credentials from "next-auth/providers/credentials"
 import type { NextAuthConfig } from "next-auth"
+import { applyEmailVerified } from "@/lib/auth-session"
 
 export default {
   pages: {
@@ -8,7 +9,7 @@ export default {
   },
   callbacks: {
     session({ session, token }) {
-      session.user.emailVerified = (token.emailVerified as Date | null) ?? null
+      applyEmailVerified(session, token)
       return session
     },
   },

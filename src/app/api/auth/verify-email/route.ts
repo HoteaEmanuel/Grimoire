@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { hashToken } from "@/lib/auth-constants"
+import { hashToken, safeCompare } from "@/lib/auth-constants"
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -14,13 +15,19 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/verify-email?error=invalid-token", base))
   }
 
+  if (!z.email().safeParse(email).success) {
+    return NextResponse.redirect(new URL("/verify-email?error=invalid-token", base))
+  }
+
   try {
+    const tokenHash = hashToken(rawToken)
+
     const record = await prisma.verificationToken.findUnique({
-      where: { token: hashToken(rawToken) },
+      where: { token: tokenHash },
     })
 
-    if (!record || record.identifier !== email || record.expires < new Date()) {
-      await prisma.verificationToken.deleteMany({ where: { token: hashToken(rawToken) } })
+    if (!record || !safeCompare(record.identifier, email) || record.expires < new Date()) {
+      await prisma.verificationToken.deleteMany({ where: { token: tokenHash } })
       return NextResponse.redirect(new URL("/verify-email?error=token-expired", base))
     }
 
@@ -30,7 +37,7 @@ export async function GET(req: Request) {
         data: { emailVerified: new Date() },
       }),
       prisma.verificationToken.delete({
-        where: { token: hashToken(rawToken) },
+        where: { token: tokenHash },
       }),
     ])
 
