@@ -2,6 +2,7 @@ import { PackageOpen } from "lucide-react";
 import type { ItemWithMeta } from "@/lib/db/items";
 import { ItemGridWithDrawer } from "@/components/items/ItemGridWithDrawer";
 import { ImageGridWithDrawer } from "@/components/items/ImageGridWithDrawer";
+import { FileListWithDrawer } from "@/components/items/FileListWithDrawer";
 
 interface ItemsGridProps {
   items: ItemWithMeta[];
@@ -40,6 +41,10 @@ export function ItemsGrid({ items, typeName, typeColor, typeSlug }: ItemsGridPro
 
   if (typeSlug === "images") {
     return <ImageGridWithDrawer items={items} />;
+  }
+
+  if (typeSlug === "files") {
+    return <FileListWithDrawer items={items} />;
   }
 
   return (

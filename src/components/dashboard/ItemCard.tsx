@@ -1,5 +1,9 @@
-import { Pin } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Pin, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { copyToClipboard } from "@/lib/utils";
 
 interface ItemCardProps {
   id?: string;
@@ -10,6 +14,8 @@ interface ItemCardProps {
   tags: string[];
   isPinned?: boolean;
   language?: string | null;
+  content?: string | null;
+  url?: string | null;
   onClick?: (id: string) => void;
 }
 
@@ -22,8 +28,21 @@ export function ItemCard({
   tags,
   isPinned,
   language,
+  content,
+  url,
   onClick,
 }: ItemCardProps) {
+  const [copied, setCopied] = useState(false);
+
+  const copyValue = content ?? url ?? title;
+
+  async function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation();
+    await copyToClipboard(copyValue);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   return (
     <div
       className="tome-card group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.01]"
@@ -86,6 +105,15 @@ export function ItemCard({
           </div>
         )}
       </div>
+
+      {/* copy button — bottom-right corner */}
+      <button
+        className="absolute bottom-3 right-3 z-10 p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all duration-150"
+        onClick={handleCopy}
+        aria-label="Copy"
+      >
+        {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+      </button>
     </div>
   );
 }
