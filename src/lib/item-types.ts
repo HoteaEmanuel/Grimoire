@@ -19,6 +19,13 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Image,
 };
 
+export const SUPPORTED_LANGUAGES = [
+  "bash", "c", "cpp", "css", "dart", "dockerfile", "go", "graphql", "html",
+  "java", "javascript", "json", "kotlin", "lua", "markdown", "php",
+  "powershell", "python", "ruby", "rust", "scala", "sql", "swift", "toml",
+  "typescript", "xml", "yaml",
+] as const;
+
 export const SYSTEM_ITEM_TYPES = [
   { name: "Snippet", slug: "snippets", icon: Code, color: "#3b82f6", contentKind: "TEXT" },
   { name: "Prompt", slug: "prompts", icon: Sparkles, color: "#8b5cf6", contentKind: "TEXT" },

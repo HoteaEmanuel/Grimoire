@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getPublicUrl } from "@/lib/r2";
+import { putObject, getPublicUrl } from "@/lib/r2";
+import { uploadLimiter, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { randomUUID } from "crypto";
 import path from "path";
 
@@ -20,22 +20,18 @@ const FILE_EXTENSIONS = new Set([".pdf", ".txt", ".md", ".json", ".yaml", ".yml"
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-const r2 = new S3Client({
-  region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-  },
-  requestChecksumCalculation: "WHEN_REQUIRED",
-  responseChecksumValidation: "WHEN_REQUIRED",
-});
-
 export async function POST(req: NextRequest) {
+  if (!process.env.R2_BUCKET_NAME || !process.env.R2_ACCOUNT_ID || !process.env.R2_PUBLIC_URL) {
+    return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { success, retryAfter } = await checkRateLimit(uploadLimiter, `upload:${session.user.id}`);
+  if (!success) return rateLimitResponse(retryAfter);
 
   const formData = await req.formData().catch(() => null);
   if (!formData) {
@@ -71,16 +67,14 @@ export async function POST(req: NextRequest) {
 
   const safeName = path.basename(file.name).replace(/[^a-zA-Z0-9._-]/g, "_");
   const key = `${session.user.id}/${typeSlug}/${randomUUID()}-${safeName}`;
-
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  await r2.send(new PutObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME!,
-    Key: key,
-    Body: buffer,
-    ContentType: file.type,
-    ContentLength: file.size,
-  }));
+  try {
+    await putObject(key, buffer, file.type, file.size);
+  } catch (err) {
+    console.error("[upload] R2 put failed", err);
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+  }
 
   const fileUrl = getPublicUrl(key);
   return NextResponse.json({ key, fileUrl, fileName: file.name, fileSize: file.size });

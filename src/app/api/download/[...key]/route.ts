@@ -20,8 +20,13 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const r2PublicUrl = process.env.R2_PUBLIC_URL;
+  if (!r2PublicUrl) {
+    return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
+  }
+
   // Confirm the item exists in DB
-  const fileUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+  const fileUrl = `${r2PublicUrl}/${key}`;
   const item = await prisma.item.findFirst({
     where: { userId: session.user.id, fileUrl },
     select: { id: true, fileName: true },

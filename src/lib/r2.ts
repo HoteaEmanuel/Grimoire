@@ -36,6 +36,23 @@ export async function getObjectStream(key: string) {
   return r2.send(command);
 }
 
+export async function putObject(
+  key: string,
+  body: Buffer,
+  contentType: string,
+  contentLength: number,
+): Promise<void> {
+  await r2.send(
+    new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      ContentLength: contentLength,
+    }),
+  );
+}
+
 export async function deleteR2Object(key: string): Promise<void> {
   const command = new DeleteObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME!,

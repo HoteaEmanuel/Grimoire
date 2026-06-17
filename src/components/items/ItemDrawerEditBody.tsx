@@ -1,0 +1,115 @@
+"use client";
+
+import { FolderOpen } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { CodeEditor } from "@/components/ui/code-editor";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { TagInput } from "@/components/shared/TagInput";
+import { SUPPORTED_LANGUAGES } from "@/lib/item-types";
+import type { ItemDetail } from "@/lib/db/items";
+import type { EditState } from "./item-drawer-types";
+
+const CODE_TYPES = new Set(["snippets", "commands"]);
+const MARKDOWN_TYPES = new Set(["prompts", "notes"]);
+const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
+
+interface ItemDrawerEditBodyProps {
+  item: ItemDetail;
+  editState: EditState;
+  onFieldChange: (key: keyof Omit<EditState, "tags">, value: string) => void;
+  onTagsChange: (tags: string[]) => void;
+}
+
+export function ItemDrawerEditBody({
+  item,
+  editState,
+  onFieldChange,
+  onTagsChange,
+}: ItemDrawerEditBodyProps) {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
+        <Textarea
+          value={editState.description}
+          onChange={(e) => onFieldChange("description", e.target.value)}
+          placeholder="Optional description"
+        />
+      </div>
+
+      {TEXT_TYPES.has(item.typeSlug) && (
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider">Content</label>
+          {CODE_TYPES.has(item.typeSlug) ? (
+            <CodeEditor
+              value={editState.content}
+              onChange={(v) => onFieldChange("content", v)}
+              language={editState.language || undefined}
+            />
+          ) : MARKDOWN_TYPES.has(item.typeSlug) ? (
+            <MarkdownEditor
+              value={editState.content}
+              onChange={(v) => onFieldChange("content", v)}
+              placeholder="Write markdown here…"
+            />
+          ) : (
+            <Textarea
+              value={editState.content}
+              onChange={(e) => onFieldChange("content", e.target.value)}
+              placeholder="Content"
+            />
+          )}
+        </div>
+      )}
+
+      {CODE_TYPES.has(item.typeSlug) && (
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider">Language</label>
+          <select
+            value={editState.language}
+            onChange={(e) => onFieldChange("language", e.target.value)}
+            className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+          >
+            <option value="">Select language</option>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <option key={lang} value={lang} className="bg-popover">
+                {lang}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {item.typeSlug === "links" && (
+        <div className="space-y-1.5">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider">URL</label>
+          <Input
+            type="url"
+            value={editState.url}
+            onChange={(e) => onFieldChange("url", e.target.value)}
+            placeholder="https://..."
+          />
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        <label className="text-xs text-muted-foreground uppercase tracking-wider">Tags</label>
+        <TagInput tags={editState.tags} onChange={onTagsChange} />
+      </div>
+
+      <div className="space-y-2 pt-2 border-t border-border">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="uppercase tracking-wider w-24 shrink-0">Type</span>
+          <span>{item.typeName}</span>
+        </div>
+        {item.collections.length > 0 && (
+          <div className="flex items-start gap-3 text-xs text-muted-foreground">
+            <FolderOpen size={12} className="mt-0.5 shrink-0" />
+            <span>{item.collections.map((c) => c.name).join(", ")}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Pin, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { copyToClipboard } from "@/lib/utils";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 
 interface ItemCardProps {
   id?: string;
@@ -32,15 +31,12 @@ export function ItemCard({
   url,
   onClick,
 }: ItemCardProps) {
-  const [copied, setCopied] = useState(false);
-
+  const { copied, copy } = useCopyToClipboard();
   const copyValue = content ?? url ?? title;
 
-  async function handleCopy(e: React.MouseEvent) {
+  function handleCopy(e: React.MouseEvent) {
     e.stopPropagation();
-    await copyToClipboard(copyValue);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    copy(copyValue);
   }
 
   return (

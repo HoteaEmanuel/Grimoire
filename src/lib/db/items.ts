@@ -20,121 +20,45 @@ export type ItemWithMeta = {
   url: string | null;
 };
 
-export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
-  try {
-    const items = await prisma.item.findMany({
-      where: { userId, isPinned: true },
-      orderBy: { lastUsedAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        content: true,
-        url: true,
-        isPinned: true,
-        isFavorite: true,
-        language: true,
-        lastUsedAt: true,
-        createdAt: true,
-        fileUrl: true,
-        fileName: true,
-        fileSize: true,
-        itemType: { select: { name: true, color: true, icon: true } },
-        tags: { select: { tag: { select: { name: true } } } },
-      },
-    });
+type RawItemCard = {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  isPinned: boolean;
+  isFavorite: boolean;
+  language: string | null;
+  lastUsedAt: Date | null;
+  createdAt: Date;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  itemType: { name: string; color: string; icon: string };
+  tags: Array<{ tag: { name: string } }>;
+};
 
-    return items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      typeName: item.itemType.name,
-      typeColor: item.itemType.color,
-      typeIconName: item.itemType.icon,
-      tags: item.tags.map((t) => t.tag.name),
-      isPinned: item.isPinned,
-      isFavorite: item.isFavorite,
-      language: item.language,
-      lastUsedAt: item.lastUsedAt,
-      createdAt: item.createdAt,
-      fileUrl: item.fileUrl,
-      fileName: item.fileName,
-      fileSize: item.fileSize,
-      content: item.content,
-      url: item.url,
-    }));
-  } catch (err) {
-    console.error("[getPinnedItems]", err);
-    return [];
-  }
+function mapItemCard(item: RawItemCard): ItemWithMeta {
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    typeName: item.itemType.name,
+    typeColor: item.itemType.color,
+    typeIconName: item.itemType.icon,
+    tags: item.tags.map((t) => t.tag.name),
+    isPinned: item.isPinned,
+    isFavorite: item.isFavorite,
+    language: item.language,
+    lastUsedAt: item.lastUsedAt,
+    createdAt: item.createdAt,
+    fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
+    content: item.content,
+    url: item.url,
+  };
 }
-
-export async function getRecentItems(userId: string, limit = 10): Promise<ItemWithMeta[]> {
-  try {
-    const items = await prisma.item.findMany({
-      where: { userId },
-      orderBy: { lastUsedAt: "desc" },
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        content: true,
-        url: true,
-        isPinned: true,
-        isFavorite: true,
-        language: true,
-        lastUsedAt: true,
-        createdAt: true,
-        fileUrl: true,
-        fileName: true,
-        fileSize: true,
-        itemType: { select: { name: true, color: true, icon: true } },
-        tags: { select: { tag: { select: { name: true } } } },
-      },
-    });
-
-    return items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      typeName: item.itemType.name,
-      typeColor: item.itemType.color,
-      typeIconName: item.itemType.icon,
-      tags: item.tags.map((t) => t.tag.name),
-      isPinned: item.isPinned,
-      isFavorite: item.isFavorite,
-      language: item.language,
-      lastUsedAt: item.lastUsedAt,
-      createdAt: item.createdAt,
-      fileUrl: item.fileUrl,
-      fileName: item.fileName,
-      fileSize: item.fileSize,
-      content: item.content,
-      url: item.url,
-    }));
-  } catch (err) {
-    console.error("[getRecentItems]", err);
-    return [];
-  }
-}
-
-export async function getItemStats(
-  userId: string,
-): Promise<{ totalItems: number; favoriteItems: number }> {
-  try {
-    const [totalItems, favoriteItems] = await Promise.all([
-      prisma.item.count({ where: { userId } }),
-      prisma.item.count({ where: { userId, isFavorite: true } }),
-    ]);
-    return { totalItems, favoriteItems };
-  } catch (err) {
-    console.error("[getItemStats]", err);
-    return { totalItems: 0, favoriteItems: 0 };
-  }
-}
-
-
 
 export type ItemDetail = {
   id: string;
@@ -160,57 +84,144 @@ export type ItemDetail = {
   collections: { id: string; name: string }[];
 };
 
+type RawItemDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  contentKind: "TEXT" | "URL" | "FILE";
+  content: string | null;
+  url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  language: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastUsedAt: Date | null;
+  itemType: { name: string; slug: string; color: string; icon: string };
+  tags: Array<{ tag: { name: string } }>;
+  collections: Array<{ collection: { id: string; name: string } }>;
+};
+
+function mapItemDetail(item: RawItemDetail): ItemDetail {
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    contentKind: item.contentKind,
+    content: item.content,
+    url: item.url,
+    fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
+    language: item.language,
+    isFavorite: item.isFavorite,
+    isPinned: item.isPinned,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    lastUsedAt: item.lastUsedAt,
+    typeName: item.itemType.name,
+    typeSlug: item.itemType.slug,
+    typeColor: item.itemType.color,
+    typeIconName: item.itemType.icon,
+    tags: item.tags.map((t) => t.tag.name),
+    collections: item.collections.map((c) => ({ id: c.collection.id, name: c.collection.name })),
+  };
+}
+
+const ITEM_CARD_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  content: true,
+  url: true,
+  isPinned: true,
+  isFavorite: true,
+  language: true,
+  lastUsedAt: true,
+  createdAt: true,
+  fileUrl: true,
+  fileName: true,
+  fileSize: true,
+  itemType: { select: { name: true, color: true, icon: true } },
+  tags: { select: { tag: { select: { name: true } } } },
+} as const;
+
+const ITEM_DETAIL_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  contentKind: true,
+  content: true,
+  url: true,
+  fileUrl: true,
+  fileName: true,
+  fileSize: true,
+  language: true,
+  isFavorite: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+  lastUsedAt: true,
+  itemType: { select: { name: true, slug: true, color: true, icon: true } },
+  tags: { select: { tag: { select: { name: true } } } },
+  collections: { select: { collection: { select: { id: true, name: true } } } },
+} as const;
+
+export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { userId, isPinned: true },
+      orderBy: { lastUsedAt: "desc" },
+      select: ITEM_CARD_SELECT,
+    });
+    return items.map(mapItemCard);
+  } catch (err) {
+    console.error("[getPinnedItems]", err);
+    return [];
+  }
+}
+
+export async function getRecentItems(userId: string, limit = 10): Promise<ItemWithMeta[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { userId },
+      orderBy: { lastUsedAt: "desc" },
+      take: limit,
+      select: ITEM_CARD_SELECT,
+    });
+    return items.map(mapItemCard);
+  } catch (err) {
+    console.error("[getRecentItems]", err);
+    return [];
+  }
+}
+
+export async function getItemStats(
+  userId: string,
+): Promise<{ totalItems: number; favoriteItems: number }> {
+  try {
+    const [totalItems, favoriteItems] = await Promise.all([
+      prisma.item.count({ where: { userId } }),
+      prisma.item.count({ where: { userId, isFavorite: true } }),
+    ]);
+    return { totalItems, favoriteItems };
+  } catch (err) {
+    console.error("[getItemStats]", err);
+    return { totalItems: 0, favoriteItems: 0 };
+  }
+}
+
 export async function getItemById(userId: string, itemId: string): Promise<ItemDetail | null> {
   try {
     const item = await prisma.item.findFirst({
       where: { id: itemId, userId },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        contentKind: true,
-        content: true,
-        url: true,
-        fileUrl: true,
-        fileName: true,
-        fileSize: true,
-        language: true,
-        isFavorite: true,
-        isPinned: true,
-        createdAt: true,
-        updatedAt: true,
-        lastUsedAt: true,
-        itemType: { select: { name: true, slug: true, color: true, icon: true } },
-        tags: { select: { tag: { select: { name: true } } } },
-        collections: { select: { collection: { select: { id: true, name: true } } } },
-      },
+      select: ITEM_DETAIL_SELECT,
     });
-
     if (!item) return null;
-
-    return {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      contentKind: item.contentKind,
-      content: item.content,
-      url: item.url,
-      fileUrl: item.fileUrl,
-      fileName: item.fileName,
-      fileSize: item.fileSize,
-      language: item.language,
-      isFavorite: item.isFavorite,
-      isPinned: item.isPinned,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-      lastUsedAt: item.lastUsedAt,
-      typeName: item.itemType.name,
-      typeSlug: item.itemType.slug,
-      typeColor: item.itemType.color,
-      typeIconName: item.itemType.icon,
-      tags: item.tags.map((t) => t.tag.name),
-      collections: item.collections.map((c) => ({ id: c.collection.id, name: c.collection.name })),
-    };
+    return mapItemDetail(item as RawItemDetail);
   } catch (err) {
     console.error("[getItemById]", err);
     return null;
@@ -222,44 +233,9 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
     const items = await prisma.item.findMany({
       where: { userId, itemType: { slug: typeSlug } },
       orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        content: true,
-        url: true,
-        isPinned: true,
-        isFavorite: true,
-        language: true,
-        lastUsedAt: true,
-        createdAt: true,
-        fileUrl: true,
-        fileName: true,
-        fileSize: true,
-        itemType: { select: { name: true, color: true, icon: true } },
-        tags: { select: { tag: { select: { name: true } } } },
-      },
+      select: ITEM_CARD_SELECT,
     });
-
-    return items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      typeName: item.itemType.name,
-      typeColor: item.itemType.color,
-      typeIconName: item.itemType.icon,
-      tags: item.tags.map((t) => t.tag.name),
-      isPinned: item.isPinned,
-      isFavorite: item.isFavorite,
-      language: item.language,
-      lastUsedAt: item.lastUsedAt,
-      createdAt: item.createdAt,
-      fileUrl: item.fileUrl,
-      fileName: item.fileName,
-      fileSize: item.fileSize,
-      content: item.content,
-      url: item.url,
-    }));
+    return items.map(mapItemCard);
   } catch (err) {
     console.error("[getItemCardsByType]", err);
     return [];
@@ -282,7 +258,7 @@ export async function updateItem(
 ): Promise<ItemDetail | null> {
   try {
     const updated = await prisma.$transaction(async (tx) => {
-      await tx.tagsOnItems.deleteMany({ where: { itemId } });
+      await tx.tagsOnItems.deleteMany({ where: { itemId, item: { userId } } });
 
       return tx.item.update({
         where: { id: itemId, userId },
@@ -303,52 +279,11 @@ export async function updateItem(
             })),
           },
         },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          contentKind: true,
-          content: true,
-          url: true,
-          fileUrl: true,
-          fileName: true,
-          fileSize: true,
-          language: true,
-          isFavorite: true,
-          isPinned: true,
-          createdAt: true,
-          updatedAt: true,
-          lastUsedAt: true,
-          itemType: { select: { name: true, slug: true, color: true, icon: true } },
-          tags: { select: { tag: { select: { name: true } } } },
-          collections: { select: { collection: { select: { id: true, name: true } } } },
-        },
+        select: ITEM_DETAIL_SELECT,
       });
     });
 
-    return {
-      id: updated.id,
-      title: updated.title,
-      description: updated.description,
-      contentKind: updated.contentKind,
-      content: updated.content,
-      url: updated.url,
-      fileUrl: updated.fileUrl,
-      fileName: updated.fileName,
-      fileSize: updated.fileSize,
-      language: updated.language,
-      isFavorite: updated.isFavorite,
-      isPinned: updated.isPinned,
-      createdAt: updated.createdAt,
-      updatedAt: updated.updatedAt,
-      lastUsedAt: updated.lastUsedAt,
-      typeName: updated.itemType.name,
-      typeSlug: updated.itemType.slug,
-      typeColor: updated.itemType.color,
-      typeIconName: updated.itemType.icon,
-      tags: updated.tags.map((t) => t.tag.name),
-      collections: updated.collections.map((c) => ({ id: c.collection.id, name: c.collection.name })),
-    };
+    return mapItemDetail(updated as RawItemDetail);
   } catch (err) {
     console.error("[updateItem]", err);
     return null;
@@ -413,54 +348,10 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
           })),
         },
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        contentKind: true,
-        content: true,
-        url: true,
-        fileUrl: true,
-        fileName: true,
-        fileSize: true,
-        language: true,
-        isFavorite: true,
-        isPinned: true,
-        createdAt: true,
-        updatedAt: true,
-        lastUsedAt: true,
-        itemType: { select: { name: true, slug: true, color: true, icon: true } },
-        tags: { select: { tag: { select: { name: true } } } },
-        collections: { select: { collection: { select: { id: true, name: true } } } },
-      },
+      select: ITEM_DETAIL_SELECT,
     });
 
-    return {
-      id: created.id,
-      title: created.title,
-      description: created.description,
-      contentKind: created.contentKind,
-      content: created.content,
-      url: created.url,
-      fileUrl: created.fileUrl,
-      fileName: created.fileName,
-      fileSize: created.fileSize,
-      language: created.language,
-      isFavorite: created.isFavorite,
-      isPinned: created.isPinned,
-      createdAt: created.createdAt,
-      updatedAt: created.updatedAt,
-      lastUsedAt: created.lastUsedAt,
-      typeName: created.itemType.name,
-      typeSlug: created.itemType.slug,
-      typeColor: created.itemType.color,
-      typeIconName: created.itemType.icon,
-      tags: created.tags.map((t) => t.tag.name),
-      collections: created.collections.map((c) => ({
-        id: c.collection.id,
-        name: c.collection.name,
-      })),
-    };
+    return mapItemDetail(created as RawItemDetail);
   } catch (err) {
     console.error("[createItem]", err);
     return null;
