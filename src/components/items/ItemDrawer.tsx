@@ -18,7 +18,9 @@ import {
   FolderOpen,
   Tag,
   Check,
+  Download,
 } from "lucide-react";
+import Image from "next/image";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -431,11 +433,37 @@ export function ItemDrawer() {
                 </div>
               )}
 
-              {item.fileName && (
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{item.fileName}</span>
-                  {item.fileSize != null && (
-                    <span className="ml-2">({formatFileSize(item.fileSize)})</span>
+              {item.contentKind === "FILE" && (
+                <div className="space-y-3">
+                  {item.typeSlug === "images" && item.fileUrl && (
+                    <Image
+                      src={item.fileUrl}
+                      alt={item.fileName ?? item.title}
+                      width={800}
+                      height={600}
+                      className="w-full rounded-lg border border-border object-contain max-h-80"
+                      style={{ height: "auto" }}
+                    />
+                  )}
+                  {item.fileName && (
+                    <div className="flex items-center gap-3 rounded-lg border border-border bg-background/40 px-3 py-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.fileName}</p>
+                        {item.fileSize != null && (
+                          <p className="text-xs text-muted-foreground">{formatFileSize(item.fileSize)}</p>
+                        )}
+                      </div>
+                      {item.fileUrl && (
+                        <a
+                          href={`/api/download/${new URL(item.fileUrl).pathname.slice(1)}`}
+                          download={item.fileName}
+                          title="Download"
+                          className="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        >
+                          <Download size={15} />
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               )}

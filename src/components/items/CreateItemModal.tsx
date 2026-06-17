@@ -13,18 +13,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCreateItem } from "@/lib/mutations/items";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { FileUpload } from "@/components/ui/file-upload";
 import { SYSTEM_ITEM_TYPES } from "@/lib/item-types";
 import { createItemSchema, type CreateItemInput } from "@/lib/schemas/items";
 
-const CREATE_TYPES = SYSTEM_ITEM_TYPES.filter((t) => !("isPro" in t && t.isPro));
+const ALL_CREATE_TYPES = SYSTEM_ITEM_TYPES;
 const TEXT_TYPE_SLUGS = new Set(["snippets", "prompts", "notes", "commands"]);
 const CODE_TYPE_SLUGS = new Set(["snippets", "commands"]);
 const MARKDOWN_TYPE_SLUGS = new Set(["prompts", "notes"]);
+const FILE_TYPE_SLUGS = new Set(["files", "images"]);
 const TAG_RE = /^[a-z0-9_-]+$/;
 
 const LANGUAGES = [
@@ -56,12 +57,15 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
     formState: { errors, isSubmitting },
   } = useForm<CreateItemInput>({
     resolver: zodResolver(createItemSchema),
-    defaultValues: { typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "" },
+    defaultValues: { typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "", tags: [] },
   });
 
   const typeSlug = useWatch({ control, name: "typeSlug", defaultValue: "snippets" });
   const contentValue = useWatch({ control, name: "content", defaultValue: "" });
   const languageValue = useWatch({ control, name: "language", defaultValue: "" });
+  const fileUrl = useWatch({ control, name: "fileUrl" });
+  const fileName = useWatch({ control, name: "fileName" });
+  const fileSize = useWatch({ control, name: "fileSize" });
 
   const createMutation = useCreateItem(() => {
     onOpenChange(false);
@@ -70,7 +74,7 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
 
   useEffect(() => {
     if (!open) return;
-    reset({ typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "" });
+    reset({ typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "", tags: [], fileUrl: null, fileName: null, fileSize: null });
   }, [open, defaultTypeSlug, reset]);
 
   function handleOpenChange(next: boolean) {
@@ -100,14 +104,18 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
     createMutation.mutate({
       ...values,
       tags,
-      description: values.description || null,
-      content: TEXT_TYPE_SLUGS.has(values.typeSlug) ? values.content || null : null,
-      url: values.typeSlug === "links" ? values.url?.trim() || null : null,
-      language: CODE_TYPE_SLUGS.has(values.typeSlug) ? values.language || null : null,
+      description: values.description || undefined,
+      content: TEXT_TYPE_SLUGS.has(values.typeSlug) ? values.content || undefined : undefined,
+      url: values.typeSlug === "links" ? values.url?.trim() || undefined : undefined,
+      language: CODE_TYPE_SLUGS.has(values.typeSlug) ? values.language || undefined : undefined,
+      fileUrl: fileUrl ?? null,
+      fileName: fileName ?? null,
+      fileSize: fileSize ?? null,
     });
   }
 
   const isPending = isSubmitting || createMutation.isPending;
+  const isFileType = FILE_TYPE_SLUGS.has(typeSlug);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -121,7 +129,7 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           {/* Type selector */}
           <div className="flex gap-1.5 flex-wrap">
-            {CREATE_TYPES.map((t) => {
+            {ALL_CREATE_TYPES.map((t) => {
               const Icon = t.icon;
               const selected = typeSlug === t.slug;
               return (
@@ -129,7 +137,9 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
                   key={t.slug}
                   type="button"
                   {...register("typeSlug")}
-                  onClick={() => reset({ ...getValues(), typeSlug: t.slug as CreateItemInput["typeSlug"], url: "", content: "", language: "" })}
+                  onClick={() => {
+                    reset({ ...getValues(), typeSlug: t.slug as CreateItemInput["typeSlug"], url: "", content: "", language: "", fileUrl: null, fileName: null, fileSize: null });
+                  }}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
                   style={
                     selected
@@ -172,6 +182,32 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
             />
           </div>
 
+          {/* File upload — file/image types */}
+          {isFileType && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">
+                File <span className="text-destructive">*</span>
+              </label>
+              <FileUpload
+                typeSlug={typeSlug as "files" | "images"}
+                value={fileUrl ? { fileUrl, fileName: fileName ?? "", fileSize: fileSize ?? 0, key: "" } : null}
+                onUpload={(result) => {
+                  setValue("fileUrl", result.fileUrl);
+                  setValue("fileName", result.fileName);
+                  setValue("fileSize", result.fileSize);
+                }}
+                onClear={() => {
+                  setValue("fileUrl", null);
+                  setValue("fileName", null);
+                  setValue("fileSize", null);
+                }}
+              />
+              {errors.fileUrl && (
+                <p className="text-xs text-destructive">{errors.fileUrl.message}</p>
+              )}
+            </div>
+          )}
+
           {/* Content — text types */}
           {TEXT_TYPE_SLUGS.has(typeSlug) && (
             <div className="flex flex-col gap-1.5">
@@ -190,13 +226,7 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
                   onChange={(v) => setValue("content", v)}
                   placeholder="Write markdown here…"
                 />
-              ) : (
-                <Textarea
-                  {...register("content")}
-                  placeholder="Write your content here"
-                  className="text-sm resize-none min-h-25 font-mono"
-                />
-              )}
+              ) : null}
             </div>
           )}
 

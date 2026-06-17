@@ -6,6 +6,8 @@ export const CREATE_TYPE_SLUGS = [
   "notes",
   "commands",
   "links",
+  "files",
+  "images",
 ] as const;
 
 export const createItemSchema = z
@@ -16,6 +18,10 @@ export const createItemSchema = z
     content: z.string().optional(),
     url: z.string().optional(),
     language: z.string().optional(),
+    fileUrl: z.string().optional().nullable(),
+    fileName: z.string().optional().nullable(),
+    fileSize: z.number().int().positive().optional().nullable(),
+    tags: z.array(z.string().trim().min(1)).default([]),
   })
   .superRefine((data, ctx) => {
     if (data.typeSlug === "links") {
@@ -25,6 +31,11 @@ export const createItemSchema = z
         ctx.addIssue({ code: "custom", path: ["url"], message: "Must be a valid URL" });
       }
     }
+    if (data.typeSlug === "files" || data.typeSlug === "images") {
+      if (!data.fileUrl) {
+        ctx.addIssue({ code: "custom", path: ["fileUrl"], message: "File upload is required" });
+      }
+    }
   });
 
-export type CreateItemInput = z.infer<typeof createItemSchema>;
+export type CreateItemInput = z.input<typeof createItemSchema>;
