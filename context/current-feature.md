@@ -1,29 +1,12 @@
 ## Current Feature
 
-File List View
-
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- `/dashboard/items/files` renders a single-column list (Google Drive/Dropbox style) instead of the generic card grid
-- Each row shows: file icon (by extension), file name, file size, upload date, download button
-- File icons use `react-file-icon` for proper per-type visuals (PDF, DOCX, ZIP, etc.)
-- Row hover highlight
-- Clicking a row opens the ItemDrawer
-- Download button triggers direct download without opening the drawer (stop propagation)
-- Responsive: stack info vertically on mobile
-- Item cards (all non-file types) have a copy button in the bottom-right corner that appears on hover, copies content → url → title in priority order, and flashes a green checkmark for 1.5s
-
 ## Notes
-
-- Only affects the `files` slug — `images` keeps its gallery, all other types keep the card grid
-- File icon should vary by extension (e.g. PDF, ZIP, DOC, etc.)
-- Download button links to `/api/download/[...key]` (existing endpoint)
-- Integrate into `ItemsGrid` the same way `ImageGridWithDrawer` was — add a branch for `slug === "files"`
-- `ItemWithMeta` already has `fileUrl`, `fileName`, `fileSize`, `createdAt` from the Image Gallery View feature
 
 ## History
 
@@ -88,3 +71,5 @@ In Progress
 - **File Upload with Cloudflare R2 - 2026-06-17** — Installed `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner`. Created `src/lib/r2.ts` with R2 S3 client (checksum disabled for browser compat), `createPresignedUploadUrl`, `getObjectStream`, `deleteR2Object`, `getPublicUrl`, `keyFromPublicUrl`. `POST /api/upload` proxies file through Next.js to R2 via `PutObjectCommand` (browser→server→R2, avoids CORS on direct PUT). `GET /api/download/[...key]` proxies R2 object back with `Content-Disposition: attachment`, ownership verified via DB lookup and userId key prefix check. Created `src/components/ui/file-upload.tsx` — drag-and-drop zone, XHR upload with progress bar, image preview on done, file info card with remove button. `CreateItemModal` now includes File and Image type buttons; file/image types show `FileUpload` instead of content/URL fields; file fields (`fileUrl`, `fileName`, `fileSize`) stored via `setValue` and passed to the server action. `ItemDrawer` shows inline `<Image>` preview for image items and a file info card with download link for file items. `deleteItem` server action fetches `fileUrl` before deleting, then calls `deleteR2Object` (non-fatal on R2 failure). `createItemSchema` extended with files/images slugs, `fileUrl`/`fileName`/`fileSize` optional fields, and `superRefine` requiring `fileUrl` for file/image types. `next.config.ts` adds `*.r2.dev` remote pattern for `next/image`. 25 new unit tests: `src/lib/r2.test.ts` (7), `src/lib/schemas/items.test.ts` (9), 9 new action tests covering file creation and R2 cleanup.
 
 - **Image Gallery View - 2026-06-17** — `/dashboard/items/images` now renders a dedicated gallery instead of the generic item grid. Added `fileUrl` and `createdAt` to `ItemWithMeta` and all three DB query selects (`getPinnedItems`, `getRecentItems`, `getItemCardsByType`). Created `ImageThumbnailCard` (shadcn `Card`, `aspect-video` + `object-cover` thumbnail, 5% hover zoom at 300ms, pin badge overlay, title + upload date footer) and `ImageGridWithDrawer` (3-column responsive grid wired to `useItemDrawerStore`). `ItemsGrid` accepts a new `typeSlug` prop and branches to `ImageGridWithDrawer` when slug is `"images"`; all other type pages are unchanged.
+
+- **File List View & Item Card Copy - 2026-06-17** — `/dashboard/items/files` now renders a single-column list (Google Drive style) instead of the generic card grid. Installed `react-file-icon` + `@types/react-file-icon` for proper per-extension icons (PDF red, DOCX blue, XLSX green, ZIP amber, MP4 purple, MP3 pink, etc.). Created `FileListRow` (file icon, title, extension badge, size + date columns, hover-reveal download button with stop propagation, mobile-stacked meta) and `FileListWithDrawer` (client wrapper wired to `useItemDrawerStore`). `ItemsGrid` branches to `FileListWithDrawer` for slug `"files"`. Added `content` and `url` to `ItemWithMeta` and all three card-level DB queries so `ItemCard` can copy without an extra API call. `ItemCard` converted to a client component with a hover copy button (bottom-right corner) that copies `content → url → title` in priority order and flashes a green checkmark for 1.5s. Removed dead `ItemFull` type and `getItemsByType` function.
