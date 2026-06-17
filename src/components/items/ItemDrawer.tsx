@@ -37,10 +37,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDate, formatFileSize, copyToClipboard } from "@/lib/utils";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import type { ItemDetail } from "@/lib/db/items";
 
 const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
 const CODE_TYPES = new Set(["snippets", "commands"]);
+const MARKDOWN_TYPES = new Set(["prompts", "notes"]);
 const TAG_RE = /^[a-z0-9_-]+$/;
 
 const LANGUAGES = [
@@ -277,6 +279,12 @@ export function ItemDrawer() {
                       onChange={(v) => field("content", v)}
                       language={editState.language || undefined}
                     />
+                  ) : MARKDOWN_TYPES.has(item.typeSlug) ? (
+                    <MarkdownEditor
+                      value={editState.content}
+                      onChange={(v) => field("content", v)}
+                      placeholder="Write markdown here…"
+                    />
                   ) : (
                     <Textarea
                       value={editState.content}
@@ -393,6 +401,11 @@ export function ItemDrawer() {
                   <CodeEditor
                     value={item.content}
                     language={item.language ?? undefined}
+                    readOnly
+                  />
+                ) : MARKDOWN_TYPES.has(item.typeSlug) ? (
+                  <MarkdownEditor
+                    value={item.content}
                     readOnly
                   />
                 ) : (
