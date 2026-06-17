@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
 import { updateItem, deleteItem, createItem } from "./items";
 import { prisma } from "@/lib/prisma";
+import { deleteR2Object } from "@/lib/r2";
 
 vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
@@ -228,7 +229,7 @@ describe("createItem server action", () => {
     });
 
     it("rejects invalid type slug", async () => {
-      const result = await createItem({ typeSlug: "images" as never, title: "Title" });
+      const result = await createItem({ typeSlug: "invalid-type" as never, title: "Title" });
 
       expect(result.success).toBe(false);
       expect(dbCreateItem).not.toHaveBeenCalled();
@@ -237,7 +238,7 @@ describe("createItem server action", () => {
     it("rejects link without URL", async () => {
       const result = await createItem({ typeSlug: "links", title: "My Link" });
 
-      expect(result).toEqual({ success: false, error: "URL is required for link items" });
+      expect(result).toEqual({ success: false, error: "URL is required" });
       expect(dbCreateItem).not.toHaveBeenCalled();
     });
 
@@ -298,6 +299,64 @@ describe("createItem server action", () => {
         expect.objectContaining({ content: null, language: null, url: "https://example.com" }),
       );
     });
+
+    it("passes fileUrl, fileName, fileSize to db for file type", async () => {
+      await createItem({
+        typeSlug: "files",
+        title: "My PDF",
+        fileUrl: "https://pub-test.r2.dev/user-1/files/doc.pdf",
+        fileName: "doc.pdf",
+        fileSize: 20480,
+      });
+
+      expect(dbCreateItem).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({
+          typeSlug: "files",
+          fileUrl: "https://pub-test.r2.dev/user-1/files/doc.pdf",
+          fileName: "doc.pdf",
+          fileSize: 20480,
+        }),
+      );
+    });
+
+    it("passes fileUrl, fileName, fileSize to db for image type", async () => {
+      await createItem({
+        typeSlug: "images",
+        title: "My Photo",
+        fileUrl: "https://pub-test.r2.dev/user-1/images/photo.png",
+        fileName: "photo.png",
+        fileSize: 512000,
+      });
+
+      expect(dbCreateItem).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({
+          typeSlug: "images",
+          fileUrl: "https://pub-test.r2.dev/user-1/images/photo.png",
+        }),
+      );
+    });
+  });
+
+  describe("file type validation", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("rejects file type without fileUrl", async () => {
+      const result = await createItem({ typeSlug: "files", title: "My File" });
+
+      expect(result).toEqual({ success: false, error: "File upload is required" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("rejects image type without fileUrl", async () => {
+      const result = await createItem({ typeSlug: "images", title: "My Image" });
+
+      expect(result).toEqual({ success: false, error: "File upload is required" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
   });
 
   describe("db failure", () => {
@@ -341,7 +400,7 @@ describe("deleteItem server action", () => {
     });
 
     it("returns error when item not found or belongs to another user", async () => {
-      vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 0 });
+      vi.mocked(prisma.item.findFirst).mockResolvedValue(null);
 
       const result = await deleteItem("item-999");
 
@@ -349,6 +408,7 @@ describe("deleteItem server action", () => {
     });
 
     it("passes userId as ownership filter to deleteMany", async () => {
+      vi.mocked(prisma.item.findFirst).mockResolvedValue({ fileUrl: null } as never);
       vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 1 });
 
       await deleteItem("item-1");
@@ -362,6 +422,7 @@ describe("deleteItem server action", () => {
   describe("successful delete", () => {
     beforeEach(() => {
       vi.mocked(auth).mockResolvedValue(mockSession as never);
+      vi.mocked(prisma.item.findFirst).mockResolvedValue({ fileUrl: null } as never);
       vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 1 });
     });
 
@@ -375,6 +436,7 @@ describe("deleteItem server action", () => {
   describe("db error", () => {
     beforeEach(() => {
       vi.mocked(auth).mockResolvedValue(mockSession as never);
+      vi.mocked(prisma.item.findFirst).mockResolvedValue({ fileUrl: null } as never);
     });
 
     it("returns error when prisma throws", async () => {
@@ -383,6 +445,42 @@ describe("deleteItem server action", () => {
       const result = await deleteItem("item-1");
 
       expect(result).toEqual({ success: false, error: "Failed to delete item" });
+    });
+  });
+
+  describe("R2 cleanup on delete", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+      vi.mocked(prisma.item.deleteMany).mockResolvedValue({ count: 1 });
+    });
+
+    it("calls deleteR2Object when item has a fileUrl", async () => {
+      vi.mocked(prisma.item.findFirst).mockResolvedValue({
+        fileUrl: "https://pub-test.r2.dev/user-1/files/doc.pdf",
+      } as never);
+
+      await deleteItem("item-1");
+
+      expect(deleteR2Object).toHaveBeenCalledWith("user-1/files/doc.pdf");
+    });
+
+    it("does not call deleteR2Object when item has no fileUrl", async () => {
+      vi.mocked(prisma.item.findFirst).mockResolvedValue({ fileUrl: null } as never);
+
+      await deleteItem("item-1");
+
+      expect(deleteR2Object).not.toHaveBeenCalled();
+    });
+
+    it("still returns success when R2 delete throws", async () => {
+      vi.mocked(prisma.item.findFirst).mockResolvedValue({
+        fileUrl: "https://pub-test.r2.dev/user-1/files/doc.pdf",
+      } as never);
+      vi.mocked(deleteR2Object).mockRejectedValue(new Error("R2 error"));
+
+      const result = await deleteItem("item-1");
+
+      expect(result).toEqual({ success: true });
     });
   });
 });

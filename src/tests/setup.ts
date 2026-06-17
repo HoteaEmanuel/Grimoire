@@ -33,3 +33,12 @@ vi.mock("@/auth", () => ({
   signIn: vi.fn(),
   signOut: vi.fn(),
 }));
+
+// Mock Cloudflare R2 helpers — prevents real network calls in tests
+vi.mock("@/lib/r2", () => ({
+  createPresignedUploadUrl: vi.fn(),
+  getObjectStream: vi.fn(),
+  deleteR2Object: vi.fn().mockResolvedValue(undefined),
+  getPublicUrl: vi.fn((key: string) => `https://pub-test.r2.dev/${key}`),
+  keyFromPublicUrl: vi.fn((url: string) => new URL(url).pathname.slice(1)),
+}));

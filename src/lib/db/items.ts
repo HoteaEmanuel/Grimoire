@@ -395,6 +395,9 @@ export type CreateItemData = {
   url: string | null;
   language: string | null;
   tags: string[];
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
 };
 
 const SLUG_TO_CONTENT_KIND: Record<string, "TEXT" | "URL" | "FILE"> = {
@@ -428,6 +431,9 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
         content: data.content,
         url: data.url,
         language: data.language,
+        fileUrl: data.fileUrl ?? null,
+        fileName: data.fileName ?? null,
+        fileSize: data.fileSize ?? null,
         tags: {
           create: data.tags.map((name) => ({
             tag: {
