@@ -1,27 +1,12 @@
-## Current Feature: Code Editor (Monaco)
+## Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Create a `CodeEditor` component using Monaco Editor with a dark theme
-- Replace the `Textarea` content field with `CodeEditor` for snippets and commands only (keep `Textarea` for notes, prompts, links)
-- Add macOS-style window dots (red/yellow/green) at the top of the editor
-- Add a quick copy button in the editor header using `copyToClipboard` from `src/lib/utils.ts`
-- Show the selected language in the editor header next to the copy button
-- Support both display (read-only) and edit modes
-- Fluid height with a max of 400px; themed scrollbar matching the project's dark warm-brown design
-
 ## Notes
-
-- Only snippets (`snippet`) and commands (`command`) get the Monaco editor — other types keep the existing `Textarea`
-- The editor header should show: macOS dots | language label | copy button
-- Use the existing `copyToClipboard` utility from `src/lib/utils.ts`
-- The editor appears in two places: the `ItemDrawer` view/edit mode and the `CreateItemModal` form
-- Monaco must be loaded client-side only (dynamic import with `ssr: false`)
-- Language select (28 options) already exists in the drawer edit form and create modal — wire it up so Monaco uses the selected language for syntax highlighting
 
 ## History
 
@@ -78,3 +63,5 @@ In Progress
 - **Delete Item - 2026-06-16** — Delete item from the drawer with an `AlertDialog` confirmation. `deleteItem` server action uses `prisma.item.deleteMany` with `userId` ownership filter. Created `src/lib/mutations/items.ts` with `useDeleteItem` and `useUpdateItem` TanStack Query mutations; save flow in the drawer refactored from `useTransition` to `useUpdateItem`. `AlertDialog` rendered as a sibling to `<Drawer>` (not nested inside `DrawerContent`) to avoid Base UI `asChild` incompatibility and z-index conflicts. On success: drawer closes, success toast fires, page refreshes. On error: error toast only. 5 new unit tests in `src/actions/items.test.ts`; `deleteMany` added to prisma item mock in `setup.ts`.
 
 - **Item Create - 2026-06-16** — "New Item" button in the header opens a shadcn `Dialog` modal. Type selector (5 colored pill buttons: Snippet, Prompt, Note, Command, Link) drives conditional field rendering: all types show title (required), description, and tags; snippet/command add a content textarea + language select (28 options); prompt/note add content only; link adds a required URL input. Tags use a keydown-on-Enter/comma flow with live badge preview and `[a-z0-9_-]+` validation. Form uses `react-hook-form` + `zodResolver` with `useWatch` for React Compiler compatibility. Zod schema in `src/lib/schemas/items.ts` with `superRefine` for conditional URL validation. `createItem` DB function in `src/lib/db/items.ts` derives `contentKind` from slug and uses `connectOrCreate` for tags. `createItem` server action in `src/actions/items.ts` with ownership-safe auth check and extra URL-required guard for links. `useCreateItem` TanStack Query mutation in `src/lib/mutations/items.ts`. Installed shadcn `Dialog`. 17 new unit tests across `src/actions/items.test.ts` (10) and `src/lib/db/items.test.ts` (7).
+
+- **Code Editor (Monaco) - 2026-06-17** — Installed `@monaco-editor/react`. Created `src/components/ui/code-editor.tsx` — SSR-disabled dynamic import, `vs-dark` theme, macOS window dots (red/yellow/green), language label, and copy button (using `copyToClipboard` from `src/lib/utils.ts`) in the header. Read-only mode auto-sizes height from line count (max 400px); edit mode is fixed 280px with a 6px scrollbar. `ItemDrawer` now renders `CodeEditor` (read-only) in view mode and `CodeEditor` (editable, language-wired) in edit mode for snippets/commands; all other types keep their existing `Textarea`. `CreateItemModal` does the same for the content field. `Header` reads `usePathname()` and derives `defaultTypeSlug` from the last URL segment — `CreateItemModal` resets to this slug on every open via `useEffect`, so the correct type is always pre-selected without the one-step-behind stale-closure bug.
