@@ -26,6 +26,8 @@ export function ItemGridWithDrawer({ items, className }: ItemGridWithDrawerProps
             tags={item.tags}
             isPinned={item.isPinned}
             language={item.language}
+            content={item.content}
+            url={item.url}
             onClick={openDrawer}
           />
         ))}

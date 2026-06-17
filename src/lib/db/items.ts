@@ -14,6 +14,10 @@ export type ItemWithMeta = {
   lastUsedAt: Date | null;
   createdAt: Date;
   fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  content: string | null;
+  url: string | null;
 };
 
 export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
@@ -25,12 +29,16 @@ export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
         id: true,
         title: true,
         description: true,
+        content: true,
+        url: true,
         isPinned: true,
         isFavorite: true,
         language: true,
         lastUsedAt: true,
         createdAt: true,
         fileUrl: true,
+        fileName: true,
+        fileSize: true,
         itemType: { select: { name: true, color: true, icon: true } },
         tags: { select: { tag: { select: { name: true } } } },
       },
@@ -50,6 +58,10 @@ export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
       lastUsedAt: item.lastUsedAt,
       createdAt: item.createdAt,
       fileUrl: item.fileUrl,
+      fileName: item.fileName,
+      fileSize: item.fileSize,
+      content: item.content,
+      url: item.url,
     }));
   } catch (err) {
     console.error("[getPinnedItems]", err);
@@ -67,12 +79,16 @@ export async function getRecentItems(userId: string, limit = 10): Promise<ItemWi
         id: true,
         title: true,
         description: true,
+        content: true,
+        url: true,
         isPinned: true,
         isFavorite: true,
         language: true,
         lastUsedAt: true,
         createdAt: true,
         fileUrl: true,
+        fileName: true,
+        fileSize: true,
         itemType: { select: { name: true, color: true, icon: true } },
         tags: { select: { tag: { select: { name: true } } } },
       },
@@ -92,6 +108,10 @@ export async function getRecentItems(userId: string, limit = 10): Promise<ItemWi
       lastUsedAt: item.lastUsedAt,
       createdAt: item.createdAt,
       fileUrl: item.fileUrl,
+      fileName: item.fileName,
+      fileSize: item.fileSize,
+      content: item.content,
+      url: item.url,
     }));
   } catch (err) {
     console.error("[getRecentItems]", err);
@@ -114,81 +134,7 @@ export async function getItemStats(
   }
 }
 
-export type ItemFull = {
-  id: string;
-  title: string;
-  description: string | null;
-  contentKind: "TEXT" | "URL" | "FILE";
-  content: string | null;
-  url: string | null;
-  fileUrl: string | null;
-  fileName: string | null;
-  fileSize: number | null;
-  language: string | null;
-  isFavorite: boolean;
-  isPinned: boolean;
-  lastUsedAt: Date | null;
-  createdAt: Date;
-  typeId: string;
-  typeName: string;
-  typeSlug: string;
-  typeColor: string;
-  typeIconName: string;
-  tags: string[];
-};
 
-export async function getItemsByType(userId: string, typeSlug: string): Promise<ItemFull[]> {
-  try {
-    const items = await prisma.item.findMany({
-      where: { userId, itemType: { slug: typeSlug } },
-      orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        contentKind: true,
-        content: true,
-        url: true,
-        fileUrl: true,
-        fileName: true,
-        fileSize: true,
-        language: true,
-        isFavorite: true,
-        isPinned: true,
-        lastUsedAt: true,
-        createdAt: true,
-        itemType: { select: { id: true, name: true, slug: true, color: true, icon: true } },
-        tags: { select: { tag: { select: { name: true } } } },
-      },
-    });
-
-    return items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      contentKind: item.contentKind,
-      content: item.content,
-      url: item.url,
-      fileUrl: item.fileUrl,
-      fileName: item.fileName,
-      fileSize: item.fileSize,
-      language: item.language,
-      isFavorite: item.isFavorite,
-      isPinned: item.isPinned,
-      lastUsedAt: item.lastUsedAt,
-      createdAt: item.createdAt,
-      typeId: item.itemType.id,
-      typeName: item.itemType.name,
-      typeSlug: item.itemType.slug,
-      typeColor: item.itemType.color,
-      typeIconName: item.itemType.icon,
-      tags: item.tags.map((t) => t.tag.name),
-    }));
-  } catch (err) {
-    console.error("[getItemsByType]", err);
-    return [];
-  }
-}
 
 export type ItemDetail = {
   id: string;
@@ -280,12 +226,16 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
         id: true,
         title: true,
         description: true,
+        content: true,
+        url: true,
         isPinned: true,
         isFavorite: true,
         language: true,
         lastUsedAt: true,
         createdAt: true,
         fileUrl: true,
+        fileName: true,
+        fileSize: true,
         itemType: { select: { name: true, color: true, icon: true } },
         tags: { select: { tag: { select: { name: true } } } },
       },
@@ -305,6 +255,10 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
       lastUsedAt: item.lastUsedAt,
       createdAt: item.createdAt,
       fileUrl: item.fileUrl,
+      fileName: item.fileName,
+      fileSize: item.fileSize,
+      content: item.content,
+      url: item.url,
     }));
   } catch (err) {
     console.error("[getItemCardsByType]", err);

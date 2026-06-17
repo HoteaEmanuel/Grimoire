@@ -1,12 +1,29 @@
 ## Current Feature
 
+File List View
+
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- `/dashboard/items/files` renders a single-column list (Google Drive/Dropbox style) instead of the generic card grid
+- Each row shows: file icon (by extension), file name, file size, upload date, download button
+- File icons use `react-file-icon` for proper per-type visuals (PDF, DOCX, ZIP, etc.)
+- Row hover highlight
+- Clicking a row opens the ItemDrawer
+- Download button triggers direct download without opening the drawer (stop propagation)
+- Responsive: stack info vertically on mobile
+- Item cards (all non-file types) have a copy button in the bottom-right corner that appears on hover, copies content → url → title in priority order, and flashes a green checkmark for 1.5s
+
 ## Notes
+
+- Only affects the `files` slug — `images` keeps its gallery, all other types keep the card grid
+- File icon should vary by extension (e.g. PDF, ZIP, DOC, etc.)
+- Download button links to `/api/download/[...key]` (existing endpoint)
+- Integrate into `ItemsGrid` the same way `ImageGridWithDrawer` was — add a branch for `slug === "files"`
+- `ItemWithMeta` already has `fileUrl`, `fileName`, `fileSize`, `createdAt` from the Image Gallery View feature
 
 ## History
 
