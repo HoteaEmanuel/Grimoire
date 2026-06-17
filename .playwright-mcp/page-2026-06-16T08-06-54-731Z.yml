@@ -1,7 +1,0 @@
-- generic [ref=e3]:
-  - button "Sign in with GitHub" [ref=e6]:
-    - generic [ref=e7]: Sign in with GitHub
-    - img
-  - generic [ref=e8]:
-    - separator [ref=e9]: or
-    - button "Sign in with Credentials" [ref=e11] [cursor=pointer]

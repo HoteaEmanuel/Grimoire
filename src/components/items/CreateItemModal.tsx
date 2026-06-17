@@ -17,12 +17,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCreateItem } from "@/lib/mutations/items";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { SYSTEM_ITEM_TYPES } from "@/lib/item-types";
 import { createItemSchema, type CreateItemInput } from "@/lib/schemas/items";
 
 const CREATE_TYPES = SYSTEM_ITEM_TYPES.filter((t) => !("isPro" in t && t.isPro));
 const TEXT_TYPE_SLUGS = new Set(["snippets", "prompts", "notes", "commands"]);
 const CODE_TYPE_SLUGS = new Set(["snippets", "commands"]);
+const MARKDOWN_TYPE_SLUGS = new Set(["prompts", "notes"]);
 const TAG_RE = /^[a-z0-9_-]+$/;
 
 const LANGUAGES = [
@@ -181,6 +183,12 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
                   value={contentValue ?? ""}
                   onChange={(v) => setValue("content", v)}
                   language={languageValue || undefined}
+                />
+              ) : MARKDOWN_TYPE_SLUGS.has(typeSlug) ? (
+                <MarkdownEditor
+                  value={contentValue ?? ""}
+                  onChange={(v) => setValue("content", v)}
+                  placeholder="Write markdown here…"
                 />
               ) : (
                 <Textarea
