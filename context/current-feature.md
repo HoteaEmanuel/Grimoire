@@ -8,6 +8,8 @@ Not Started
 
 ## Notes
 
+
+
 ## History
 
 
@@ -73,3 +75,5 @@ Not Started
 - **Image Gallery View - 2026-06-17** — `/dashboard/items/images` now renders a dedicated gallery instead of the generic item grid. Added `fileUrl` and `createdAt` to `ItemWithMeta` and all three DB query selects (`getPinnedItems`, `getRecentItems`, `getItemCardsByType`). Created `ImageThumbnailCard` (shadcn `Card`, `aspect-video` + `object-cover` thumbnail, 5% hover zoom at 300ms, pin badge overlay, title + upload date footer) and `ImageGridWithDrawer` (3-column responsive grid wired to `useItemDrawerStore`). `ItemsGrid` accepts a new `typeSlug` prop and branches to `ImageGridWithDrawer` when slug is `"images"`; all other type pages are unchanged.
 
 - **File List View & Item Card Copy - 2026-06-17** — `/dashboard/items/files` now renders a single-column list (Google Drive style) instead of the generic card grid. Installed `react-file-icon` + `@types/react-file-icon` for proper per-extension icons (PDF red, DOCX blue, XLSX green, ZIP amber, MP4 purple, MP3 pink, etc.). Created `FileListRow` (file icon, title, extension badge, size + date columns, hover-reveal download button with stop propagation, mobile-stacked meta) and `FileListWithDrawer` (client wrapper wired to `useItemDrawerStore`). `ItemsGrid` branches to `FileListWithDrawer` for slug `"files"`. Added `content` and `url` to `ItemWithMeta` and all three card-level DB queries so `ItemCard` can copy without an extra API call. `ItemCard` converted to a client component with a hover copy button (bottom-right corner) that copies `content → url → title` in priority order and flashes a green checkmark for 1.5s. Removed dead `ItemFull` type and `getItemsByType` function.
+
+- **Code Quality & Refactoring - 2026-06-17** — Security: added try/catch to DELETE /api/profile/delete-account, validated R2 env vars in upload and download routes, fixed userId guard on tagsOnItems.deleteMany. Performance: added take: 50 to nested items includes in collection queries. Upload rate limiting: 20 uploads/hr per user via uploadLimiter. Shared constants: extracted SUPPORTED_LANGUAGES to item-types.ts, shared across ItemDrawer and CreateItemModal. Component decomposition: split ItemDrawer (615 lines) into ItemDrawerViewBody, ItemDrawerEditBody, and item-drawer-types.ts; created shared TagInput component in components/shared/. Extracted mapItemCard/mapItemDetail helpers + ITEM_CARD_SELECT/ITEM_DETAIL_SELECT in items.ts; extracted computeDominantTypeColor in collections.ts. Custom hooks: created src/hooks/ with useCopyToClipboard (used in ItemDrawer + ItemCard), useFetchItem (fetch + cancellation + error handling), and useEditableItem (edit state machine with derived-state reset).
