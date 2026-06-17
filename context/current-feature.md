@@ -1,33 +1,12 @@
-## Current Feature: Markdown Editor
+## Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Create `MarkdownEditor` component with tabbed Write/Preview interface
-- Replace `Textarea` with `MarkdownEditor` for notes and prompts only (not snippets/commands)
-- Use `react-markdown` + `remark-gfm` for GitHub Flavored Markdown rendering
-- Match existing dark theme styling (`bg-[#1e1e1e]` container, `bg-[#2d2d2d]` header)
-- Add copy button in header matching `CodeEditor` style
-- Support readonly mode (Preview tab only) and edit mode (Write tab default, Preview available)
-- Apply custom `.markdown-preview` CSS class for reliable dark mode styling
-
 ## Notes
-
-- Headings (h1–h6): visually distinct with proper sizing and weight
-- Code blocks: dark background, monospace font
-- Inline code: subtle background highlight
-- Lists (ordered/unordered): proper indentation and bullets
-- Blockquotes: left border accent
-- Links: blue with hover state
-- Tables: borders and header background
-- Fluid height with max 400px, matching `CodeEditor` behavior
-- Integration points:
-  - `CreateItemModal`: use for note and prompt content field
-  - `ItemDrawer` edit mode: use for note and prompt content field
-  - `ItemDrawer` view mode: use in readonly mode for note and prompt content
 
 ## History
 
@@ -86,3 +65,5 @@ In Progress
 - **Item Create - 2026-06-16** — "New Item" button in the header opens a shadcn `Dialog` modal. Type selector (5 colored pill buttons: Snippet, Prompt, Note, Command, Link) drives conditional field rendering: all types show title (required), description, and tags; snippet/command add a content textarea + language select (28 options); prompt/note add content only; link adds a required URL input. Tags use a keydown-on-Enter/comma flow with live badge preview and `[a-z0-9_-]+` validation. Form uses `react-hook-form` + `zodResolver` with `useWatch` for React Compiler compatibility. Zod schema in `src/lib/schemas/items.ts` with `superRefine` for conditional URL validation. `createItem` DB function in `src/lib/db/items.ts` derives `contentKind` from slug and uses `connectOrCreate` for tags. `createItem` server action in `src/actions/items.ts` with ownership-safe auth check and extra URL-required guard for links. `useCreateItem` TanStack Query mutation in `src/lib/mutations/items.ts`. Installed shadcn `Dialog`. 17 new unit tests across `src/actions/items.test.ts` (10) and `src/lib/db/items.test.ts` (7).
 
 - **Code Editor (Monaco) - 2026-06-17** — Installed `@monaco-editor/react`. Created `src/components/ui/code-editor.tsx` — SSR-disabled dynamic import, `vs-dark` theme, macOS window dots (red/yellow/green), language label, and copy button (using `copyToClipboard` from `src/lib/utils.ts`) in the header. Read-only mode auto-sizes height from line count (max 400px); edit mode is fixed 280px with a 6px scrollbar. `ItemDrawer` now renders `CodeEditor` (read-only) in view mode and `CodeEditor` (editable, language-wired) in edit mode for snippets/commands; all other types keep their existing `Textarea`. `CreateItemModal` does the same for the content field. `Header` reads `usePathname()` and derives `defaultTypeSlug` from the last URL segment — `CreateItemModal` resets to this slug on every open via `useEffect`, so the correct type is always pre-selected without the one-step-behind stale-closure bug.
+
+- **Markdown Editor - 2026-06-17** — Installed `react-markdown` + `remark-gfm`. Installed shadcn `Tabs` (Base UI backed). Created `src/components/ui/markdown-editor.tsx` — macOS window dots header matching `CodeEditor`, copy button, Write/Preview tab switcher (shadcn `Tabs`), and read-only mode (Preview only). Added `.markdown-preview` CSS class to `globals.css` with full GFM styling: sized headings, fenced code blocks with dark background, inline code highlight, indented lists, blockquote left-border accent, blue links, bordered tables. `ItemDrawer` uses `MarkdownEditor` (readonly) in view mode and (editable) in edit mode for prompts and notes; snippets/commands keep `CodeEditor`. `CreateItemModal` does the same for the content field.
