@@ -26,7 +26,7 @@ export default async function ItemTypePage({
           {items.length} {items.length === 1 ? typeDef.name.toLowerCase() : typeDef.name.toLowerCase() + "s"}
         </p>
       </div>
-      <ItemsGrid items={items} typeName={typeDef.name} typeColor={typeDef.color} />
+      <ItemsGrid items={items} typeName={typeDef.name} typeColor={typeDef.color} typeSlug={type} />
     </div>
   );
 }

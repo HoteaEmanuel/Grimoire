@@ -12,6 +12,8 @@ export type ItemWithMeta = {
   isFavorite: boolean;
   language: string | null;
   lastUsedAt: Date | null;
+  createdAt: Date;
+  fileUrl: string | null;
 };
 
 export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
@@ -27,6 +29,8 @@ export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
         isFavorite: true,
         language: true,
         lastUsedAt: true,
+        createdAt: true,
+        fileUrl: true,
         itemType: { select: { name: true, color: true, icon: true } },
         tags: { select: { tag: { select: { name: true } } } },
       },
@@ -44,6 +48,8 @@ export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
       isFavorite: item.isFavorite,
       language: item.language,
       lastUsedAt: item.lastUsedAt,
+      createdAt: item.createdAt,
+      fileUrl: item.fileUrl,
     }));
   } catch (err) {
     console.error("[getPinnedItems]", err);
@@ -65,6 +71,8 @@ export async function getRecentItems(userId: string, limit = 10): Promise<ItemWi
         isFavorite: true,
         language: true,
         lastUsedAt: true,
+        createdAt: true,
+        fileUrl: true,
         itemType: { select: { name: true, color: true, icon: true } },
         tags: { select: { tag: { select: { name: true } } } },
       },
@@ -82,6 +90,8 @@ export async function getRecentItems(userId: string, limit = 10): Promise<ItemWi
       isFavorite: item.isFavorite,
       language: item.language,
       lastUsedAt: item.lastUsedAt,
+      createdAt: item.createdAt,
+      fileUrl: item.fileUrl,
     }));
   } catch (err) {
     console.error("[getRecentItems]", err);
@@ -274,6 +284,8 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
         isFavorite: true,
         language: true,
         lastUsedAt: true,
+        createdAt: true,
+        fileUrl: true,
         itemType: { select: { name: true, color: true, icon: true } },
         tags: { select: { tag: { select: { name: true } } } },
       },
@@ -291,6 +303,8 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
       isFavorite: item.isFavorite,
       language: item.language,
       lastUsedAt: item.lastUsedAt,
+      createdAt: item.createdAt,
+      fileUrl: item.fileUrl,
     }));
   } catch (err) {
     console.error("[getItemCardsByType]", err);

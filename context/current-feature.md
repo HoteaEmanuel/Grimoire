@@ -1,12 +1,22 @@
-## Current Feature
+## Current Feature: Image Gallery View
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Replace the regular item card with an image thumbnail card on the images list page
+- Show a 3-column image grid/gallery layout
+- Display image thumbnails with 16:9 aspect ratio (`aspect-video`)
+- Use `object-cover` to fill the card (may crop edges)
+- Add a subtle hover zoom effect (5% scale up, 300ms transition)
+
 ## Notes
+
+- Only applies to the `/dashboard/items/images` page — other item type pages keep the regular `ItemCard`
+- The thumbnail should pull from `item.fileUrl` (Cloudflare R2 public URL)
+- Keep the existing `ItemsGrid` / `ItemGridWithDrawer` pattern; add a new `ImageThumbnailCard` component
 
 ## History
 

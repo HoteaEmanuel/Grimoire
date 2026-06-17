@@ -1,14 +1,16 @@
 import { PackageOpen } from "lucide-react";
 import type { ItemWithMeta } from "@/lib/db/items";
 import { ItemGridWithDrawer } from "@/components/items/ItemGridWithDrawer";
+import { ImageGridWithDrawer } from "@/components/items/ImageGridWithDrawer";
 
 interface ItemsGridProps {
   items: ItemWithMeta[];
   typeName: string;
   typeColor: string;
+  typeSlug: string;
 }
 
-export function ItemsGrid({ items, typeName, typeColor }: ItemsGridProps) {
+export function ItemsGrid({ items, typeName, typeColor, typeSlug }: ItemsGridProps) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">
@@ -34,6 +36,10 @@ export function ItemsGrid({ items, typeName, typeColor }: ItemsGridProps) {
         </div>
       </div>
     );
+  }
+
+  if (typeSlug === "images") {
+    return <ImageGridWithDrawer items={items} />;
   }
 
   return (
