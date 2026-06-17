@@ -1,22 +1,12 @@
-## Current Feature: Image Gallery View
+## Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Replace the regular item card with an image thumbnail card on the images list page
-- Show a 3-column image grid/gallery layout
-- Display image thumbnails with 16:9 aspect ratio (`aspect-video`)
-- Use `object-cover` to fill the card (may crop edges)
-- Add a subtle hover zoom effect (5% scale up, 300ms transition)
-
 ## Notes
-
-- Only applies to the `/dashboard/items/images` page — other item type pages keep the regular `ItemCard`
-- The thumbnail should pull from `item.fileUrl` (Cloudflare R2 public URL)
-- Keep the existing `ItemsGrid` / `ItemGridWithDrawer` pattern; add a new `ImageThumbnailCard` component
 
 ## History
 
@@ -79,3 +69,5 @@ In Progress
 - **Markdown Editor - 2026-06-17** — Installed `react-markdown` + `remark-gfm`. Installed shadcn `Tabs` (Base UI backed). Created `src/components/ui/markdown-editor.tsx` — macOS window dots header matching `CodeEditor`, copy button, Write/Preview tab switcher (shadcn `Tabs`), and read-only mode (Preview only). Added `.markdown-preview` CSS class to `globals.css` with full GFM styling: sized headings, fenced code blocks with dark background, inline code highlight, indented lists, blockquote left-border accent, blue links, bordered tables. `ItemDrawer` uses `MarkdownEditor` (readonly) in view mode and (editable) in edit mode for prompts and notes; snippets/commands keep `CodeEditor`. `CreateItemModal` does the same for the content field.
 
 - **File Upload with Cloudflare R2 - 2026-06-17** — Installed `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner`. Created `src/lib/r2.ts` with R2 S3 client (checksum disabled for browser compat), `createPresignedUploadUrl`, `getObjectStream`, `deleteR2Object`, `getPublicUrl`, `keyFromPublicUrl`. `POST /api/upload` proxies file through Next.js to R2 via `PutObjectCommand` (browser→server→R2, avoids CORS on direct PUT). `GET /api/download/[...key]` proxies R2 object back with `Content-Disposition: attachment`, ownership verified via DB lookup and userId key prefix check. Created `src/components/ui/file-upload.tsx` — drag-and-drop zone, XHR upload with progress bar, image preview on done, file info card with remove button. `CreateItemModal` now includes File and Image type buttons; file/image types show `FileUpload` instead of content/URL fields; file fields (`fileUrl`, `fileName`, `fileSize`) stored via `setValue` and passed to the server action. `ItemDrawer` shows inline `<Image>` preview for image items and a file info card with download link for file items. `deleteItem` server action fetches `fileUrl` before deleting, then calls `deleteR2Object` (non-fatal on R2 failure). `createItemSchema` extended with files/images slugs, `fileUrl`/`fileName`/`fileSize` optional fields, and `superRefine` requiring `fileUrl` for file/image types. `next.config.ts` adds `*.r2.dev` remote pattern for `next/image`. 25 new unit tests: `src/lib/r2.test.ts` (7), `src/lib/schemas/items.test.ts` (9), 9 new action tests covering file creation and R2 cleanup.
+
+- **Image Gallery View - 2026-06-17** — `/dashboard/items/images` now renders a dedicated gallery instead of the generic item grid. Added `fileUrl` and `createdAt` to `ItemWithMeta` and all three DB query selects (`getPinnedItems`, `getRecentItems`, `getItemCardsByType`). Created `ImageThumbnailCard` (shadcn `Card`, `aspect-video` + `object-cover` thumbnail, 5% hover zoom at 300ms, pin badge overlay, title + upload date footer) and `ImageGridWithDrawer` (3-column responsive grid wired to `useItemDrawerStore`). `ItemsGrid` accepts a new `typeSlug` prop and branches to `ImageGridWithDrawer` when slug is `"images"`; all other type pages are unchanged.
