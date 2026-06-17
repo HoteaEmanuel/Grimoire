@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useCreateItem } from "@/lib/mutations/items";
+import { CodeEditor } from "@/components/ui/code-editor";
 import { SYSTEM_ITEM_TYPES } from "@/lib/item-types";
 import { createItemSchema, type CreateItemInput } from "@/lib/schemas/items";
 
@@ -34,9 +35,10 @@ const LANGUAGES = [
 interface CreateItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultTypeSlug?: CreateItemInput["typeSlug"];
 }
 
-export function CreateItemModal({ open, onOpenChange }: CreateItemModalProps) {
+export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippets" }: CreateItemModalProps) {
   const router = useRouter();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -47,23 +49,30 @@ export function CreateItemModal({ open, onOpenChange }: CreateItemModalProps) {
     handleSubmit,
     getValues,
     reset,
+    setValue,
     control,
     formState: { errors, isSubmitting },
   } = useForm<CreateItemInput>({
     resolver: zodResolver(createItemSchema),
-    defaultValues: { typeSlug: "snippets", title: "", description: "", content: "", url: "", language: "" },
+    defaultValues: { typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "" },
   });
 
   const typeSlug = useWatch({ control, name: "typeSlug", defaultValue: "snippets" });
+  const contentValue = useWatch({ control, name: "content", defaultValue: "" });
+  const languageValue = useWatch({ control, name: "language", defaultValue: "" });
 
   const createMutation = useCreateItem(() => {
     onOpenChange(false);
     router.refresh();
   });
 
+  useEffect(() => {
+    if (!open) return;
+    reset({ typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "" });
+  }, [open, defaultTypeSlug, reset]);
+
   function handleOpenChange(next: boolean) {
     if (!next) {
-      reset();
       setTags([]);
       setTagInput("");
       setTagError("");
@@ -100,7 +109,7 @@ export function CreateItemModal({ open, onOpenChange }: CreateItemModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-cinzel text-base tracking-wide">
             New Item
@@ -167,15 +176,19 @@ export function CreateItemModal({ open, onOpenChange }: CreateItemModalProps) {
               <label className="text-xs font-medium text-muted-foreground">
                 Content
               </label>
-              <Textarea
-                {...register("content")}
-                placeholder={
-                  CODE_TYPE_SLUGS.has(typeSlug)
-                    ? "Paste your code or command here"
-                    : "Write your content here"
-                }
-                className="text-sm resize-none min-h-[100px] font-mono"
-              />
+              {CODE_TYPE_SLUGS.has(typeSlug) ? (
+                <CodeEditor
+                  value={contentValue ?? ""}
+                  onChange={(v) => setValue("content", v)}
+                  language={languageValue || undefined}
+                />
+              ) : (
+                <Textarea
+                  {...register("content")}
+                  placeholder="Write your content here"
+                  className="text-sm resize-none min-h-25 font-mono"
+                />
+              )}
             </div>
           )}
 

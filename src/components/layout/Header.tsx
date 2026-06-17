@@ -1,10 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Search, Plus, BookMarked, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateItemModal } from "@/components/items/CreateItemModal";
+import { CREATE_TYPE_SLUGS, type CreateItemInput } from "@/lib/schemas/items";
+
+const TYPE_SLUG_SET = new Set<string>(CREATE_TYPE_SLUGS);
+
+function defaultTypeFromPath(pathname: string): CreateItemInput["typeSlug"] {
+  const segment = pathname.split("/").pop() ?? "";
+  return TYPE_SLUG_SET.has(segment)
+    ? (segment as CreateItemInput["typeSlug"])
+    : "snippets";
+}
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -12,6 +23,8 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const [createOpen, setCreateOpen] = useState(false);
+  const pathname = usePathname();
+  const defaultTypeSlug = defaultTypeFromPath(pathname);
 
   return (
     <>
@@ -57,7 +70,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </header>
 
-      <CreateItemModal open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateItemModal open={createOpen} onOpenChange={setCreateOpen} defaultTypeSlug={defaultTypeSlug} />
     </>
   );
 }

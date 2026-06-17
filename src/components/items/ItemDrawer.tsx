@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formatDate, formatFileSize, copyToClipboard } from "@/lib/utils";
+import { CodeEditor } from "@/components/ui/code-editor";
 import type { ItemDetail } from "@/lib/db/items";
 
 const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
@@ -270,12 +271,19 @@ export function ItemDrawer() {
               {TEXT_TYPES.has(item.typeSlug) && (
                 <div className="space-y-1.5">
                   <label className="text-xs text-muted-foreground uppercase tracking-wider">Content</label>
-                  <Textarea
-                    className="font-mono"
-                    value={editState.content}
-                    onChange={(e) => field("content", e.target.value)}
-                    placeholder="Content"
-                  />
+                  {CODE_TYPES.has(item.typeSlug) ? (
+                    <CodeEditor
+                      value={editState.content}
+                      onChange={(v) => field("content", v)}
+                      language={editState.language || undefined}
+                    />
+                  ) : (
+                    <Textarea
+                      value={editState.content}
+                      onChange={(e) => field("content", e.target.value)}
+                      placeholder="Content"
+                    />
+                  )}
                 </div>
               )}
 
@@ -381,11 +389,19 @@ export function ItemDrawer() {
               )}
 
               {item.content && (
-                <div className="rounded-lg bg-background/60 border border-border p-4">
-                  <pre className="text-xs font-mono text-foreground/80 whitespace-pre-wrap break-all line-clamp-12">
-                    {item.content}
-                  </pre>
-                </div>
+                CODE_TYPES.has(item.typeSlug) ? (
+                  <CodeEditor
+                    value={item.content}
+                    language={item.language ?? undefined}
+                    readOnly
+                  />
+                ) : (
+                  <div className="rounded-lg bg-background/60 border border-border p-4">
+                    <pre className="text-xs font-mono text-foreground/80 whitespace-pre-wrap break-all">
+                      {item.content}
+                    </pre>
+                  </div>
+                )
               )}
 
               {item.url && (
