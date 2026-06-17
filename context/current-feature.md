@@ -1,12 +1,27 @@
-## Current Feature
+## Current Feature: Code Editor (Monaco)
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Create a `CodeEditor` component using Monaco Editor with a dark theme
+- Replace the `Textarea` content field with `CodeEditor` for snippets and commands only (keep `Textarea` for notes, prompts, links)
+- Add macOS-style window dots (red/yellow/green) at the top of the editor
+- Add a quick copy button in the editor header using `copyToClipboard` from `src/lib/utils.ts`
+- Show the selected language in the editor header next to the copy button
+- Support both display (read-only) and edit modes
+- Fluid height with a max of 400px; themed scrollbar matching the project's dark warm-brown design
+
 ## Notes
+
+- Only snippets (`snippet`) and commands (`command`) get the Monaco editor — other types keep the existing `Textarea`
+- The editor header should show: macOS dots | language label | copy button
+- Use the existing `copyToClipboard` utility from `src/lib/utils.ts`
+- The editor appears in two places: the `ItemDrawer` view/edit mode and the `CreateItemModal` form
+- Monaco must be loaded client-side only (dynamic import with `ssr: false`)
+- Language select (28 options) already exists in the drawer edit form and create modal — wire it up so Monaco uses the selected language for syntax highlighting
 
 ## History
 
