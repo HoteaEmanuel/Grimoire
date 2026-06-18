@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
-import { createCollection, getAllCollections, getCollectionDetail } from "./collections";
+import {
+  createCollection,
+  getAllCollections,
+  getCollectionDetail,
+  updateCollection,
+  deleteCollection,
+} from "./collections";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -140,5 +146,84 @@ describe("getCollectionDetail", () => {
     const result = await getCollectionDetail("user-1", "col-1");
 
     expect(result).toBeNull();
+  });
+});
+
+describe("updateCollection", () => {
+  it("updates the collection scoped to the owning user and returns fresh detail", async () => {
+    vi.mocked(prisma.collection.updateMany).mockResolvedValue({ count: 1 });
+    vi.mocked(prisma.collection.findFirst).mockResolvedValue({
+      id: "col-1",
+      name: "Updated Name",
+      description: "Updated description",
+      isFavorite: false,
+      _count: { items: 3 },
+    } as never);
+
+    const result = await updateCollection("user-1", "col-1", {
+      name: "Updated Name",
+      description: "Updated description",
+    });
+
+    expect(prisma.collection.updateMany).toHaveBeenCalledWith({
+      where: { id: "col-1", userId: "user-1" },
+      data: { name: "Updated Name", description: "Updated description" },
+    });
+    expect(result).toEqual({
+      id: "col-1",
+      name: "Updated Name",
+      description: "Updated description",
+      isFavorite: false,
+      itemCount: 3,
+    });
+  });
+
+  it("returns null when no matching collection is updated", async () => {
+    vi.mocked(prisma.collection.updateMany).mockResolvedValue({ count: 0 });
+
+    const result = await updateCollection("user-1", "missing", {
+      name: "Name",
+      description: null,
+    });
+
+    expect(result).toBeNull();
+    expect(prisma.collection.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("returns null when prisma throws", async () => {
+    vi.mocked(prisma.collection.updateMany).mockRejectedValue(new Error("db error"));
+
+    const result = await updateCollection("user-1", "col-1", { name: "Name", description: null });
+
+    expect(result).toBeNull();
+  });
+});
+
+describe("deleteCollection", () => {
+  it("returns true when a matching collection is deleted", async () => {
+    vi.mocked(prisma.collection.deleteMany).mockResolvedValue({ count: 1 });
+
+    const result = await deleteCollection("user-1", "col-1");
+
+    expect(prisma.collection.deleteMany).toHaveBeenCalledWith({
+      where: { id: "col-1", userId: "user-1" },
+    });
+    expect(result).toBe(true);
+  });
+
+  it("returns false when no matching collection is found", async () => {
+    vi.mocked(prisma.collection.deleteMany).mockResolvedValue({ count: 0 });
+
+    const result = await deleteCollection("user-1", "missing");
+
+    expect(result).toBe(false);
+  });
+
+  it("returns false when prisma throws", async () => {
+    vi.mocked(prisma.collection.deleteMany).mockRejectedValue(new Error("db error"));
+
+    const result = await deleteCollection("user-1", "col-1");
+
+    expect(result).toBe(false);
   });
 });

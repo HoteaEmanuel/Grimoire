@@ -31,6 +31,7 @@ export default async function CollectionsPage() {
               itemCount={col.itemCount}
               dominantTypeColor={col.dominantTypeColor}
               typeIcons={col.typeIcons}
+              isFavorite={col.isFavorite}
             />
           ))}
         </div>

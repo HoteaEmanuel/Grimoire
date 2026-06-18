@@ -90,6 +90,7 @@ export default async function DashboardPage() {
                 itemCount={col.itemCount}
                 dominantTypeColor={col.dominantTypeColor}
                 typeIcons={col.typeIcons}
+                isFavorite={col.isFavorite}
               />
             ))}
           </div>

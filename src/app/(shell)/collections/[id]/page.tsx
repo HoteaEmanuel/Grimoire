@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { ItemGridWithDrawer } from "@/components/items/ItemGridWithDrawer";
 import { ImageGridWithDrawer } from "@/components/items/ImageGridWithDrawer";
 import { FileListWithDrawer } from "@/components/items/FileListWithDrawer";
+import { CollectionDetailActions } from "@/components/collections/CollectionDetailActions";
 import { PackageOpen } from "lucide-react";
 
 export default async function CollectionDetailPage({
@@ -26,14 +27,24 @@ export default async function CollectionDetailPage({
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{collection.name}</h1>
-        {collection.description && (
-          <p className="text-sm text-muted-foreground mt-1">{collection.description}</p>
-        )}
-        <p className="text-sm text-muted-foreground/60 mt-1">
-          {items.length} {items.length === 1 ? "item" : "items"}
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{collection.name}</h1>
+          {collection.description && (
+            <p className="text-sm text-muted-foreground mt-1">{collection.description}</p>
+          )}
+          <p className="text-sm text-muted-foreground/60 mt-1">
+            {items.length} {items.length === 1 ? "item" : "items"}
+          </p>
+        </div>
+        <CollectionDetailActions
+          collection={{
+            id: collection.id,
+            name: collection.name,
+            description: collection.description,
+            isFavorite: collection.isFavorite,
+          }}
+        />
       </div>
 
       {items.length > 0 ? (

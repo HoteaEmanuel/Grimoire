@@ -265,6 +265,36 @@ export async function createCollection(
   }
 }
 
+export async function updateCollection(
+  userId: string,
+  collectionId: string,
+  data: { name: string; description: string | null },
+): Promise<CollectionDetail | null> {
+  try {
+    const updated = await prisma.collection.updateMany({
+      where: { id: collectionId, userId },
+      data: { name: data.name, description: data.description },
+    });
+    if (updated.count === 0) return null;
+    return getCollectionDetail(userId, collectionId);
+  } catch (err) {
+    console.error("[updateCollection]", err);
+    return null;
+  }
+}
+
+export async function deleteCollection(userId: string, collectionId: string): Promise<boolean> {
+  try {
+    const deleted = await prisma.collection.deleteMany({
+      where: { id: collectionId, userId },
+    });
+    return deleted.count > 0;
+  } catch (err) {
+    console.error("[deleteCollection]", err);
+    return false;
+  }
+}
+
 export type CollectionOption = {
   id: string;
   name: string;
