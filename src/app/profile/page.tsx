@@ -8,8 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSession } from "@/lib/session";
 import { getProfileData } from "@/lib/db/profile";
 import { ICON_MAP } from "@/lib/item-types";
-import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
-import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -125,31 +123,6 @@ export default async function ProfilePage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Change password */}
-        {profile.hasPassword && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Change password</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChangePasswordForm />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Danger zone */}
-        <Card className="border-destructive/40">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base text-destructive">Danger zone</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Permanently delete your account and all associated data. This cannot be undone.
-            </p>
-            <DeleteAccountDialog />
           </CardContent>
         </Card>
       </div>

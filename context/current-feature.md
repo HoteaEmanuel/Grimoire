@@ -1,16 +1,21 @@
-# Current Feature
+# Current Feature: Settings Page
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- bullet points of what success looks like -->
+- Create a new `/settings` page, protected (redirect unauthenticated users like `/profile` does)
+- Add a "Settings" link to the user icon dropdown at the bottom of the sidebar (`SidebarUserFooter`), alongside the existing "Profile" link
+- Move the "Change password" card (`ChangePasswordForm`) from `/profile` to `/settings`
+- Move the "Danger zone" / Delete Account card (`DeleteAccountDialog`) from `/profile` to `/settings`
 
 ## Notes
 
-<!-- additional context, constraints, or details from spec -->
+- `/profile` keeps the user info card and usage stats; only Change Password + Danger Zone move out
+- `/settings` should follow the same protected-route pattern as `/profile` (`getSession()` + `redirect("/sign-in")` if no session)
+- Reuse existing components (`ChangePasswordForm`, `DeleteAccountDialog`) as-is — just relocate, don't rewrite
 
 ## History
 

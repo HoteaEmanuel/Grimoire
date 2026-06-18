@@ -10,6 +10,7 @@ export const proxy = auth(function middleware(req) {
   const isProtected =
     nextUrl.pathname.startsWith("/dashboard") ||
     nextUrl.pathname.startsWith("/profile") ||
+    nextUrl.pathname.startsWith("/settings") ||
     nextUrl.pathname.startsWith("/items") ||
     nextUrl.pathname.startsWith("/collections")
 
