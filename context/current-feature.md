@@ -1,33 +1,20 @@
-# Current Feature: Editor Preferences Settings
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Font size dropdown
-- Tab size dropdown
-- Word wrap toggle (default: on)
-- Minimap toggle (default: off)
-- Theme dropdown: vs-dark, monokai, github-dark (default: vs-dark)
-- Store in JSON column `editorPreferences` on User model
-- Create and run a migration for the database (Never db push)
-- Create server action to update preferences
-- Apply settings to Monaco editor component
-- Auto-save on change (no save button)
-- Show success toast on save
-- Create EditorPreferencesContext for client components
+<!-- bullet points of what success looks like -->
 
 ## Notes
 
-- Add editor preferences section to the settings page (`/settings`)
-- Spec source: `context/features/editor-settings-spec.md`
-- Use Zustand (not React Context) for client state, consistent with `useItemDrawerStore`/`useCommandPaletteStore`: `useEditorPreferencesStore` holding `fontSize`/`tabSize`/`wordWrap`/`minimap`/`theme` + a `hydrate`/`setPreferences` action.
-- Server-fetch `editorPreferences` once in `(shell)/layout.tsx` (alongside existing sidebar queries) and hydrate the store on mount to avoid a flash of defaults.
-- Settings page writes to the store and calls the `updateEditorPreferences` server action; `CodeEditor`/`MarkdownEditor` read preferences via store selectors.
+<!-- additional context, constraints, or details from spec -->
 
 ## History
+
+- **Editor Preferences Settings - 2026-06-18** — Added an editor preferences section to `/settings`: font size and tab size dropdowns, word wrap toggle (default on), minimap toggle (default off), and theme dropdown (vs-dark/monokai/github-dark, default vs-dark). Stored as a JSON `editorPreferences` column on `User` (migration `add_editor_preferences`); `getEditorPreferences`/`updateEditorPreferences` in `src/lib/db/editor-preferences.ts` validate against `editorPreferencesSchema` (Zod) and fail open to `DEFAULT_EDITOR_PREFERENCES`. `updateEditorPreferences` server action (`src/actions/editor-preferences.ts`) does auth + Zod validation; `useUpdateEditorPreferences` (TanStack Query) toasts on success/error. Used Zustand (`useEditorPreferencesStore`) instead of the spec's suggested Context, for consistency with `useItemDrawerStore`/`useCommandPaletteStore` — hydrated server-side via a shared `EditorPreferencesHydrator` client component mounted in both `(shell)/layout.tsx` (so `CodeEditor` instances inside the item drawer/create modal pick it up) and `/settings/page.tsx` (since `/settings` lives outside the `(shell)` route group). `CodeEditor` now reads `fontSize`/`tabSize`/`wordWrap`/`minimap`/`theme` from the store; added `src/lib/monaco-themes.ts` with hand-defined Monaco theme rules for `monokai`/`github-dark` (not built into Monaco, unlike `vs-dark`), registered via `beforeMount`. `EditorPreferencesForm` (native `<select>`s matching the existing language-select pattern, shadcn `Switch` newly installed) auto-saves on every change — no save button. `MarkdownEditor` was left untouched since it doesn't use Monaco. 19 new unit tests across `src/lib/schemas/editor-preferences.test.ts` (8), `src/lib/db/editor-preferences.test.ts` (6), and `src/actions/editor-preferences.test.ts` (5).
 
 - **Settings Page - 2026-06-18** — Created a new protected `/settings` route (`getSession()` + `redirect("/sign-in")`, same pattern as `/profile`), added to the `proxy.ts` matcher alongside `/profile`/`/items`/`/collections`. Added a "Settings" link to the sidebar user dropdown (`SidebarUserFooter`) next to the existing "Profile" link. Moved the "Change password" card (`ChangePasswordForm`) and "Danger zone" Delete Account card (`DeleteAccountDialog`) off `/profile` onto `/settings`, reusing both components unchanged; `/profile` now only shows the user info card and usage stats.
 
