@@ -1,22 +1,20 @@
-# Current Feature: Pagination
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add pagination to `/items/[type]` and `/collections/[id]` pages
-- Pagination controls at bottom with page numbers and prev/next links
-- Disable (grey out) prev/next when not available
-- Use server-side pagination only — never fetch all resources at once, only the amount a page requires
+<!-- bullet points of what success looks like -->
 
 ## Notes
 
-- Constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
-- Dashboard limits: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
+<!-- additional context, constraints, or details from spec -->
 
 ## History
+
+- **Pagination - 2026-06-18** — Added server-side pagination to `/items/[type]` and `/collections/[id]`. Installed shadcn `Pagination`; created `PaginationControls` (`src/components/shared/`) — numbered page links with ellipsis collapsing, prev/next greyed out (`pointer-events-none opacity-40`) at the bounds, built on top of it. Added `src/lib/constants.ts` with `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE = 21` and `DASHBOARD_COLLECTIONS_LIMIT = 6`/`DASHBOARD_RECENT_ITEMS_LIMIT = 10` (replacing inline magic numbers in `getRecentCollections`/`getRecentItems`). `getItemCardsByType`, `getItemCardsByCollection` (`src/lib/db/items.ts`), and `getAllCollections` → renamed `getCollections` (`src/lib/db/collections.ts`) now take a `page` argument and return `{ items/collections, totalCount }`, using Prisma `skip`/`take` alongside a parallel `count` query so a page only ever fetches `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE` rows. Pages read `page` from `searchParams`, clamp to `>= 1`, and compute `totalPages` from `totalCount`. Also fixed a `CommandDialog` bug (`src/components/ui/command.tsx`) where `DialogHeader`/`DialogTitle` were rendered outside `DialogContent`. 4 DB test files updated for the new paginated signatures.
 
 - **Global Search / Command Palette - 2026-06-18** — Added a global Cmd+K/Ctrl+K command palette using shadcn's `cmdk`-backed `Command` component. Added lightweight `getSearchIndexItems` (id, title, preview, type slug/color/icon) to `src/lib/db/items.ts` and `getSearchIndexCollections` (id, name, itemCount) to `src/lib/db/collections.ts` — both fetch the user's full dataset with minimal fields, pre-fetched once per page load in `src/app/(shell)/layout.tsx` alongside the existing sidebar queries. Created `useCommandPaletteStore` (Zustand, mirrors `useItemDrawerStore`) and `CommandPalette` (`src/components/search/CommandPalette.tsx`), mounted as a singleton next to `ItemDrawer`. Search is fully client-side (no API route) — `cmdk` fuzzy-matches against item titles (with description/content as secondary `keywords`) and collection names; a custom `strictFilter` wraps `cmdk`'s `defaultFilter` with a 0.3 score threshold so scattered low-confidence matches are hidden. Results are grouped into "Items" and "Collections" sections, each showing a type icon (via `ICON_MAP`) or item count; selecting an item opens it via `useItemDrawerStore.openDrawer`, selecting a collection navigates to `/collections/[id]`. `Header`'s search input is now `readOnly` with an `onClick` that opens the palette, and its placeholder shows a `⌘K` hint. Palette widened (`max-w-2xl`) and result list heightened (`max-h-112`) beyond shadcn defaults. Also made item-drawer collection chips (`ItemDrawerViewBody`) clickable — they close the drawer and navigate to the collection's page. 4 new unit tests across `items.test.ts` and `collections.test.ts` covering the two new search-index DB functions (happy path + DB failure).
 
