@@ -1,29 +1,20 @@
-# Current Feature: Global Search / Command Palette
+# Current Feature
 
 ## Status
 
-In Progress
+<!-- placeholder -->
 
 ## Goals
 
-- Open with Cmd+K (Mac) / Ctrl+K (Windows)
-- Fuzzy search across all items and collections
-- Grouped results: Items section, Collections section
-- Keyboard navigation (arrow keys, Enter to select)
-- Show item type icon and collection item count
-- Navigate to item drawer or collection page on select
-- TopBar search input opens palette on click
-- Show ⌘K hint in search input placeholder
+<!-- placeholder -->
 
 ## Notes
 
-- Use shadcn `cmdk` component (Command)
-- Client-side fuzzy search (no server round-trips)
-- Pre-fetch searchable data on app load
-- Search data: items (id, title, type, content preview), collections (id, name, itemCount)
-- Reuse existing data fetching functions
+<!-- placeholder -->
 
 ## History
+
+- **Global Search / Command Palette - 2026-06-18** — Added a global Cmd+K/Ctrl+K command palette using shadcn's `cmdk`-backed `Command` component. Added lightweight `getSearchIndexItems` (id, title, preview, type slug/color/icon) to `src/lib/db/items.ts` and `getSearchIndexCollections` (id, name, itemCount) to `src/lib/db/collections.ts` — both fetch the user's full dataset with minimal fields, pre-fetched once per page load in `src/app/(shell)/layout.tsx` alongside the existing sidebar queries. Created `useCommandPaletteStore` (Zustand, mirrors `useItemDrawerStore`) and `CommandPalette` (`src/components/search/CommandPalette.tsx`), mounted as a singleton next to `ItemDrawer`. Search is fully client-side (no API route) — `cmdk` fuzzy-matches against item titles (with description/content as secondary `keywords`) and collection names; a custom `strictFilter` wraps `cmdk`'s `defaultFilter` with a 0.3 score threshold so scattered low-confidence matches are hidden. Results are grouped into "Items" and "Collections" sections, each showing a type icon (via `ICON_MAP`) or item count; selecting an item opens it via `useItemDrawerStore.openDrawer`, selecting a collection navigates to `/collections/[id]`. `Header`'s search input is now `readOnly` with an `onClick` that opens the palette, and its placeholder shows a `⌘K` hint. Palette widened (`max-w-2xl`) and result list heightened (`max-h-112`) beyond shadcn defaults. Also made item-drawer collection chips (`ItemDrawerViewBody`) clickable — they close the drawer and navigate to the collection's page. 4 new unit tests across `items.test.ts` and `collections.test.ts` covering the two new search-index DB functions (happy path + DB failure).
 
 - **Collections Pages & Route Restructure - 2026-06-18** — Created `/collections` (list, reuses `CollectionCard`) and `/collections/[id]` (detail, items split into sections: generic grid first, then an "Images" section via `ImageGridWithDrawer`, then a "Files" section via `FileListWithDrawer`). Moved `dashboard`, `items`, and the new `collections` routes into a `src/app/(shell)/` route group so `/dashboard`, `/items/[type]`, `/collections`, and `/collections/[id]` are sibling top-level URLs (no `dashboard` URL prefix) while still sharing the sidebar/header shell layout. `dashboard/layout.tsx` moved to `(shell)/layout.tsx`. Updated `src/proxy.ts` matcher to also protect `/items` and `/collections`. Updated `SidebarContent` and `CollectionCard` links to the new paths. Added `getAllCollections` and `getCollectionDetail` to `src/lib/db/collections.ts`, and `getItemCardsByCollection` to `src/lib/db/items.ts`. 7 new unit tests across `collections.test.ts` (5) and `items.test.ts` (2); `setup.ts` Prisma mock extended with `collection.findFirst`.
 
