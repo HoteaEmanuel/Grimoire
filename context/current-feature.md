@@ -1,27 +1,16 @@
-# Current Feature: Collection Card Actions (Edit, Delete, Favorite)
+# Current Feature
 
 ## Status
 
-Not Started
+
 
 ## Goals
 
-- On `/collections/[id]` detail page, add Edit, Delete, and Favorite buttons/icons.
-  - Favorite: icon/button only — no functionality wired up yet.
-  - Edit: opens a modal to edit the collection's metadata (name, description).
-  - Delete: requires a confirmation step before deleting. Deleting a collection must NOT delete its items — items just lose the association with that collection (remove `ItemCollection` join rows only).
-- On collection cards (used on `/collections` list and the dashboard's Recent Collections section), replace/wire the existing 3-dots icon to open a dropdown menu with Edit, Delete, and Favorite actions.
-  - Clicking anywhere else on the card navigates to that collection's detail page (existing behavior) — the dropdown trigger must stop click propagation so it doesn't also trigger navigation.
-  - Same Edit modal, delete confirmation, and (non-functional) Favorite icon are reused/triggered from the dropdown.
+<!-- placeholder -->
 
 ## Notes
 
-- Reuse `CollectionCard` component across `/collections` and dashboard — only one place to add the dropdown.
-- Mirrors existing patterns: item edit modal pattern, `AlertDialog` for delete confirmation (see Item delete), `createCollectionSchema`/`createCollection` action pattern for the new `updateCollection` action.
-- Need a `deleteCollection` server action that deletes the `Collection` row (cascades `ItemCollection` via Prisma `onDelete: Cascade`) but leaves `Item` rows untouched — schema already supports this since only the join table cascades.
-- Favorite is UI-only for now (icon present, no mutation, no `isFavorite` toggle logic).
-
-
+<!-- placeholder -->
 
 ## History
 
@@ -94,3 +83,5 @@ Not Started
 - **Collection Create - 2026-06-18** — "New Collection" button in the header opens a shadcn `Dialog` modal collecting name (required) and description (optional). Mirrors the item creation pattern: `createCollectionSchema` (Zod) in `src/lib/schemas/collections.ts`, `createCollection` DB function in `src/lib/db/collections.ts` (returns default empty-collection meta), `createCollection` server action in `src/actions/collections.ts` with auth check, `useCreateCollection` TanStack Query mutation in `src/lib/mutations/collections.ts`. `CreateCollectionModal` calls `router.refresh()` on success so the sidebar and dashboard's Recent Collections section update without a manual reload. `CollectionCard` updated to render a neutral border/icon (instead of a tinted dominant-type color) when `itemCount === 0`, since a freshly created collection has no items to derive a dominant type from. 13 new unit tests across `src/lib/schemas/collections.test.ts` (6), `src/lib/db/collections.test.ts` (2), and `src/actions/collections.test.ts` (5).
 
 - **Add Item to Collections - 2026-06-18** — Multi-select collections input added to both the "New Item" create modal and the item drawer's edit mode, reusing the existing `ItemCollection` join table. Created `CollectionSelect` (shared, in `src/components/shared/`) — a searchable popover with a checkbox list and removable badges for selected collections, backed by `useCollectionsList` (`src/lib/queries/collections.ts`, TanStack Query) hitting new `GET /api/collections`. Installed shadcn `Popover`, `Command` (cmdk), `Checkbox`, `Input-Group`; added `useDebouncedValue` hook for the search field. `createItem`/`updateItem` (`src/lib/db/items.ts`) and their server actions (`src/actions/items.ts`) now accept an optional `collectionIds: string[]` and sync `ItemCollection` rows. Fixed a cross-library focus-trap conflict: the item drawer (vaul `Drawer`, built on Radix Dialog) was force-closing the Base UI `Popover` on click because Radix's focus trap didn't recognize the popover's body-portaled content as part of the dialog. Fixed by giving `PopoverContent` a `container` prop and portaling it into the Drawer's own DOM node instead of `document.body`. Also gave `ItemWithMeta` a `typeSlug` field and updated `ItemGridWithDrawer` (dashboard Pinned/Recent sections) to render `ImageThumbnailCard`/`FileListRow` for image/file items instead of the generic `ItemCard`, matching the dedicated type pages; added a `compact` mode to `ImageThumbnailCard` (fixed height instead of `aspect-video`) so it doesn't force tall rows in the mixed dashboard grid.
+
+- **Collection Card Actions (Edit, Delete, Favorite) - 2026-06-18** — Added Edit, Delete, and Favorite (UI-only) actions for collections. `/collections/[id]` gets a `CollectionDetailActions` button row; `CollectionCard` (used on `/collections` and the dashboard) gets a `CollectionCardMenu` 3-dot dropdown with the same actions. Both share `EditCollectionModal` (Dialog, mirrors `CreateCollectionModal`) and `DeleteCollectionDialog` (AlertDialog confirmation). Added `updateCollection`/`deleteCollection` to `src/lib/db/collections.ts` (delete only removes the `Collection` row — `ItemCollection` join rows cascade, but `Item` rows are untouched) plus matching server actions in `src/actions/collections.ts` and `useUpdateCollection`/`useDeleteCollection` mutations. Converted `CollectionCard` from a `next/link` wrapper to a `"use client"` component using a `div` + `router.push` — nesting the dropdown's `<button>` inside the anchor caused invalid DOM nesting that made the navigation untrappable via `stopPropagation` alone. Also discovered that Base UI's portaled `DropdownMenuContent`/`Dialog`/`AlertDialog` content still bubbles clicks through the *React* tree (not the DOM tree) to ancestors, per React's documented portal behavior — fixed by wrapping `CollectionCardMenu`'s contents in a single `stopPropagation` boundary. 13 new unit tests across `src/lib/db/collections.test.ts` (6) and `src/actions/collections.test.ts` (7); `setup.ts` Prisma mock extended with `collection.updateMany`/`deleteMany`.
