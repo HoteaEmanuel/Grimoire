@@ -6,6 +6,7 @@ import { Search, Plus, BookMarked, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateItemModal } from "@/components/items/CreateItemModal";
+import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import { CREATE_TYPE_SLUGS, type CreateItemInput } from "@/lib/schemas/items";
 
 const TYPE_SLUG_SET = new Set<string>(CREATE_TYPE_SLUGS);
@@ -23,6 +24,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const [createOpen, setCreateOpen] = useState(false);
+  const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
   const pathname = usePathname();
   const defaultTypeSlug = defaultTypeFromPath(pathname);
 
@@ -55,6 +57,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             size="sm"
             variant="outline"
             className="gap-1.5 h-8 text-xs border-border/60 text-muted-foreground hover:text-foreground"
+            onClick={() => setCreateCollectionOpen(true)}
           >
             <BookMarked className="size-3.5" />
             New Collection
@@ -71,6 +74,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       </header>
 
       <CreateItemModal open={createOpen} onOpenChange={setCreateOpen} defaultTypeSlug={defaultTypeSlug} />
+      <CreateCollectionModal open={createCollectionOpen} onOpenChange={setCreateCollectionOpen} />
     </>
   );
 }
