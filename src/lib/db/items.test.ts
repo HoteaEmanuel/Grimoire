@@ -341,19 +341,23 @@ describe("getItemCardsByType", () => {
     },
   ];
 
-  it("returns mapped card items for a type", async () => {
+  it("returns mapped card items for a type with pagination args", async () => {
     vi.mocked(prisma.item.findMany).mockResolvedValue(mockCardItems as never);
+    vi.mocked(prisma.item.count).mockResolvedValue(1);
 
-    const result = await getItemCardsByType("user-1", "snippets");
+    const result = await getItemCardsByType("user-1", "snippets", 1);
 
     expect(prisma.item.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1", itemType: { slug: "snippets" } },
         orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+        skip: 0,
+        take: 21,
       }),
     );
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({
+    expect(result.totalCount).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
       id: "item-1",
       title: "Test Snippet",
       typeName: "Snippet",
@@ -363,13 +367,24 @@ describe("getItemCardsByType", () => {
     });
   });
 
-  it("returns empty array on DB failure", async () => {
+  it("applies skip offset for page 2", async () => {
+    vi.mocked(prisma.item.findMany).mockResolvedValue([] as never);
+    vi.mocked(prisma.item.count).mockResolvedValue(0);
+
+    await getItemCardsByType("user-1", "snippets", 2);
+
+    expect(prisma.item.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 21, take: 21 }),
+    );
+  });
+
+  it("returns empty result on DB failure", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
 
     const result = await getItemCardsByType("user-1", "snippets");
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ items: [], totalCount: 0 });
     consoleSpy.mockRestore();
   });
 });
@@ -449,19 +464,23 @@ describe("getItemCardsByCollection", () => {
     },
   ];
 
-  it("returns mapped card items belonging to a collection", async () => {
+  it("returns mapped card items belonging to a collection with pagination args", async () => {
     vi.mocked(prisma.item.findMany).mockResolvedValue(mockCardItems as never);
+    vi.mocked(prisma.item.count).mockResolvedValue(1);
 
-    const result = await getItemCardsByCollection("user-1", "col-1");
+    const result = await getItemCardsByCollection("user-1", "col-1", 1);
 
     expect(prisma.item.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1", collections: { some: { collectionId: "col-1" } } },
         orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+        skip: 0,
+        take: 21,
       }),
     );
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({
+    expect(result.totalCount).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
       id: "item-1",
       title: "Test Snippet",
       typeName: "Snippet",
@@ -469,13 +488,13 @@ describe("getItemCardsByCollection", () => {
     });
   });
 
-  it("returns empty array on DB failure", async () => {
+  it("returns empty result on DB failure", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
 
     const result = await getItemCardsByCollection("user-1", "col-1");
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ items: [], totalCount: 0 });
     consoleSpy.mockRestore();
   });
 });

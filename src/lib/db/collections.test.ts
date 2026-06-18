@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
 import {
   createCollection,
-  getAllCollections,
+  getCollections,
   getCollectionDetail,
   getSearchIndexCollections,
   updateCollection,
@@ -64,8 +64,8 @@ describe("createCollection", () => {
   });
 });
 
-describe("getAllCollections", () => {
-  it("maps collections with dominant type color and icons", async () => {
+describe("getCollections", () => {
+  it("maps collections with dominant type color and icons, paginated", async () => {
     vi.mocked(prisma.collection.findMany).mockResolvedValue([
       {
         id: "col-1",
@@ -80,13 +80,15 @@ describe("getAllCollections", () => {
         ],
       },
     ] as never);
+    vi.mocked(prisma.collection.count).mockResolvedValue(1);
 
-    const result = await getAllCollections("user-1");
+    const result = await getCollections("user-1", 1);
 
     expect(prisma.collection.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: "user-1" } }),
+      expect.objectContaining({ where: { userId: "user-1" }, skip: 0, take: 21 }),
     );
-    expect(result).toEqual([
+    expect(result.totalCount).toBe(1);
+    expect(result.collections).toEqual([
       {
         id: "col-1",
         name: "React Patterns",
@@ -100,12 +102,23 @@ describe("getAllCollections", () => {
     ]);
   });
 
-  it("returns empty array when prisma throws", async () => {
+  it("applies skip offset for page 2", async () => {
+    vi.mocked(prisma.collection.findMany).mockResolvedValue([] as never);
+    vi.mocked(prisma.collection.count).mockResolvedValue(0);
+
+    await getCollections("user-1", 2);
+
+    expect(prisma.collection.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 21, take: 21 }),
+    );
+  });
+
+  it("returns empty result when prisma throws", async () => {
     vi.mocked(prisma.collection.findMany).mockRejectedValue(new Error("db error"));
 
-    const result = await getAllCollections("user-1");
+    const result = await getCollections("user-1");
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ collections: [], totalCount: 0 });
   });
 });
 

@@ -23,6 +23,7 @@ npm run build    # production build
 npm run lint     # run ESLint
 ```
 
+
 ## Stack
 
 - **Next.js 16** with App Router (`src/app/`)

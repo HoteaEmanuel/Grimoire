@@ -443,6 +443,21 @@ taskkill /PID <PID> /F`,
     ],
   )
 
+  // ── Pagination Test Data ─────────────────────────────────────────────────
+  // 50 extra snippet items (unattached to any collection) so /items/snippets
+  // has enough rows to exercise pagination in dev.
+  await prisma.item.createMany({
+    data: Array.from({ length: 50 }, (_, i) => ({
+      title: `Pagination Test Snippet ${i + 1}`,
+      contentKind: "TEXT" as const,
+      content: `console.log("pagination test item ${i + 1}");`,
+      language: "javascript",
+      description: "Seeded item for pagination testing",
+      userId: user.id,
+      itemTypeId: types["snippets"],
+    })),
+  })
+
   const [itemCount, colCount, tagCount] = await Promise.all([
     prisma.item.count({ where: { userId: user.id } }),
     prisma.collection.count({ where: { userId: user.id } }),

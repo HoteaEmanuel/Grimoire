@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { COLLECTIONS_PER_PAGE, DASHBOARD_COLLECTIONS_LIMIT } from "@/lib/constants";
 
 export type CollectionTypeIcon = {
   iconName: string;
@@ -42,7 +43,7 @@ export async function getRecentCollections(userId: string): Promise<CollectionWi
     const collections = await prisma.collection.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: DASHBOARD_COLLECTIONS_LIMIT,
       select: {
         id: true,
         name: true,
@@ -94,32 +95,43 @@ export async function getRecentCollections(userId: string): Promise<CollectionWi
   }
 }
 
-export async function getAllCollections(userId: string): Promise<CollectionWithMeta[]> {
+export type PaginatedCollections = {
+  collections: CollectionWithMeta[];
+  totalCount: number;
+};
+
+export async function getCollections(userId: string, page = 1): Promise<PaginatedCollections> {
   try {
-    const collections = await prisma.collection.findMany({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        isFavorite: true,
-        createdAt: true,
-        _count: { select: { items: true } },
-        items: {
-          take: 50,
-          select: {
-            item: {
-              select: {
-                itemType: { select: { id: true, color: true, icon: true } },
+    const where = { userId };
+    const [collections, totalCount] = await Promise.all([
+      prisma.collection.findMany({
+        where,
+        orderBy: { updatedAt: "desc" },
+        skip: (page - 1) * COLLECTIONS_PER_PAGE,
+        take: COLLECTIONS_PER_PAGE,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          isFavorite: true,
+          createdAt: true,
+          _count: { select: { items: true } },
+          items: {
+            take: 50,
+            select: {
+              item: {
+                select: {
+                  itemType: { select: { id: true, color: true, icon: true } },
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.collection.count({ where }),
+    ]);
 
-    return collections.map((col) => {
+    const mapped = collections.map((col) => {
       const typeCounts = new Map<string, { count: number; color: string; iconName: string }>();
       for (const ic of col.items) {
         const t = ic.item.itemType;
@@ -144,9 +156,11 @@ export async function getAllCollections(userId: string): Promise<CollectionWithM
         createdAt: col.createdAt,
       };
     });
+
+    return { collections: mapped, totalCount };
   } catch (err) {
-    console.error("[getAllCollections]", err);
-    return [];
+    console.error("[getCollections]", err);
+    return { collections: [], totalCount: 0 };
   }
 }
 

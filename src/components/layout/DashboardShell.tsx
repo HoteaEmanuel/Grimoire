@@ -24,14 +24,14 @@ export function DashboardShell({
         user={user}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <DesktopSidebarController
           itemTypes={sidebarItemTypes}
           collections={sidebarCollections}
           user={user}
         />
 
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 min-h-0 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );
