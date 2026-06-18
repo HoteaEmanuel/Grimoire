@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { prisma } from "@/lib/prisma";
-import { getItemById, getItemCardsByType, getItemCardsByCollection, updateItem, createItem } from "./items";
+import {
+  getItemById,
+  getItemCardsByType,
+  getItemCardsByCollection,
+  getSearchIndexItems,
+  updateItem,
+  createItem,
+} from "./items";
 
 const mockPrismaItem = {
   id: "item-1",
@@ -361,6 +368,66 @@ describe("getItemCardsByType", () => {
     vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
 
     const result = await getItemCardsByType("user-1", "snippets");
+
+    expect(result).toEqual([]);
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("getSearchIndexItems", () => {
+  const mockSearchItems = [
+    {
+      id: "item-1",
+      title: "Test Snippet",
+      description: "A test",
+      content: "console.log('hi')",
+      itemType: { slug: "snippets", color: "#3b82f6", icon: "Code" },
+    },
+    {
+      id: "item-2",
+      title: "No description",
+      description: null,
+      content: "fallback content",
+      itemType: { slug: "notes", color: "#fde047", icon: "StickyNote" },
+    },
+  ];
+
+  it("returns lightweight mapped items ordered by lastUsedAt", async () => {
+    vi.mocked(prisma.item.findMany).mockResolvedValue(mockSearchItems as never);
+
+    const result = await getSearchIndexItems("user-1");
+
+    expect(prisma.item.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1" },
+        orderBy: { lastUsedAt: "desc" },
+      }),
+    );
+    expect(result).toEqual([
+      {
+        id: "item-1",
+        title: "Test Snippet",
+        preview: "A test",
+        typeSlug: "snippets",
+        typeColor: "#3b82f6",
+        typeIconName: "Code",
+      },
+      {
+        id: "item-2",
+        title: "No description",
+        preview: "fallback content",
+        typeSlug: "notes",
+        typeColor: "#fde047",
+        typeIconName: "StickyNote",
+      },
+    ]);
+  });
+
+  it("returns empty array on DB failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
+
+    const result = await getSearchIndexItems("user-1");
 
     expect(result).toEqual([]);
     consoleSpy.mockRestore();

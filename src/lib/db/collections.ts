@@ -295,6 +295,31 @@ export async function deleteCollection(userId: string, collectionId: string): Pr
   }
 }
 
+export type SearchIndexCollection = {
+  id: string;
+  name: string;
+  itemCount: number;
+};
+
+export async function getSearchIndexCollections(userId: string): Promise<SearchIndexCollection[]> {
+  try {
+    const collections = await prisma.collection.findMany({
+      where: { userId },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, _count: { select: { items: true } } },
+    });
+
+    return collections.map((col) => ({
+      id: col.id,
+      name: col.name,
+      itemCount: col._count.items,
+    }));
+  } catch (err) {
+    console.error("[getSearchIndexCollections]", err);
+    return [];
+  }
+}
+
 export type CollectionOption = {
   id: string;
   name: string;

@@ -4,6 +4,7 @@ import {
   createCollection,
   getAllCollections,
   getCollectionDetail,
+  getSearchIndexCollections,
   updateCollection,
   deleteCollection,
 } from "./collections";
@@ -146,6 +147,33 @@ describe("getCollectionDetail", () => {
     const result = await getCollectionDetail("user-1", "col-1");
 
     expect(result).toBeNull();
+  });
+});
+
+describe("getSearchIndexCollections", () => {
+  it("returns lightweight mapped collections ordered by name", async () => {
+    vi.mocked(prisma.collection.findMany).mockResolvedValue([
+      { id: "col-1", name: "React Patterns", _count: { items: 4 } },
+      { id: "col-2", name: "Python Snippets", _count: { items: 0 } },
+    ] as never);
+
+    const result = await getSearchIndexCollections("user-1");
+
+    expect(prisma.collection.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: "user-1" }, orderBy: { name: "asc" } }),
+    );
+    expect(result).toEqual([
+      { id: "col-1", name: "React Patterns", itemCount: 4 },
+      { id: "col-2", name: "Python Snippets", itemCount: 0 },
+    ]);
+  });
+
+  it("returns empty array when prisma throws", async () => {
+    vi.mocked(prisma.collection.findMany).mockRejectedValue(new Error("db error"));
+
+    const result = await getSearchIndexCollections("user-1");
+
+    expect(result).toEqual([]);
   });
 });
 

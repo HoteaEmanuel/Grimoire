@@ -398,6 +398,43 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
   }
 }
 
+export type SearchIndexItem = {
+  id: string;
+  title: string;
+  preview: string | null;
+  typeSlug: string;
+  typeColor: string;
+  typeIconName: string;
+};
+
+export async function getSearchIndexItems(userId: string): Promise<SearchIndexItem[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { userId },
+      orderBy: { lastUsedAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        content: true,
+        itemType: { select: { slug: true, color: true, icon: true } },
+      },
+    });
+
+    return items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      preview: item.description ?? item.content ?? null,
+      typeSlug: item.itemType.slug,
+      typeColor: item.itemType.color,
+      typeIconName: item.itemType.icon,
+    }));
+  } catch (err) {
+    console.error("[getSearchIndexItems]", err);
+    return [];
+  }
+}
+
 export type SidebarItemType = {
   id: string;
   name: string;

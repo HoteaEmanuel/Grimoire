@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Globe, FolderOpen, Tag, Calendar, Download } from "lucide-react";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { Button } from "@/components/ui/button";
 import { formatDate, formatFileSize } from "@/lib/utils";
+import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
 import type { ItemDetail } from "@/lib/db/items";
 
 const CODE_TYPES = new Set(["snippets", "commands"]);
@@ -15,6 +18,14 @@ interface ItemDrawerViewBodyProps {
 }
 
 export function ItemDrawerViewBody({ item }: ItemDrawerViewBodyProps) {
+  const router = useRouter();
+  const closeDrawer = useItemDrawerStore((state) => state.closeDrawer);
+
+  function goToCollection(id: string) {
+    closeDrawer();
+    router.push(`/collections/${id}`);
+  }
+
   return (
     <div className="space-y-6">
       {item.description && (
@@ -113,12 +124,14 @@ export function ItemDrawerViewBody({ item }: ItemDrawerViewBodyProps) {
             <FolderOpen size={13} className="mt-0.5 shrink-0" />
             <div className="flex flex-wrap gap-1.5">
               {item.collections.map((col) => (
-                <span
+                <Button
                   key={col.id}
-                  className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/8 text-muted-foreground"
+                  type="button"
+                  onClick={() => goToCollection(col.id)}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 border border-white/8 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors cursor-pointer"
                 >
                   {col.name}
-                </span>
+                </Button>
               ))}
             </div>
           </div>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { CreateItemModal } from "@/components/items/CreateItemModal";
 import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import { CREATE_TYPE_SLUGS, type CreateItemInput } from "@/lib/schemas/items";
+import { useCommandPaletteStore } from "@/lib/stores/command-palette-store";
 
 const TYPE_SLUG_SET = new Set<string>(CREATE_TYPE_SLUGS);
 
@@ -47,8 +48,10 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="flex-1 max-w-lg relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Search commands, snippets, links from your grimoire..."
-            className="pl-9 h-8 text-sm bg-muted/40 border-border/60"
+            placeholder="Search your grimoire... (⌘K)"
+            readOnly
+            onClick={() => useCommandPaletteStore.getState().setOpen(true)}
+            className="pl-9 h-8 text-sm bg-muted/40 border-border/60 cursor-pointer"
           />
         </div>
 

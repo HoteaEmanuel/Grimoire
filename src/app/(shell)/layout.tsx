@@ -4,9 +4,10 @@ import { Suspense } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
+import { CommandPalette } from "@/components/search/CommandPalette";
 import { getSession } from "@/lib/session";
-import { getSidebarItemTypes } from "@/lib/db/items";
-import { getSidebarCollections } from "@/lib/db/collections";
+import { getSidebarItemTypes, getSearchIndexItems } from "@/lib/db/items";
+import { getSidebarCollections, getSearchIndexCollections } from "@/lib/db/collections";
 
 export default async function ShellLayout({
   children,
@@ -16,9 +17,11 @@ export default async function ShellLayout({
   const session = await getSession();
   const userId = session?.user?.id ?? "";
 
-  const [itemTypes, collections] = await Promise.all([
+  const [itemTypes, collections, searchItems, searchCollections] = await Promise.all([
     getSidebarItemTypes(userId),
     getSidebarCollections(userId),
+    getSearchIndexItems(userId),
+    getSearchIndexCollections(userId),
   ]);
 
   return (
@@ -40,6 +43,7 @@ export default async function ShellLayout({
       </Suspense>
       {children}
       <ItemDrawer />
+      <CommandPalette items={searchItems} collections={searchCollections} />
     </DashboardShell>
   );
 }
