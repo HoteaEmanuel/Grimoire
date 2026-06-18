@@ -244,6 +244,23 @@ export async function getItemCardsByType(userId: string, typeSlug: string): Prom
   }
 }
 
+export async function getItemCardsByCollection(
+  userId: string,
+  collectionId: string,
+): Promise<ItemWithMeta[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { userId, collections: { some: { collectionId } } },
+      orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+      select: ITEM_CARD_SELECT,
+    });
+    return items.map(mapItemCard);
+  } catch (err) {
+    console.error("[getItemCardsByCollection]", err);
+    return [];
+  }
+}
+
 export type UpdateItemData = {
   title: string;
   description: string | null;

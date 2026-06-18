@@ -437,19 +437,23 @@ erDiagram
 /sign-up                   → Registration
 
 /dashboard                 → Main app shell (sidebar + content)
-/dashboard/items           → All items (default view)
-/dashboard/items/snippets  → Filtered by type: snippets
-/dashboard/items/prompts   → Filtered by type: prompts
-/dashboard/items/commands  → Filtered by type: commands
-/dashboard/items/notes     → Filtered by type: notes
-/dashboard/items/links     → Filtered by type: links
-/dashboard/items/files     → Filtered by type: files (Pro)
-/dashboard/items/images    → Filtered by type: images (Pro)
-/dashboard/collections          → All collections
-/dashboard/collections/[id]     → Single collection view
+/items/snippets            → Filtered by type: snippets
+/items/prompts             → Filtered by type: prompts
+/items/commands            → Filtered by type: commands
+/items/notes               → Filtered by type: notes
+/items/links               → Filtered by type: links
+/items/files               → Filtered by type: files (Pro)
+/items/images              → Filtered by type: images (Pro)
+/collections                    → All collections
+/collections/[id]               → Single collection view
 /dashboard/search               → Search results
 /dashboard/settings             → Account, preferences, billing
 /dashboard/settings/billing     → Stripe portal / upgrade
+```
+
+> `/dashboard`, `/items/*`, and `/collections/*` are sibling top-level URLs sharing the same sidebar+header shell layout via a Next.js route group (`src/app/(shell)/`) — the `dashboard` segment is a URL path, not a layout boundary.
+
+```
 
 /api/items                 → CRUD for items
 /api/items/[id]            → Single item operations

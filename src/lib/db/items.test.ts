@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { prisma } from "@/lib/prisma";
-import { getItemById, getItemCardsByType, updateItem, createItem } from "./items";
+import { getItemById, getItemCardsByType, getItemCardsByCollection, updateItem, createItem } from "./items";
 
 const mockPrismaItem = {
   id: "item-1",
@@ -361,6 +361,52 @@ describe("getItemCardsByType", () => {
     vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
 
     const result = await getItemCardsByType("user-1", "snippets");
+
+    expect(result).toEqual([]);
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("getItemCardsByCollection", () => {
+  const mockCardItems = [
+    {
+      id: "item-1",
+      title: "Test Snippet",
+      description: "A test",
+      isPinned: true,
+      isFavorite: false,
+      language: "typescript",
+      lastUsedAt: new Date("2024-01-03"),
+      itemType: { name: "Snippet", color: "#3b82f6", icon: "Code" },
+      tags: [{ tag: { name: "react" } }],
+    },
+  ];
+
+  it("returns mapped card items belonging to a collection", async () => {
+    vi.mocked(prisma.item.findMany).mockResolvedValue(mockCardItems as never);
+
+    const result = await getItemCardsByCollection("user-1", "col-1");
+
+    expect(prisma.item.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", collections: { some: { collectionId: "col-1" } } },
+        orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+      }),
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: "item-1",
+      title: "Test Snippet",
+      typeName: "Snippet",
+      tags: ["react"],
+    });
+  });
+
+  it("returns empty array on DB failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
+
+    const result = await getItemCardsByCollection("user-1", "col-1");
 
     expect(result).toEqual([]);
     consoleSpy.mockRestore();

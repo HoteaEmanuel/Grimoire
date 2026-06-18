@@ -59,13 +59,13 @@ export function SidebarContent({
             return (
               <SidebarNavItem
                 key={type.id}
-                href={`/dashboard/items/${type.slug}`}
+                href={`/items/${type.slug}`}
                 icon={Icon}
                 iconColor={type.color}
                 label={type.name + "s"}
                 count={type.count}
                 collapsed={sidebarCollapsed}
-                active={pathname === `/dashboard/items/${type.slug}`}
+                active={pathname === `/items/${type.slug}`}
                 isPro={type.slug === "files" || type.slug === "images"}
                 onClick={onClose}
               />
@@ -89,7 +89,7 @@ export function SidebarContent({
               {favoriteCollections.map((col) => (
                 <SidebarCollectionItem
                   key={col.id}
-                  href={`/dashboard/collections/${col.id}`}
+                  href={`/collections/${col.id}`}
                   name={col.name}
                   color={col.dominantTypeColor}
                   isFavorite
@@ -109,7 +109,7 @@ export function SidebarContent({
               {recentCollections.map((col) => (
                 <SidebarCollectionItem
                   key={col.id}
-                  href={`/dashboard/collections/${col.id}`}
+                  href={`/collections/${col.id}`}
                   name={col.name}
                   color={col.dominantTypeColor}
                   isFavorite={false}
@@ -130,7 +130,7 @@ export function SidebarContent({
 
           {!sidebarCollapsed && (
             <Link
-              href="/dashboard/collections"
+              href="/collections"
               onClick={onClose}
               className="block px-2 pt-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
             >
