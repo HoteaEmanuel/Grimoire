@@ -1,16 +1,31 @@
-# Current Feature
+# Current Feature: Editor Preferences Settings
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- bullet points of what success looks like -->
+- Font size dropdown
+- Tab size dropdown
+- Word wrap toggle (default: on)
+- Minimap toggle (default: off)
+- Theme dropdown: vs-dark, monokai, github-dark (default: vs-dark)
+- Store in JSON column `editorPreferences` on User model
+- Create and run a migration for the database (Never db push)
+- Create server action to update preferences
+- Apply settings to Monaco editor component
+- Auto-save on change (no save button)
+- Show success toast on save
+- Create EditorPreferencesContext for client components
 
 ## Notes
 
-<!-- additional context, constraints, or details from spec -->
+- Add editor preferences section to the settings page (`/settings`)
+- Spec source: `context/features/editor-settings-spec.md`
+- Use Zustand (not React Context) for client state, consistent with `useItemDrawerStore`/`useCommandPaletteStore`: `useEditorPreferencesStore` holding `fontSize`/`tabSize`/`wordWrap`/`minimap`/`theme` + a `hydrate`/`setPreferences` action.
+- Server-fetch `editorPreferences` once in `(shell)/layout.tsx` (alongside existing sidebar queries) and hydrate the store on mount to avoid a flash of defaults.
+- Settings page writes to the store and calls the `updateEditorPreferences` server action; `CodeEditor`/`MarkdownEditor` read preferences via store selectors.
 
 ## History
 

@@ -5,9 +5,11 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { CommandPalette } from "@/components/search/CommandPalette";
+import { EditorPreferencesHydrator } from "@/components/shared/EditorPreferencesHydrator";
 import { getSession } from "@/lib/session";
 import { getSidebarItemTypes, getSearchIndexItems } from "@/lib/db/items";
 import { getSidebarCollections, getSearchIndexCollections } from "@/lib/db/collections";
+import { getEditorPreferences } from "@/lib/db/editor-preferences";
 
 export default async function ShellLayout({
   children,
@@ -17,12 +19,14 @@ export default async function ShellLayout({
   const session = await getSession();
   const userId = session?.user?.id ?? "";
 
-  const [itemTypes, collections, searchItems, searchCollections] = await Promise.all([
-    getSidebarItemTypes(userId),
-    getSidebarCollections(userId),
-    getSearchIndexItems(userId),
-    getSearchIndexCollections(userId),
-  ]);
+  const [itemTypes, collections, searchItems, searchCollections, editorPreferences] =
+    await Promise.all([
+      getSidebarItemTypes(userId),
+      getSidebarCollections(userId),
+      getSearchIndexItems(userId),
+      getSearchIndexCollections(userId),
+      getEditorPreferences(userId),
+    ]);
 
   return (
     <DashboardShell
@@ -44,6 +48,7 @@ export default async function ShellLayout({
       {children}
       <ItemDrawer />
       <CommandPalette items={searchItems} collections={searchCollections} />
+      <EditorPreferencesHydrator preferences={editorPreferences} />
     </DashboardShell>
   );
 }

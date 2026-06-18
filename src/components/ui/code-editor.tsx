@@ -5,6 +5,8 @@ import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { copyToClipboard } from "@/lib/utils";
 import { toast } from "sonner";
+import { useEditorPreferencesStore } from "@/lib/stores/editor-preferences-store";
+import { registerMonacoThemes } from "@/lib/monaco-themes";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -17,6 +19,9 @@ interface CodeEditorProps {
 
 export function CodeEditor({ value, onChange, language, readOnly = false }: CodeEditorProps) {
   const [copied, setCopied] = useState(false);
+  const { fontSize, tabSize, wordWrap, minimap, theme } = useEditorPreferencesStore(
+    (state) => state.preferences,
+  );
 
   const handleCopy = async () => {
     const ok = await copyToClipboard(value);
@@ -62,14 +67,16 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Code
         language={language || "plaintext"}
         value={value}
         onChange={(v) => onChange?.(v ?? "")}
-        theme="vs-dark"
+        theme={theme}
+        beforeMount={registerMonacoThemes}
         options={{
           readOnly,
-          minimap: { enabled: false },
-          fontSize: 12.5,
+          minimap: { enabled: minimap },
+          fontSize,
+          tabSize,
           lineNumbers: "on",
           scrollBeyondLastLine: false,
-          wordWrap: "on",
+          wordWrap: wordWrap ? "on" : "off",
           padding: { top: 12, bottom: 12 },
           renderLineHighlight: readOnly ? "none" : "line",
           overviewRulerLanes: 0,
