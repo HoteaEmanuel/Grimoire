@@ -1,12 +1,16 @@
-## Current Feature
+# Current Feature
 
 ## Status
 
-Not Started
+
 
 ## Goals
 
+<!-- placeholder -->
+
 ## Notes
+
+<!-- placeholder -->
 
 
 
@@ -77,3 +81,5 @@ Not Started
 - **Code Quality & Refactoring - 2026-06-17** — Security: added try/catch to DELETE /api/profile/delete-account, validated R2 env vars in upload and download routes, fixed userId guard on tagsOnItems.deleteMany. Performance: added take: 50 to nested items includes in collection queries. Upload rate limiting: 20 uploads/hr per user via uploadLimiter. Shared constants: extracted SUPPORTED_LANGUAGES to item-types.ts, shared across ItemDrawer and CreateItemModal. Component decomposition: split ItemDrawer (615 lines) into ItemDrawerViewBody, ItemDrawerEditBody, and item-drawer-types.ts; created shared TagInput component in components/shared/. Extracted mapItemCard/mapItemDetail helpers + ITEM_CARD_SELECT/ITEM_DETAIL_SELECT in items.ts; extracted computeDominantTypeColor in collections.ts. Custom hooks: created src/hooks/ with useCopyToClipboard (used in ItemDrawer + ItemCard), useFetchItem (fetch + cancellation + error handling), and useEditableItem (edit state machine with derived-state reset).
 
 - **Collection Create - 2026-06-18** — "New Collection" button in the header opens a shadcn `Dialog` modal collecting name (required) and description (optional). Mirrors the item creation pattern: `createCollectionSchema` (Zod) in `src/lib/schemas/collections.ts`, `createCollection` DB function in `src/lib/db/collections.ts` (returns default empty-collection meta), `createCollection` server action in `src/actions/collections.ts` with auth check, `useCreateCollection` TanStack Query mutation in `src/lib/mutations/collections.ts`. `CreateCollectionModal` calls `router.refresh()` on success so the sidebar and dashboard's Recent Collections section update without a manual reload. `CollectionCard` updated to render a neutral border/icon (instead of a tinted dominant-type color) when `itemCount === 0`, since a freshly created collection has no items to derive a dominant type from. 13 new unit tests across `src/lib/schemas/collections.test.ts` (6), `src/lib/db/collections.test.ts` (2), and `src/actions/collections.test.ts` (5).
+
+- **Add Item to Collections - 2026-06-18** — Multi-select collections input added to both the "New Item" create modal and the item drawer's edit mode, reusing the existing `ItemCollection` join table. Created `CollectionSelect` (shared, in `src/components/shared/`) — a searchable popover with a checkbox list and removable badges for selected collections, backed by `useCollectionsList` (`src/lib/queries/collections.ts`, TanStack Query) hitting new `GET /api/collections`. Installed shadcn `Popover`, `Command` (cmdk), `Checkbox`, `Input-Group`; added `useDebouncedValue` hook for the search field. `createItem`/`updateItem` (`src/lib/db/items.ts`) and their server actions (`src/actions/items.ts`) now accept an optional `collectionIds: string[]` and sync `ItemCollection` rows. Fixed a cross-library focus-trap conflict: the item drawer (vaul `Drawer`, built on Radix Dialog) was force-closing the Base UI `Popover` on click because Radix's focus trap didn't recognize the popover's body-portaled content as part of the dialog. Fixed by giving `PopoverContent` a `container` prop and portaling it into the Drawer's own DOM node instead of `document.body`. Also gave `ItemWithMeta` a `typeSlug` field and updated `ItemGridWithDrawer` (dashboard Pinned/Recent sections) to render `ImageThumbnailCard`/`FileListRow` for image/file items instead of the generic `ItemCard`, matching the dedicated type pages; added a `compact` mode to `ImageThumbnailCard` (fixed height instead of `aspect-video`) so it doesn't force tall rows in the mixed dashboard grid.
