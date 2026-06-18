@@ -24,7 +24,7 @@ export function useEditableItem(item: ItemDetail | null) {
     setEditState(null);
   }
 
-  function onFieldChange(key: keyof Omit<EditState, "tags">, value: string) {
+  function onFieldChange(key: keyof Omit<EditState, "tags" | "collectionIds">, value: string) {
     setEditState((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
@@ -32,5 +32,9 @@ export function useEditableItem(item: ItemDetail | null) {
     setEditState((prev) => (prev ? { ...prev, tags } : prev));
   }
 
-  return { editing, editState, startEdit, cancelEdit, onFieldChange, onTagsChange };
+  function onCollectionIdsChange(collectionIds: string[]) {
+    setEditState((prev) => (prev ? { ...prev, collectionIds } : prev));
+  }
+
+  return { editing, editState, startEdit, cancelEdit, onFieldChange, onTagsChange, onCollectionIdsChange };
 }

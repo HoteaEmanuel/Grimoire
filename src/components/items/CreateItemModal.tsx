@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TagInput } from "@/components/shared/TagInput";
+import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { useCreateItem } from "@/lib/mutations/items";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
@@ -47,10 +48,11 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
     formState: { errors, isSubmitting },
   } = useForm<CreateItemInput>({
     resolver: zodResolver(createItemSchema),
-    defaultValues: { typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "", tags: [] },
+    defaultValues: { typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "", tags: [], collectionIds: [] },
   });
 
   const typeSlug = useWatch({ control, name: "typeSlug", defaultValue: "snippets" });
+  const collectionIds = useWatch({ control, name: "collectionIds", defaultValue: [] });
   const contentValue = useWatch({ control, name: "content", defaultValue: "" });
   const languageValue = useWatch({ control, name: "language", defaultValue: "" });
   const fileUrl = useWatch({ control, name: "fileUrl" });
@@ -65,7 +67,7 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
 
   useEffect(() => {
     if (!open) return;
-    reset({ typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "", tags: [], fileUrl: null, fileName: null, fileSize: null });
+    reset({ typeSlug: defaultTypeSlug, title: "", description: "", content: "", url: "", language: "", tags: [], collectionIds: [], fileUrl: null, fileName: null, fileSize: null });
   }, [open, defaultTypeSlug, reset]);
 
   function handleOpenChange(next: boolean) {
@@ -245,6 +247,17 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
               Tags
             </label>
             <TagInput tags={tags} onChange={setTags} />
+          </div>
+
+          {/* Collections */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Collections
+            </label>
+            <CollectionSelect
+              selectedIds={collectionIds ?? []}
+              onChange={(ids) => setValue("collectionIds", ids)}
+            />
           </div>
 
           <DialogFooter className="gap-2 pt-1">

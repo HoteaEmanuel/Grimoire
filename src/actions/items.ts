@@ -46,6 +46,7 @@ export async function createItem(formData: z.input<typeof createItemSchema>): Pr
     fileUrl: parsed.data.fileUrl ?? null,
     fileName: parsed.data.fileName ?? null,
     fileSize: parsed.data.fileSize ?? null,
+    collectionIds: parsed.data.collectionIds,
   });
 
   if (!created) {
@@ -67,6 +68,7 @@ const updateItemSchema = z.object({
     .optional(),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)).default([]),
+  collectionIds: z.array(z.string()).default([]),
 });
 
 export type UpdateItemInput = z.input<typeof updateItemSchema>;
@@ -97,6 +99,7 @@ export async function updateItem(
     url: parsed.data.url ?? null,
     language: parsed.data.language ?? null,
     tags: parsed.data.tags,
+    collectionIds: parsed.data.collectionIds,
   };
 
   const updated = await dbUpdateItem(session.user.id, itemId, data);

@@ -12,6 +12,7 @@ interface ImageThumbnailCardProps {
   isPinned?: boolean;
   createdAt: Date;
   onClick?: (id: string) => void;
+  compact?: boolean;
 }
 
 export function ImageThumbnailCard({
@@ -21,13 +22,16 @@ export function ImageThumbnailCard({
   isPinned,
   createdAt,
   onClick,
+  compact = false,
 }: ImageThumbnailCardProps) {
   return (
     <Card
       className="group overflow-hidden cursor-pointer border-white/8 bg-[oklch(0.17_0.022_55)] p-0 transition-all duration-300 hover:border-white/15 hover:shadow-lg"
       onClick={() => onClick?.(id)}
     >
-      <div className="relative aspect-video overflow-hidden bg-[oklch(0.13_0.016_50)]">
+      <div
+        className={`relative overflow-hidden bg-[oklch(0.13_0.016_50)] ${compact ? "h-28" : "aspect-video"}`}
+      >
         {fileUrl ? (
           <Image
             src={fileUrl}

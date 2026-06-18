@@ -1,3 +1,5 @@
 - [Project Architecture](project-architecture.md) — confirmed conventions, auth deferral rationale, what NOT to re-flag in future audits
 - [Audit Findings June 2026](audit-findings-june2026.md) — recurring anti-patterns, hardcoded email locations, missing indexes, N+1 patterns found in first full audit
 - [Auth Security Patterns](project-auth-patterns.md) — Confirmed correct patterns + all issues found in June 2026 auth-focused audit
+- [Project Audit Patterns (Full)](project-audit-patterns.md) — Full codebase audit baseline: confirmed-correct patterns and real issues, June 2026
+- [Component Structure Audit 2026-06-17](audit-component-structure-2026-06-17.md) — Component decomposition audit: key findings in ItemDrawer, CreateItemModal, items.ts DB layer

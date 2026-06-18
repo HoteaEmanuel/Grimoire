@@ -172,6 +172,24 @@ export async function createCollection(
   }
 }
 
+export type CollectionOption = {
+  id: string;
+  name: string;
+};
+
+export async function getUserCollections(userId: string): Promise<CollectionOption[]> {
+  try {
+    return await prisma.collection.findMany({
+      where: { userId },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    });
+  } catch (err) {
+    console.error("[getUserCollections]", err);
+    return [];
+  }
+}
+
 export async function getCollectionStats(
   userId: string,
 ): Promise<{ totalCollections: number; favoriteCollections: number }> {

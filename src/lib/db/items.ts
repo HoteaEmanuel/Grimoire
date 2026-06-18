@@ -5,6 +5,7 @@ export type ItemWithMeta = {
   title: string;
   description: string | null;
   typeName: string;
+  typeSlug: string;
   typeColor: string;
   typeIconName: string;
   tags: string[];
@@ -34,7 +35,7 @@ type RawItemCard = {
   fileUrl: string | null;
   fileName: string | null;
   fileSize: number | null;
-  itemType: { name: string; color: string; icon: string };
+  itemType: { name: string; slug: string; color: string; icon: string };
   tags: Array<{ tag: { name: string } }>;
 };
 
@@ -44,6 +45,7 @@ function mapItemCard(item: RawItemCard): ItemWithMeta {
     title: item.title,
     description: item.description,
     typeName: item.itemType.name,
+    typeSlug: item.itemType.slug,
     typeColor: item.itemType.color,
     typeIconName: item.itemType.icon,
     tags: item.tags.map((t) => t.tag.name),
@@ -145,7 +147,7 @@ const ITEM_CARD_SELECT = {
   fileUrl: true,
   fileName: true,
   fileSize: true,
-  itemType: { select: { name: true, color: true, icon: true } },
+  itemType: { select: { name: true, slug: true, color: true, icon: true } },
   tags: { select: { tag: { select: { name: true } } } },
 } as const;
 
@@ -249,6 +251,7 @@ export type UpdateItemData = {
   url: string | null;
   language: string | null;
   tags: string[];
+  collectionIds: string[];
 };
 
 export async function updateItem(
@@ -259,6 +262,12 @@ export async function updateItem(
   try {
     const updated = await prisma.$transaction(async (tx) => {
       await tx.tagsOnItems.deleteMany({ where: { itemId, item: { userId } } });
+      await tx.itemCollection.deleteMany({ where: { itemId, item: { userId } } });
+
+      const ownedCollections = await tx.collection.findMany({
+        where: { id: { in: data.collectionIds }, userId },
+        select: { id: true },
+      });
 
       return tx.item.update({
         where: { id: itemId, userId },
@@ -277,6 +286,9 @@ export async function updateItem(
                 },
               },
             })),
+          },
+          collections: {
+            create: ownedCollections.map((c) => ({ collection: { connect: { id: c.id } } })),
           },
         },
         select: ITEM_DETAIL_SELECT,
@@ -301,6 +313,7 @@ export type CreateItemData = {
   fileUrl?: string | null;
   fileName?: string | null;
   fileSize?: number | null;
+  collectionIds?: string[];
 };
 
 const SLUG_TO_CONTENT_KIND: Record<string, "TEXT" | "URL" | "FILE"> = {
@@ -324,6 +337,13 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
 
     const contentKind = SLUG_TO_CONTENT_KIND[data.typeSlug] ?? "TEXT";
 
+    const ownedCollections = data.collectionIds?.length
+      ? await prisma.collection.findMany({
+          where: { id: { in: data.collectionIds }, userId },
+          select: { id: true },
+        })
+      : [];
+
     const created = await prisma.item.create({
       data: {
         userId,
@@ -346,6 +366,9 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
               },
             },
           })),
+        },
+        collections: {
+          create: ownedCollections.map((c) => ({ collection: { connect: { id: c.id } } })),
         },
       },
       select: ITEM_DETAIL_SELECT,

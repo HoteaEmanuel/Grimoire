@@ -94,11 +94,15 @@ describe("updateItem", () => {
 
   const txMock = {
     tagsOnItems: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    itemCollection: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    collection: { findMany: vi.fn().mockResolvedValue([]) },
     item: { update: vi.fn().mockResolvedValue(updatedPrismaItem) },
   };
 
   beforeEach(() => {
     txMock.tagsOnItems.deleteMany.mockResolvedValue({ count: 1 });
+    txMock.itemCollection.deleteMany.mockResolvedValue({ count: 1 });
+    txMock.collection.findMany.mockResolvedValue([]);
     txMock.item.update.mockResolvedValue(updatedPrismaItem);
     vi.mocked(prisma.$transaction).mockImplementation(
       async (fn: unknown) => (typeof fn === "function" ? fn(txMock) : Promise.resolve()),
@@ -112,12 +116,18 @@ describe("updateItem", () => {
     url: null,
     language: "python",
     tags: ["python"],
+    collectionIds: [],
   };
 
   it("deletes existing tags and updates item in a transaction", async () => {
     const result = await updateItem("user-1", "item-1", data);
 
-    expect(txMock.tagsOnItems.deleteMany).toHaveBeenCalledWith({ where: { itemId: "item-1" } });
+    expect(txMock.tagsOnItems.deleteMany).toHaveBeenCalledWith({
+      where: { itemId: "item-1", item: { userId: "user-1" } },
+    });
+    expect(txMock.itemCollection.deleteMany).toHaveBeenCalledWith({
+      where: { itemId: "item-1", item: { userId: "user-1" } },
+    });
     expect(txMock.item.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "item-1", userId: "user-1" } }),
     );

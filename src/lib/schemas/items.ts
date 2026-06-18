@@ -22,6 +22,7 @@ export const createItemSchema = z
     fileName: z.string().optional().nullable(),
     fileSize: z.number().int().positive().optional().nullable(),
     tags: z.array(z.string().trim().min(1)).default([]),
+    collectionIds: z.array(z.string()).default([]),
   })
   .superRefine((data, ctx) => {
     if (data.typeSlug === "links") {

@@ -47,9 +47,10 @@ export function ItemDrawer() {
   const { selectedId, open, closeDrawer } = useItemDrawerStore();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [drawerContentEl, setDrawerContentEl] = useState<HTMLDivElement | null>(null);
 
   const { item, setItem, loading } = useFetchItem(selectedId, open, closeDrawer);
-  const { editing, editState, startEdit, cancelEdit, onFieldChange, onTagsChange } = useEditableItem(item);
+  const { editing, editState, startEdit, cancelEdit, onFieldChange, onTagsChange, onCollectionIdsChange } = useEditableItem(item);
   const { copied, copy } = useCopyToClipboard();
 
   const updateMutation = useUpdateItem((updated) => {
@@ -79,6 +80,7 @@ export function ItemDrawer() {
         url: editState.url || null,
         language: editState.language || null,
         tags: editState.tags,
+        collectionIds: editState.collectionIds,
       },
     });
   }
@@ -86,7 +88,15 @@ export function ItemDrawer() {
   return (
     <>
       <Drawer open={open} onOpenChange={(v) => !v && closeDrawer()} direction="right">
-        <DrawerContent className="w-full sm:max-w-lg! fixed right-0 inset-y-0 rounded-l-xl border-l border-border bg-card flex flex-col overflow-hidden outline-none">
+        <DrawerContent
+          ref={setDrawerContentEl}
+          className="w-full sm:max-w-lg! fixed right-0 inset-y-0 rounded-l-xl border-l border-border bg-card flex flex-col overflow-hidden outline-none"
+          onPointerDownOutside={(e) => {
+            if ((e.target as HTMLElement)?.closest('[data-slot="popover-content"]')) {
+              e.preventDefault();
+            }
+          }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between gap-4 px-6 py-5 border-b border-border shrink-0">
             {loading || !item ? (
@@ -130,6 +140,8 @@ export function ItemDrawer() {
                 editState={editState}
                 onFieldChange={onFieldChange}
                 onTagsChange={onTagsChange}
+                onCollectionIdsChange={onCollectionIdsChange}
+                collectionSelectContainer={drawerContentEl}
               />
             ) : (
               <ItemDrawerViewBody item={item} />

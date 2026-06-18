@@ -5,6 +5,7 @@ export type EditState = {
   url: string;
   language: string;
   tags: string[];
+  collectionIds: string[];
 };
 
 export function toEditState(item: {
@@ -14,6 +15,7 @@ export function toEditState(item: {
   url: string | null;
   language: string | null;
   tags: string[];
+  collections: { id: string; name: string }[];
 }): EditState {
   return {
     title: item.title,
@@ -22,5 +24,6 @@ export function toEditState(item: {
     url: item.url ?? "",
     language: item.language ?? "",
     tags: item.tags,
+    collectionIds: item.collections.map((c) => c.id),
   };
 }

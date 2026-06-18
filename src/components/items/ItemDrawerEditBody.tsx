@@ -1,11 +1,11 @@
 "use client";
 
-import { FolderOpen } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TagInput } from "@/components/shared/TagInput";
+import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { SUPPORTED_LANGUAGES } from "@/lib/item-types";
 import type { ItemDetail } from "@/lib/db/items";
 import type { EditState } from "./item-drawer-types";
@@ -17,8 +17,10 @@ const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
 interface ItemDrawerEditBodyProps {
   item: ItemDetail;
   editState: EditState;
-  onFieldChange: (key: keyof Omit<EditState, "tags">, value: string) => void;
+  onFieldChange: (key: keyof Omit<EditState, "tags" | "collectionIds">, value: string) => void;
   onTagsChange: (tags: string[]) => void;
+  onCollectionIdsChange: (collectionIds: string[]) => void;
+  collectionSelectContainer?: HTMLElement | null;
 }
 
 export function ItemDrawerEditBody({
@@ -26,6 +28,8 @@ export function ItemDrawerEditBody({
   editState,
   onFieldChange,
   onTagsChange,
+  onCollectionIdsChange,
+  collectionSelectContainer,
 }: ItemDrawerEditBodyProps) {
   return (
     <div className="space-y-4">
@@ -98,17 +102,20 @@ export function ItemDrawerEditBody({
         <TagInput tags={editState.tags} onChange={onTagsChange} />
       </div>
 
+      <div className="space-y-1.5">
+        <label className="text-xs text-muted-foreground uppercase tracking-wider">Collections</label>
+        <CollectionSelect
+          selectedIds={editState.collectionIds}
+          onChange={onCollectionIdsChange}
+          container={collectionSelectContainer}
+        />
+      </div>
+
       <div className="space-y-2 pt-2 border-t border-border">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="uppercase tracking-wider w-24 shrink-0">Type</span>
           <span>{item.typeName}</span>
         </div>
-        {item.collections.length > 0 && (
-          <div className="flex items-start gap-3 text-xs text-muted-foreground">
-            <FolderOpen size={12} className="mt-0.5 shrink-0" />
-            <span>{item.collections.map((c) => c.name).join(", ")}</span>
-          </div>
-        )}
       </div>
     </div>
   );
