@@ -1,23 +1,20 @@
-# Current Feature: Settings Page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Create a new `/settings` page, protected (redirect unauthenticated users like `/profile` does)
-- Add a "Settings" link to the user icon dropdown at the bottom of the sidebar (`SidebarUserFooter`), alongside the existing "Profile" link
-- Move the "Change password" card (`ChangePasswordForm`) from `/profile` to `/settings`
-- Move the "Danger zone" / Delete Account card (`DeleteAccountDialog`) from `/profile` to `/settings`
+<!-- bullet points of what success looks like -->
 
 ## Notes
 
-- `/profile` keeps the user info card and usage stats; only Change Password + Danger Zone move out
-- `/settings` should follow the same protected-route pattern as `/profile` (`getSession()` + `redirect("/sign-in")` if no session)
-- Reuse existing components (`ChangePasswordForm`, `DeleteAccountDialog`) as-is — just relocate, don't rewrite
+<!-- additional context, constraints, or details from spec -->
 
 ## History
+
+- **Settings Page - 2026-06-18** — Created a new protected `/settings` route (`getSession()` + `redirect("/sign-in")`, same pattern as `/profile`), added to the `proxy.ts` matcher alongside `/profile`/`/items`/`/collections`. Added a "Settings" link to the sidebar user dropdown (`SidebarUserFooter`) next to the existing "Profile" link. Moved the "Change password" card (`ChangePasswordForm`) and "Danger zone" Delete Account card (`DeleteAccountDialog`) off `/profile` onto `/settings`, reusing both components unchanged; `/profile` now only shows the user info card and usage stats.
 
 - **Pagination - 2026-06-18** — Added server-side pagination to `/items/[type]` and `/collections/[id]`. Installed shadcn `Pagination`; created `PaginationControls` (`src/components/shared/`) — numbered page links with ellipsis collapsing, prev/next greyed out (`pointer-events-none opacity-40`) at the bounds, built on top of it. Added `src/lib/constants.ts` with `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE = 21` and `DASHBOARD_COLLECTIONS_LIMIT = 6`/`DASHBOARD_RECENT_ITEMS_LIMIT = 10` (replacing inline magic numbers in `getRecentCollections`/`getRecentItems`). `getItemCardsByType`, `getItemCardsByCollection` (`src/lib/db/items.ts`), and `getAllCollections` → renamed `getCollections` (`src/lib/db/collections.ts`) now take a `page` argument and return `{ items/collections, totalCount }`, using Prisma `skip`/`take` alongside a parallel `count` query so a page only ever fetches `ITEMS_PER_PAGE`/`COLLECTIONS_PER_PAGE` rows. Pages read `page` from `searchParams`, clamp to `>= 1`, and compute `totalPages` from `totalCount`. Also fixed a `CommandDialog` bug (`src/components/ui/command.tsx`) where `DialogHeader`/`DialogTitle` were rendered outside `DialogContent`. 4 DB test files updated for the new paginated signatures.
 
