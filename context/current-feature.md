@@ -1,16 +1,25 @@
-# Current Feature
+# Current Feature: Collection Card Actions (Edit, Delete, Favorite)
 
 ## Status
 
-
+Not Started
 
 ## Goals
 
-<!-- placeholder -->
+- On `/collections/[id]` detail page, add Edit, Delete, and Favorite buttons/icons.
+  - Favorite: icon/button only — no functionality wired up yet.
+  - Edit: opens a modal to edit the collection's metadata (name, description).
+  - Delete: requires a confirmation step before deleting. Deleting a collection must NOT delete its items — items just lose the association with that collection (remove `ItemCollection` join rows only).
+- On collection cards (used on `/collections` list and the dashboard's Recent Collections section), replace/wire the existing 3-dots icon to open a dropdown menu with Edit, Delete, and Favorite actions.
+  - Clicking anywhere else on the card navigates to that collection's detail page (existing behavior) — the dropdown trigger must stop click propagation so it doesn't also trigger navigation.
+  - Same Edit modal, delete confirmation, and (non-functional) Favorite icon are reused/triggered from the dropdown.
 
 ## Notes
 
-<!-- placeholder -->
+- Reuse `CollectionCard` component across `/collections` and dashboard — only one place to add the dropdown.
+- Mirrors existing patterns: item edit modal pattern, `AlertDialog` for delete confirmation (see Item delete), `createCollectionSchema`/`createCollection` action pattern for the new `updateCollection` action.
+- Need a `deleteCollection` server action that deletes the `Collection` row (cascades `ItemCollection` via Prisma `onDelete: Cascade`) but leaves `Item` rows untouched — schema already supports this since only the join table cascades.
+- Favorite is UI-only for now (icon present, no mutation, no `isFavorite` toggle logic).
 
 
 
