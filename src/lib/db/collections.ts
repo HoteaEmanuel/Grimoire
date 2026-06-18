@@ -94,6 +94,99 @@ export async function getRecentCollections(userId: string): Promise<CollectionWi
   }
 }
 
+export async function getAllCollections(userId: string): Promise<CollectionWithMeta[]> {
+  try {
+    const collections = await prisma.collection.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isFavorite: true,
+        createdAt: true,
+        _count: { select: { items: true } },
+        items: {
+          take: 50,
+          select: {
+            item: {
+              select: {
+                itemType: { select: { id: true, color: true, icon: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return collections.map((col) => {
+      const typeCounts = new Map<string, { count: number; color: string; iconName: string }>();
+      for (const ic of col.items) {
+        const t = ic.item.itemType;
+        const existing = typeCounts.get(t.id);
+        if (existing) existing.count++;
+        else typeCounts.set(t.id, { count: 1, color: t.color, iconName: t.icon });
+      }
+
+      const typeIcons = Array.from(typeCounts.values()).map((v) => ({
+        iconName: v.iconName,
+        color: v.color,
+      }));
+
+      return {
+        id: col.id,
+        name: col.name,
+        description: col.description,
+        isFavorite: col.isFavorite,
+        itemCount: col._count.items,
+        dominantTypeColor: computeDominantTypeColor(col.items),
+        typeIcons,
+        createdAt: col.createdAt,
+      };
+    });
+  } catch (err) {
+    console.error("[getAllCollections]", err);
+    return [];
+  }
+}
+
+export type CollectionDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  isFavorite: boolean;
+  itemCount: number;
+};
+
+export async function getCollectionDetail(
+  userId: string,
+  collectionId: string,
+): Promise<CollectionDetail | null> {
+  try {
+    const collection = await prisma.collection.findFirst({
+      where: { id: collectionId, userId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isFavorite: true,
+        _count: { select: { items: true } },
+      },
+    });
+    if (!collection) return null;
+    return {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      isFavorite: collection.isFavorite,
+      itemCount: collection._count.items,
+    };
+  } catch (err) {
+    console.error("[getCollectionDetail]", err);
+    return null;
+  }
+}
+
 export type SidebarCollection = {
   id: string;
   name: string;

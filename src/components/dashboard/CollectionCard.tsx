@@ -24,7 +24,7 @@ export function CollectionCard({
   const accentColor = hasItems ? dominantTypeColor : null
 
   return (
-    <Link href={`/dashboard/collections/${id}`}>
+    <Link href={`/collections/${id}`}>
       <div
         className="tome-card group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.01] h-full"
         style={

@@ -16,7 +16,7 @@ const prismaMock = {
   user: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
   item: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), deleteMany: vi.fn(), count: vi.fn(), groupBy: vi.fn() },
   itemType: { findUnique: vi.fn(), findMany: vi.fn() },
-  collection: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn() },
+  collection: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn(), count: vi.fn() },
   tag: { findMany: vi.fn(), upsert: vi.fn(), delete: vi.fn() },
   verificationToken: { create: vi.fn(), findUnique: vi.fn(), delete: vi.fn() },
   $transaction: vi.fn((fn: unknown) => (typeof fn === "function" ? fn({}) : Promise.resolve())),

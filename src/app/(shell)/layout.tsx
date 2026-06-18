@@ -8,7 +8,7 @@ import { getSession } from "@/lib/session";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSidebarCollections } from "@/lib/db/collections";
 
-export default async function DashboardLayout({
+export default async function ShellLayout({
   children,
 }: {
   children: React.ReactNode;

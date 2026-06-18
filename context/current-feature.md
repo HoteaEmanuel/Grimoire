@@ -1,16 +1,27 @@
-# Current Feature
+# Current Feature: Collections Pages & Navigation
 
 ## Status
 
-
+In Progress
 
 ## Goals
 
-<!-- placeholder -->
+- Create `/collections` page (if not already existing) listing all of the user's collections
+- Create `/collections/[id]` page (if not already existing) showing the items belonging to that collection
+- Reuse existing card components (`CollectionCard` for the list page, `ItemCard`/`ImageThumbnailCard`/`FileListRow` etc. for the item view) rather than building new ones
+- Link the sidebar's "View all collections →" link to `/collections`
+- Link every collection card (wherever shown — sidebar, dashboard, collections list) to its specific `/collections/[id]` page
+- Move existing `/dashboard/items/[type]` routes to `/items/[type]` (drop the `dashboard` URL prefix)
+- Keep all of these routes (`/dashboard`, `/items/[type]`, `/collections`, `/collections/[id]`) rendering inside the existing dashboard shell (sidebar + header), via a Next.js route group rather than a URL segment
 
 ## Notes
 
-<!-- placeholder -->
+- URL paths: `/items/[type]` and `/collections` / `/collections/[id]` are now top-level, sibling to `/dashboard` — not nested under the `/dashboard` URL segment
+- Use a Next.js route group (e.g. `src/app/(shell)/`) so `dashboard/layout.tsx` (sidebar/header/ItemDrawer) wraps `dashboard`, `items`, and `collections` without adding a URL segment
+- Update `src/proxy.ts` matcher to protect `/items/*` and `/collections/*` in addition to `/dashboard/*`
+- Update every existing link/redirect that points at `/dashboard/items/...` or referenced a future `/dashboard/collections/...` (sidebar nav items, item type links, collection cards, header pathname logic, etc.) to the new paths
+- Follow the established pattern from the old `/dashboard/items/[type]`: server component fetches data via Prisma in `src/lib/db/collections.ts`, with `loading.tsx` / `not-found.tsx` as needed
+- Item rendering inside a collection is split into sections: a generic grid for all non-image/non-file items first, then an "Images" section using the bigger `ImageGridWithDrawer` gallery view (same as `/items/images`), then a "Files" section using `FileListWithDrawer`
 
 
 
