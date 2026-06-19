@@ -42,11 +42,11 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Menu className="size-4" />
         </Button>
 
-        <span className="text-sm font-bold tracking-wide text-primary mr-1">
+        <span className="hidden sm:inline text-sm font-bold tracking-wide text-primary mr-1">
           GRIMOIRE
         </span>
 
-        <div className="flex-1 max-w-lg relative">
+        <div className="hidden sm:block flex-1 max-w-lg relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search your grimoire... (⌘K)"
@@ -60,6 +60,15 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => useCommandPaletteStore.getState().setOpen(true)}
+            className="sm:hidden size-8 text-muted-foreground hover:text-foreground"
+            aria-label="Search"
+          >
+            <Search className="size-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => router.push("/favorites")}
             className="size-8 text-muted-foreground hover:text-foreground"
             aria-label="Favorites"
@@ -69,19 +78,21 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Button
             size="sm"
             variant="outline"
-            className="gap-1.5 h-8 text-xs border-border/60 text-muted-foreground hover:text-foreground"
+            className="gap-1.5 h-8 px-2 sm:px-3 text-xs border-border/60 text-muted-foreground hover:text-foreground"
             onClick={() => setCreateCollectionOpen(true)}
+            aria-label="New Collection"
           >
             <BookMarked className="size-3.5" />
-            New Collection
+            <span className="hidden sm:inline">New Collection</span>
           </Button>
           <Button
             size="sm"
-            className="gap-1.5 h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+            className="gap-1.5 h-8 px-2 sm:px-3 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => setCreateOpen(true)}
+            aria-label="New Item"
           >
             <Plus className="size-3.5" />
-            New Item
+            <span className="hidden sm:inline">New Item</span>
           </Button>
         </div>
       </header>
