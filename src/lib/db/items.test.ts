@@ -9,6 +9,7 @@ import {
   updateItem,
   createItem,
   toggleItemFavorite,
+  toggleItemPin,
 } from "./items";
 
 const mockPrismaItem = {
@@ -534,6 +535,39 @@ describe("toggleItemFavorite", () => {
 
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith("[toggleItemFavorite]", expect.any(Error));
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("toggleItemPin", () => {
+  it("returns true when a matching item is updated", async () => {
+    vi.mocked(prisma.item.updateMany).mockResolvedValue({ count: 1 });
+
+    const result = await toggleItemPin("user-1", "item-1", true);
+
+    expect(prisma.item.updateMany).toHaveBeenCalledWith({
+      where: { id: "item-1", userId: "user-1" },
+      data: { isPinned: true },
+    });
+    expect(result).toBe(true);
+  });
+
+  it("returns false when no matching item is found", async () => {
+    vi.mocked(prisma.item.updateMany).mockResolvedValue({ count: 0 });
+
+    const result = await toggleItemPin("user-1", "missing", false);
+
+    expect(result).toBe(false);
+  });
+
+  it("returns false and logs error on DB failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(prisma.item.updateMany).mockRejectedValue(new Error("DB error"));
+
+    const result = await toggleItemPin("user-1", "item-1", true);
+
+    expect(result).toBe(false);
+    expect(consoleSpy).toHaveBeenCalledWith("[toggleItemPin]", expect.any(Error));
     consoleSpy.mockRestore();
   });
 });

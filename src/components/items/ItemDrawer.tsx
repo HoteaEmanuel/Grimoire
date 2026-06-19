@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
 import { useUpdateItem, useDeleteItem } from "@/lib/mutations/items";
-import { toggleItemFavorite } from "@/actions/items";
+import { toggleItemFavorite, toggleItemPin } from "@/actions/items";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { useFetchItem } from "@/hooks/useFetchItem";
 import { useEditableItem } from "@/hooks/useEditableItem";
@@ -58,6 +58,12 @@ export function ItemDrawer() {
     item ? `item:${item.id}` : undefined,
     item?.isFavorite ?? false,
     (next) => toggleItemFavorite(item!.id, next),
+  );
+  const { value: isPinned, toggle: togglePin } = useOptimisticToggle(
+    item ? `item-pin:${item.id}` : undefined,
+    item?.isPinned ?? false,
+    (next) => toggleItemPin(item!.id, next),
+    (next) => (next ? "Item pinned" : "Item unpinned"),
   );
 
   const updateMutation = useUpdateItem((updated) => {
@@ -192,9 +198,10 @@ export function ItemDrawer() {
                 size="icon-sm"
                 title="Pin"
                 disabled={!item}
-                style={item?.isPinned ? { color: "#94a3b8" } : undefined}
+                onClick={togglePin}
+                style={isPinned ? { color: "#94a3b8" } : undefined}
               >
-                <Pin size={15} fill={item?.isPinned ? "#94a3b8" : "none"} />
+                <Pin size={15} fill={isPinned ? "#94a3b8" : "none"} />
               </Button>
               <Button
                 variant="ghost"

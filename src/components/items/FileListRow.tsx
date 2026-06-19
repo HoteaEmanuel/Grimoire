@@ -3,6 +3,7 @@
 import { FileIcon, defaultStyles } from "react-file-icon";
 import { Download, Pin, Star } from "lucide-react";
 import { formatDate, formatFileSize } from "@/lib/utils";
+import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 
 function getExt(fileName: string | null): string {
   if (!fileName) return "";
@@ -43,6 +44,8 @@ export function FileListRow({
   const ext = getExt(fileName);
   const extLabel = ext.toUpperCase() || null;
   const iconStyle = defaultStyles[ext as keyof typeof defaultStyles] ?? {};
+  const pinOverride = useToggleOverridesStore((s) => s.overrides[`item-pin:${id}`]);
+  const pinned = pinOverride ?? isPinned ?? false;
 
   return (
     <div
@@ -61,7 +64,7 @@ export function FileListRow({
             {title}
           </span>
           {isFavorite && <Star size={11} className="shrink-0 fill-amber-500 text-amber-500" />}
-          {isPinned && <Pin size={11} className="shrink-0 text-muted-foreground/50" />}
+          {pinned && <Pin size={11} className="shrink-0 text-muted-foreground/50" />}
           {extLabel && (
             <span className="shrink-0 text-[10px] font-mono font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white/6 text-muted-foreground/60">
               {extLabel}

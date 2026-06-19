@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import type { SidebarItemType } from "@/lib/db/items";
 import type { SidebarCollection } from "@/lib/db/collections";
 import { ICON_MAP } from "@/lib/item-types";
+import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { SidebarCollectionItem } from "./SidebarCollectionItem";
 import { SidebarSection } from "./SidebarSection";
@@ -43,10 +44,14 @@ export function SidebarContent({
   user,
 }: SidebarContentProps) {
   const pathname = usePathname();
+  const overrides = useToggleOverridesStore((s) => s.overrides);
 
-  const favoriteCollections = collections.filter((c) => c.isFavorite);
+  const isCollectionFavorite = (col: SidebarCollection) =>
+    overrides[`collection:${col.id}`] ?? col.isFavorite;
+
+  const favoriteCollections = collections.filter(isCollectionFavorite);
   const recentCollections = collections
-    .filter((c) => !c.isFavorite)
+    .filter((c) => !isCollectionFavorite(c))
     .slice(0, 4);
 
   return (

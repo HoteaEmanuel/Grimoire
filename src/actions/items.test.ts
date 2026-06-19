@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
-import { updateItem, deleteItem, createItem, toggleItemFavorite } from "./items";
+import { updateItem, deleteItem, createItem, toggleItemFavorite, toggleItemPin } from "./items";
 import { prisma } from "@/lib/prisma";
 import { deleteR2Object } from "@/lib/r2";
 
@@ -8,11 +8,13 @@ vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
   createItem: vi.fn(),
   toggleItemFavorite: vi.fn(),
+  toggleItemPin: vi.fn(),
 }));
 
 import { updateItem as dbUpdateItem } from "@/lib/db/items";
 import { createItem as dbCreateItem } from "@/lib/db/items";
 import { toggleItemFavorite as dbToggleItemFavorite } from "@/lib/db/items";
+import { toggleItemPin as dbToggleItemPin } from "@/lib/db/items";
 
 const mockSession = { user: { id: "user-1" } };
 
@@ -414,6 +416,48 @@ describe("toggleItemFavorite server action", () => {
       const result = await toggleItemFavorite("item-1", true);
 
       expect(result).toEqual({ success: false, error: "Failed to update favorite" });
+    });
+  });
+});
+
+describe("toggleItemPin server action", () => {
+  describe("auth checks", () => {
+    it("returns error when unauthenticated", async () => {
+      vi.mocked(auth).mockResolvedValue(null);
+
+      const result = await toggleItemPin("item-1", true);
+
+      expect(result).toEqual({ success: false, error: "Unauthorized" });
+      expect(dbToggleItemPin).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("successful toggle", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("passes userId, itemId, and isPinned to db function", async () => {
+      vi.mocked(dbToggleItemPin).mockResolvedValue(true);
+
+      const result = await toggleItemPin("item-1", true);
+
+      expect(dbToggleItemPin).toHaveBeenCalledWith("user-1", "item-1", true);
+      expect(result).toEqual({ success: true });
+    });
+  });
+
+  describe("db failure", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("returns error when db update returns false", async () => {
+      vi.mocked(dbToggleItemPin).mockResolvedValue(false);
+
+      const result = await toggleItemPin("item-1", true);
+
+      expect(result).toEqual({ success: false, error: "Failed to update pin" });
     });
   });
 });

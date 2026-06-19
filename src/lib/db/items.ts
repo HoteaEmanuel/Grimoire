@@ -194,7 +194,7 @@ export async function getRecentItems(
   try {
     const items = await prisma.item.findMany({
       where: { userId },
-      orderBy: { lastUsedAt: "desc" },
+      orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }],
       take: limit,
       select: ITEM_CARD_SELECT,
     });
@@ -314,6 +314,23 @@ export async function toggleItemFavorite(
     return updated.count > 0;
   } catch (err) {
     console.error("[toggleItemFavorite]", err);
+    return false;
+  }
+}
+
+export async function toggleItemPin(
+  userId: string,
+  itemId: string,
+  isPinned: boolean,
+): Promise<boolean> {
+  try {
+    const updated = await prisma.item.updateMany({
+      where: { id: itemId, userId },
+      data: { isPinned },
+    });
+    return updated.count > 0;
+  } catch (err) {
+    console.error("[toggleItemPin]", err);
     return false;
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFavoriteOverridesStore } from "@/lib/stores/favorite-overrides-store";
+import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 import type { ItemWithMeta } from "@/lib/db/items";
 import type { CollectionWithMeta } from "@/lib/db/collections";
 
@@ -11,7 +11,7 @@ interface FavoritesCountProps {
 }
 
 export function FavoritesCount({ items, collections }: FavoritesCountProps) {
-  const overrides = useFavoriteOverridesStore((s) => s.overrides);
+  const overrides = useToggleOverridesStore((s) => s.overrides);
 
   const count = useMemo(() => {
     const itemCount = items.filter((item) => overrides[`item:${item.id}`] ?? item.isFavorite).length;

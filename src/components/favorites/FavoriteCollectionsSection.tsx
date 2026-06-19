@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FavoriteCollectionRow } from "./FavoriteCollectionRow";
-import { useFavoriteOverridesStore } from "@/lib/stores/favorite-overrides-store";
+import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 import type { CollectionWithMeta } from "@/lib/db/collections";
 
 type SortKey = "date" | "name";
@@ -24,7 +24,7 @@ function sortCollections(collections: CollectionWithMeta[], sortKey: SortKey): C
 
 export function FavoriteCollectionsSection({ collections }: { collections: CollectionWithMeta[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("date");
-  const overrides = useFavoriteOverridesStore((s) => s.overrides);
+  const overrides = useToggleOverridesStore((s) => s.overrides);
   const visibleCollections = useMemo(
     () => collections.filter((col) => overrides[`collection:${col.id}`] ?? col.isFavorite),
     [collections, overrides],

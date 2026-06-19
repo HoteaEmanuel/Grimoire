@@ -4,6 +4,7 @@ import { Pin, Star, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
+import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 import { toggleItemFavorite } from "@/actions/items";
 
 interface ItemCardProps {
@@ -42,6 +43,10 @@ export function ItemCard({
     isFavorite ?? false,
     (next) => toggleItemFavorite(id!, next),
   );
+  const pinOverride = useToggleOverridesStore((s) =>
+    id ? s.overrides[`item-pin:${id}`] : undefined,
+  );
+  const pinned = pinOverride ?? isPinned ?? false;
 
   function handleCopy(e: React.MouseEvent) {
     e.stopPropagation();
@@ -107,7 +112,7 @@ export function ItemCard({
                 />
               </button>
             )}
-            {isPinned && <Pin size={12} style={{ color: typeColor }} />}
+            {pinned && <Pin size={12} style={{ color: typeColor }} />}
           </div>
         </div>
 

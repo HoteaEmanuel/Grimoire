@@ -6,6 +6,7 @@ import {
   updateItem as dbUpdateItem,
   createItem as dbCreateItem,
   toggleItemFavorite as dbToggleItemFavorite,
+  toggleItemPin as dbToggleItemPin,
 } from "@/lib/db/items";
 import { prisma } from "@/lib/prisma";
 import { deleteR2Object, keyFromPublicUrl } from "@/lib/r2";
@@ -128,6 +129,22 @@ export async function toggleItemFavorite(
   const updated = await dbToggleItemFavorite(session.user.id, itemId, isFavorite);
   if (!updated) {
     return { success: false, error: "Failed to update favorite" };
+  }
+
+  return { success: true };
+}
+
+type TogglePinResult = { success: true } | { success: false; error: string };
+
+export async function toggleItemPin(itemId: string, isPinned: boolean): Promise<TogglePinResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const updated = await dbToggleItemPin(session.user.id, itemId, isPinned);
+  if (!updated) {
+    return { success: false, error: "Failed to update pin" };
   }
 
   return { success: true };

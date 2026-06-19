@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Pin, Star, ImageOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
+import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 
 interface ImageThumbnailCardProps {
   id: string;
@@ -26,6 +27,9 @@ export function ImageThumbnailCard({
   onClick,
   compact = false,
 }: ImageThumbnailCardProps) {
+  const pinOverride = useToggleOverridesStore((s) => s.overrides[`item-pin:${id}`]);
+  const pinned = pinOverride ?? isPinned ?? false;
+
   return (
     <Card
       className="group overflow-hidden cursor-pointer border-white/8 bg-[oklch(0.17_0.022_55)] p-0 transition-all duration-300 hover:border-white/15 hover:shadow-lg"
@@ -48,14 +52,14 @@ export function ImageThumbnailCard({
           </div>
         )}
 
-        {(isPinned || isFavorite) && (
+        {(pinned || isFavorite) && (
           <div className="absolute top-2 right-2 flex items-center gap-1">
             {isFavorite && (
               <div className="bg-black/50 rounded p-1">
                 <Star size={10} className="fill-amber-500 text-amber-500" />
               </div>
             )}
-            {isPinned && (
+            {pinned && (
               <div className="bg-black/50 rounded p-1">
                 <Pin size={10} className="text-[#ec4899]" />
               </div>

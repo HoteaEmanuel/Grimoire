@@ -5,6 +5,7 @@ import { AnimatedWand } from "@/components/dashboard/AnimatedWand";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { ItemGridWithDrawer } from "@/components/items/ItemGridWithDrawer";
+import { PinnedItemsSection } from "@/components/dashboard/PinnedItemsSection";
 import { getRecentCollections, getCollectionStats } from "@/lib/db/collections";
 import { getPinnedItems, getRecentItems, getItemStats } from "@/lib/db/items";
 import { getSession } from "@/lib/session";
@@ -102,14 +103,7 @@ export default async function DashboardPage() {
       </section>
 
       {/* Pinned Items */}
-      {pinnedItems.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Pinned Items
-          </h2>
-          <ItemGridWithDrawer items={pinnedItems} />
-        </section>
-      )}
+      <PinnedItemsSection items={pinnedItems} />
 
       {/* Recent Items */}
       <section>
