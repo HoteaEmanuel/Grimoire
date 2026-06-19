@@ -5,6 +5,7 @@ import {
   createCollection as dbCreateCollection,
   updateCollection as dbUpdateCollection,
   deleteCollection as dbDeleteCollection,
+  toggleCollectionFavorite as dbToggleCollectionFavorite,
 } from "@/lib/db/collections";
 import type { CollectionWithMeta, CollectionDetail } from "@/lib/db/collections";
 import { createCollectionSchema } from "@/lib/schemas/collections";
@@ -70,6 +71,25 @@ export async function updateCollection(
   }
 
   return { success: true, data: updated };
+}
+
+type ToggleFavoriteResult = { success: true } | { success: false; error: string };
+
+export async function toggleCollectionFavorite(
+  collectionId: string,
+  isFavorite: boolean,
+): Promise<ToggleFavoriteResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const updated = await dbToggleCollectionFavorite(session.user.id, collectionId, isFavorite);
+  if (!updated) {
+    return { success: false, error: "Failed to update favorite" };
+  }
+
+  return { success: true };
 }
 
 type DeleteCollectionResult = { success: true } | { success: false; error: string };

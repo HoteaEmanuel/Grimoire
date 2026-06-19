@@ -353,6 +353,23 @@ export async function updateCollection(
   }
 }
 
+export async function toggleCollectionFavorite(
+  userId: string,
+  collectionId: string,
+  isFavorite: boolean,
+): Promise<boolean> {
+  try {
+    const updated = await prisma.collection.updateMany({
+      where: { id: collectionId, userId },
+      data: { isFavorite },
+    });
+    return updated.count > 0;
+  } catch (err) {
+    console.error("[toggleCollectionFavorite]", err);
+    return false;
+  }
+}
+
 export async function deleteCollection(userId: string, collectionId: string): Promise<boolean> {
   try {
     const deleted = await prisma.collection.deleteMany({

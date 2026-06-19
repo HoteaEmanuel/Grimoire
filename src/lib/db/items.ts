@@ -301,6 +301,23 @@ export async function getItemCardsByCollection(
   }
 }
 
+export async function toggleItemFavorite(
+  userId: string,
+  itemId: string,
+  isFavorite: boolean,
+): Promise<boolean> {
+  try {
+    const updated = await prisma.item.updateMany({
+      where: { id: itemId, userId },
+      data: { isFavorite },
+    });
+    return updated.count > 0;
+  } catch (err) {
+    console.error("[toggleItemFavorite]", err);
+    return false;
+  }
+}
+
 export type UpdateItemData = {
   title: string;
   description: string | null;

@@ -1,17 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
-import { createCollection, updateCollection, deleteCollection } from "./collections";
+import { createCollection, updateCollection, deleteCollection, toggleCollectionFavorite } from "./collections";
 
 vi.mock("@/lib/db/collections", () => ({
   createCollection: vi.fn(),
   updateCollection: vi.fn(),
   deleteCollection: vi.fn(),
+  toggleCollectionFavorite: vi.fn(),
 }));
 
 import {
   createCollection as dbCreateCollection,
   updateCollection as dbUpdateCollection,
   deleteCollection as dbDeleteCollection,
+  toggleCollectionFavorite as dbToggleCollectionFavorite,
 } from "@/lib/db/collections";
 
 const mockSession = { user: { id: "user-1" } };
@@ -138,6 +140,36 @@ describe("updateCollection", () => {
     const result = await updateCollection("col-1", { name: "Updated Name" });
 
     expect(result).toEqual({ success: false, error: "Failed to update collection" });
+  });
+});
+
+describe("toggleCollectionFavorite", () => {
+  it("returns Unauthorized when no session", async () => {
+    vi.mocked(auth).mockResolvedValue(null);
+
+    const result = await toggleCollectionFavorite("col-1", true);
+
+    expect(result).toEqual({ success: false, error: "Unauthorized" });
+    expect(dbToggleCollectionFavorite).not.toHaveBeenCalled();
+  });
+
+  it("passes userId, collectionId, and isFavorite to db function", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(dbToggleCollectionFavorite).mockResolvedValue(true);
+
+    const result = await toggleCollectionFavorite("col-1", true);
+
+    expect(dbToggleCollectionFavorite).toHaveBeenCalledWith("user-1", "col-1", true);
+    expect(result).toEqual({ success: true });
+  });
+
+  it("returns an error when the DB function fails", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(dbToggleCollectionFavorite).mockResolvedValue(false);
+
+    const result = await toggleCollectionFavorite("col-1", true);
+
+    expect(result).toEqual({ success: false, error: "Failed to update favorite" });
   });
 });
 

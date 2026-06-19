@@ -14,9 +14,10 @@ import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectio
 
 interface CollectionCardMenuProps {
   collection: { id: string; name: string; description: string | null; isFavorite: boolean };
+  onToggleFavorite: () => void;
 }
 
-export function CollectionCardMenu({ collection }: CollectionCardMenuProps) {
+export function CollectionCardMenu({ collection, onToggleFavorite }: CollectionCardMenuProps) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -40,9 +41,9 @@ export function CollectionCardMenu({ collection }: CollectionCardMenuProps) {
             <Pencil className="size-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <Star className="size-4" />
-            Favorite
+          <DropdownMenuItem onClick={onToggleFavorite}>
+            <Star className={collection.isFavorite ? "size-4 fill-amber-500 text-amber-500" : "size-4"} />
+            {collection.isFavorite ? "Unfavorite" : "Favorite"}
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="size-4" />

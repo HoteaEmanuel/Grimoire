@@ -1,16 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
-import { updateItem, deleteItem, createItem } from "./items";
+import { updateItem, deleteItem, createItem, toggleItemFavorite } from "./items";
 import { prisma } from "@/lib/prisma";
 import { deleteR2Object } from "@/lib/r2";
 
 vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
   createItem: vi.fn(),
+  toggleItemFavorite: vi.fn(),
 }));
 
 import { updateItem as dbUpdateItem } from "@/lib/db/items";
 import { createItem as dbCreateItem } from "@/lib/db/items";
+import { toggleItemFavorite as dbToggleItemFavorite } from "@/lib/db/items";
 
 const mockSession = { user: { id: "user-1" } };
 
@@ -370,6 +372,48 @@ describe("createItem server action", () => {
       const result = await createItem({ typeSlug: "snippets", title: "Title" });
 
       expect(result).toEqual({ success: false, error: "Failed to create item" });
+    });
+  });
+});
+
+describe("toggleItemFavorite server action", () => {
+  describe("auth checks", () => {
+    it("returns error when unauthenticated", async () => {
+      vi.mocked(auth).mockResolvedValue(null);
+
+      const result = await toggleItemFavorite("item-1", true);
+
+      expect(result).toEqual({ success: false, error: "Unauthorized" });
+      expect(dbToggleItemFavorite).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("successful toggle", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("passes userId, itemId, and isFavorite to db function", async () => {
+      vi.mocked(dbToggleItemFavorite).mockResolvedValue(true);
+
+      const result = await toggleItemFavorite("item-1", true);
+
+      expect(dbToggleItemFavorite).toHaveBeenCalledWith("user-1", "item-1", true);
+      expect(result).toEqual({ success: true });
+    });
+  });
+
+  describe("db failure", () => {
+    beforeEach(() => {
+      vi.mocked(auth).mockResolvedValue(mockSession as never);
+    });
+
+    it("returns error when db update returns false", async () => {
+      vi.mocked(dbToggleItemFavorite).mockResolvedValue(false);
+
+      const result = await toggleItemFavorite("item-1", true);
+
+      expect(result).toEqual({ success: false, error: "Failed to update favorite" });
     });
   });
 });

@@ -8,6 +8,7 @@ import {
   getSearchIndexCollections,
   updateCollection,
   deleteCollection,
+  toggleCollectionFavorite,
 } from "./collections";
 
 beforeEach(() => {
@@ -286,6 +287,36 @@ describe("updateCollection", () => {
     const result = await updateCollection("user-1", "col-1", { name: "Name", description: null });
 
     expect(result).toBeNull();
+  });
+});
+
+describe("toggleCollectionFavorite", () => {
+  it("returns true when a matching collection is updated", async () => {
+    vi.mocked(prisma.collection.updateMany).mockResolvedValue({ count: 1 });
+
+    const result = await toggleCollectionFavorite("user-1", "col-1", true);
+
+    expect(prisma.collection.updateMany).toHaveBeenCalledWith({
+      where: { id: "col-1", userId: "user-1" },
+      data: { isFavorite: true },
+    });
+    expect(result).toBe(true);
+  });
+
+  it("returns false when no matching collection is found", async () => {
+    vi.mocked(prisma.collection.updateMany).mockResolvedValue({ count: 0 });
+
+    const result = await toggleCollectionFavorite("user-1", "missing", false);
+
+    expect(result).toBe(false);
+  });
+
+  it("returns false when prisma throws", async () => {
+    vi.mocked(prisma.collection.updateMany).mockRejectedValue(new Error("db error"));
+
+    const result = await toggleCollectionFavorite("user-1", "col-1", true);
+
+    expect(result).toBe(false);
   });
 });
 

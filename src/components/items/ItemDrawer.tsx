@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
 import { useUpdateItem, useDeleteItem } from "@/lib/mutations/items";
+import { toggleItemFavorite } from "@/actions/items";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { useFetchItem } from "@/hooks/useFetchItem";
 import { useEditableItem } from "@/hooks/useEditableItem";
+import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
 import { Star, Pin, Copy, Pencil, Trash2, X, Check } from "lucide-react";
 import { Drawer, DrawerContent, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +54,11 @@ export function ItemDrawer() {
   const { item, setItem, loading } = useFetchItem(selectedId, open, closeDrawer);
   const { editing, editState, startEdit, cancelEdit, onFieldChange, onTagsChange, onCollectionIdsChange } = useEditableItem(item);
   const { copied, copy } = useCopyToClipboard();
+  const { value: isFavorite, toggle: toggleFavorite } = useOptimisticToggle(
+    item ? `item:${item.id}` : undefined,
+    item?.isFavorite ?? false,
+    (next) => toggleItemFavorite(item!.id, next),
+  );
 
   const updateMutation = useUpdateItem((updated) => {
     setItem(updated ?? null);
@@ -175,9 +182,10 @@ export function ItemDrawer() {
                 size="icon-sm"
                 title="Favorite"
                 disabled={!item}
-                style={item?.isFavorite ? { color: "#f59e0b" } : undefined}
+                onClick={toggleFavorite}
+                style={isFavorite ? { color: "#f59e0b" } : undefined}
               >
-                <Star size={15} fill={item?.isFavorite ? "#f59e0b" : "none"} />
+                <Star size={15} fill={isFavorite ? "#f59e0b" : "none"} />
               </Button>
               <Button
                 variant="ghost"

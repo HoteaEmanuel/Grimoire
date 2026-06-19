@@ -5,6 +5,8 @@ import { Layers, Star } from "lucide-react"
 import type { CollectionTypeIcon } from "@/lib/db/collections"
 import { ICON_MAP } from "@/lib/item-types"
 import { CollectionCardMenu } from "@/components/collections/CollectionCardMenu"
+import { useOptimisticToggle } from "@/hooks/useOptimisticToggle"
+import { toggleCollectionFavorite } from "@/actions/collections"
 
 interface CollectionCardProps {
   id: string
@@ -28,6 +30,11 @@ export function CollectionCard({
   const router = useRouter()
   const hasItems = itemCount > 0
   const accentColor = hasItems ? dominantTypeColor : null
+  const { value: favorite, toggle: toggleFavorite } = useOptimisticToggle(
+    `collection:${id}`,
+    isFavorite,
+    (next) => toggleCollectionFavorite(id, next),
+  )
 
   return (
     <div
@@ -55,7 +62,10 @@ export function CollectionCard({
         />
       )}
 
-      <CollectionCardMenu collection={{ id, name, description: description ?? null, isFavorite }} />
+      <CollectionCardMenu
+        collection={{ id, name, description: description ?? null, isFavorite: favorite }}
+        onToggleFavorite={toggleFavorite}
+      />
 
       <div className="p-4">
         <div
@@ -75,7 +85,7 @@ export function CollectionCard({
           <p className="text-lg font-semibold leading-tight truncate group-hover:text-primary transition-colors duration-200">
             {name}
           </p>
-          {isFavorite && (
+          {favorite && (
             <Star size={12} className="shrink-0 fill-amber-500 text-amber-500" />
           )}
         </div>

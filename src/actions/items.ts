@@ -2,7 +2,11 @@
 
 import { z } from "zod";
 import { auth } from "@/auth";
-import { updateItem as dbUpdateItem, createItem as dbCreateItem } from "@/lib/db/items";
+import {
+  updateItem as dbUpdateItem,
+  createItem as dbCreateItem,
+  toggleItemFavorite as dbToggleItemFavorite,
+} from "@/lib/db/items";
 import { prisma } from "@/lib/prisma";
 import { deleteR2Object, keyFromPublicUrl } from "@/lib/r2";
 import type { ItemDetail } from "@/lib/db/items";
@@ -108,6 +112,25 @@ export async function updateItem(
   }
 
   return { success: true, data: updated };
+}
+
+type ToggleFavoriteResult = { success: true } | { success: false; error: string };
+
+export async function toggleItemFavorite(
+  itemId: string,
+  isFavorite: boolean,
+): Promise<ToggleFavoriteResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const updated = await dbToggleItemFavorite(session.user.id, itemId, isFavorite);
+  if (!updated) {
+    return { success: false, error: "Failed to update favorite" };
+  }
+
+  return { success: true };
 }
 
 type DeleteItemResult = { success: true } | { success: false; error: string };

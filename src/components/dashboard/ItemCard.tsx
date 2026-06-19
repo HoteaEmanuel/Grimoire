@@ -3,6 +3,8 @@
 import { Pin, Star, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
+import { toggleItemFavorite } from "@/actions/items";
 
 interface ItemCardProps {
   id?: string;
@@ -35,10 +37,20 @@ export function ItemCard({
 }: ItemCardProps) {
   const { copied, copy } = useCopyToClipboard();
   const copyValue = content ?? url ?? title;
+  const { value: favorite, toggle: toggleFavorite } = useOptimisticToggle(
+    id ? `item:${id}` : undefined,
+    isFavorite ?? false,
+    (next) => toggleItemFavorite(id!, next),
+  );
 
   function handleCopy(e: React.MouseEvent) {
     e.stopPropagation();
     copy(copyValue);
+  }
+
+  function handleToggleFavorite(e: React.MouseEvent) {
+    e.stopPropagation();
+    toggleFavorite();
   }
 
   return (
@@ -83,7 +95,18 @@ export function ItemCard({
             )}
           </div>
           <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-            {isFavorite && <Star size={12} className="fill-amber-500 text-amber-500" />}
+            {id && (
+              <button
+                onClick={handleToggleFavorite}
+                aria-label={favorite ? "Unfavorite" : "Favorite"}
+                className={`transition-opacity ${favorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              >
+                <Star
+                  size={12}
+                  className={favorite ? "fill-amber-500 text-amber-500" : "text-muted-foreground"}
+                />
+              </button>
+            )}
             {isPinned && <Pin size={12} style={{ color: typeColor }} />}
           </div>
         </div>

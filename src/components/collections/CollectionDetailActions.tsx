@@ -6,6 +6,8 @@ import { Pencil, Trash2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EditCollectionModal } from "@/components/collections/EditCollectionModal";
 import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
+import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
+import { toggleCollectionFavorite } from "@/actions/collections";
 
 interface CollectionDetailActionsProps {
   collection: { id: string; name: string; description: string | null; isFavorite: boolean };
@@ -15,6 +17,11 @@ export function CollectionDetailActions({ collection }: CollectionDetailActionsP
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { value: isFavorite, toggle: toggleFavorite } = useOptimisticToggle(
+    `collection:${collection.id}`,
+    collection.isFavorite,
+    (next) => toggleCollectionFavorite(collection.id, next),
+  );
 
   return (
     <>
@@ -23,9 +30,9 @@ export function CollectionDetailActions({ collection }: CollectionDetailActionsP
           <Pencil className="size-4" />
           Edit
         </Button>
-        <Button variant="outline" size="sm" disabled>
-          <Star className="size-4" />
-          Favorite
+        <Button variant="outline" size="sm" onClick={toggleFavorite}>
+          <Star className={isFavorite ? "size-4 fill-amber-500 text-amber-500" : "size-4"} />
+          {isFavorite ? "Unfavorite" : "Favorite"}
         </Button>
         <Button variant="outline" className="text-red-500" size="sm" onClick={() => setDeleteOpen(true)}>
           <Trash2 className="size-4" />
