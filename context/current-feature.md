@@ -1,54 +1,16 @@
-# Current Feature: Stripe Integration Phase 2 — Integration & UI
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Stripe Dashboard setup: products/prices (Monthly $8/mo, Yearly $72/yr), webhook endpoint, Customer Portal config
-- `/api/webhooks/stripe` route handling subscription lifecycle events (`checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`)
-- `createCheckoutSession`/`createBillingPortalSession` server actions in `src/actions/billing.ts`
-- `BillingCard` settings UI for upgrading and managing a subscription
-- Pro-aware UI: gated type buttons in `CreateItemModal`, accurate PRO badges in the sidebar
+<!-- Populated by /feature load -->
 
 ## Notes
 
-Reference: `docs/stripe-integration-plan.md`, §4.1–4.3, implementation order steps 3, 5–6, 8.
-
-Prerequisite (done in Phase 1): `src/lib/stripe.ts`, Stripe env vars, `session.user.isPro` wired through NextAuth, `src/lib/limits.ts` enforcement.
-
-**Webhook handler** (`src/app/api/webhooks/stripe/route.ts`):
-- Verify `stripe-signature` via `stripe.webhooks.constructEvent`; 400 on missing/invalid
-- `checkout.session.completed` → read `client_reference_id` (user ID), set `isPro: true` + store `stripeCustomerId`/`stripeSubscriptionId`
-- `customer.subscription.deleted` → `updateMany` by `stripeSubscriptionId`, `isPro: false`
-- `customer.subscription.updated` → `updateMany` by `stripeSubscriptionId`, `isPro` based on `status === "active" || "trialing"`
-- `invoice.payment_failed` → log only, no immediate revoke (let subsequent `subscription.updated` handle it)
-- Catch errors, `console.error("[stripe-webhook] ...")`, return 500 (Stripe retries); otherwise 200 `{ received: true }`
-- Use `req.text()` for raw body (no body-parser config needed)
-
-**Billing actions** (`src/actions/billing.ts`):
-- `createCheckoutSession(plan: "monthly" | "yearly")` — auth check, create Stripe Customer if needed (persist immediately), `stripe.checkout.sessions.create({ mode: "subscription", ... client_reference_id: session.user.id })`, return `{ success, data: { url } }`
-- `createBillingPortalSession()` — requires existing `stripeCustomerId`, error otherwise
-
-**BillingCard** (`src/components/settings/BillingCard.tsx`):
-- Added to `/settings` between Editor preferences and Change password
-- Free: plan comparison + Upgrade → `createCheckoutSession` → redirect to `data.url`
-- Pro: "Manage billing" → `createBillingPortalSession` → redirect
-- Extend `getProfileData` to include `isPro`/`stripeCustomerId` if needed
-
-**Pro-aware UI**:
-- `CreateItemModal` — hide/disable File/Image buttons for non-Pro (read `isPro` from `useSession()`), with Pro badge + tooltip
-- `SidebarContent` — `isPro={(slug === "files" || "images") && !session.user.isPro}` so badge becomes upgrade nudge for free users only
-
-**Testing**:
-- Unit tests: checkout/portal action auth checks + missing-`stripeCustomerId` branch
-- Webhook signature rejection test (400)
-- Stripe CLI required for full verification (`stripe listen`, `stripe trigger ...`) — `npm run test` alone won't catch webhook wiring mistakes
-- Manual browser tests for checkout/cancel flows, Pro gate on `/api/upload`
-- `npm run build` passes
-
-`invoice.payment_failed` deliberately doesn't revoke `isPro` immediately — grace-period behavior is a follow-up, not part of this phase.
+<!-- Populated by /feature load -->
 
 ## History
 
@@ -145,3 +107,5 @@ Prerequisite (done in Phase 1): `src/lib/stripe.ts`, Stripe env vars, `session.u
 - **Homepage - 2026-06-19** — Built the real marketing homepage at `src/app/page.tsx`, ported from the static `prototypes/homepage/` mockup into Next.js + Tailwind v4 + shadcn/ui. 8 sections under `src/components/home/` (`Nav`, `Hero`, `HeroVisual`, `Features`, `AiSection`, `Pricing`, `Cta`, `Footer`), server components by default with `'use client'` only for `Nav`, `HeroVisual`, `Pricing`, and a shared `FadeInSection` IntersectionObserver wrapper. Reused existing design tokens, `tome-card`, shadcn `Button`, `SYSTEM_ITEM_TYPES`/`ICON_MAP`, and `lucide-react` icons (no CDN script). Confirmed Cinzel registered as a `next/font/google` variable in the root layout. Public unauthenticated route, no app-shell layout.
 
 - **Stripe Integration Phase 1: Core Infrastructure - 2026-06-19** — Laid the foundation for Stripe subscriptions, ahead of any checkout/webhook flow. Installed `stripe` SDK; added `src/lib/stripe.ts` singleton (mirrors `src/lib/prisma.ts` pattern, throws if `STRIPE_SECRET_KEY` is unset, API version `2026-05-27.dahlia`). Added `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PUBLISHABLE_KEY`/`STRIPE_PRICE_ID_MONTHLY`/`STRIPE_PRICE_ID_YEARLY` consistently across `.env`, `.env.example`, `.env.production`. Exposed `isPro` on the NextAuth session: `src/types/next-auth.d.ts` augments `Session.user`/`JWT`, and `src/auth.ts`'s `jwt` callback re-queries `isPro` from Prisma on every call (one extra indexed `findUnique`) so a future Stripe webhook's DB update reaches the JWT-strategy session without a client-side `update()`. Added `src/lib/limits.ts` (`FREE_ITEM_LIMIT = 50`, `FREE_COLLECTION_LIMIT = 3`) and wired enforcement into `createItem`/`createCollection` server actions plus a Pro gate on file/image item creation (action + `POST /api/upload`, defense in depth). 9 new unit tests across `items.test.ts` (5) and `collections.test.ts` (3 + fixed 2 existing file/image tests to set `isPro: true`) covering under-limit/at-limit/Pro-bypass and file-type gating. No real Stripe secrets were found leaked in git history — `.env` is gitignored and untracked, so the spec's "rotate keys" step didn't apply. `npm run test` (200/200) and `npm run build` both pass. Phase 2 (webhooks, checkout/billing actions, billing UI) is separately spec'd.
+
+- **Stripe Integration Phase 2: Integration & UI - 2026-06-19** — Built the checkout/webhook/billing-UI flow on top of Phase 1's infrastructure. `POST /api/webhooks/stripe` verifies `stripe-signature` via `stripe.webhooks.constructEvent` (400 on missing/invalid), handles `checkout.session.completed` (sets `isPro: true` + stores `stripeCustomerId`/`stripeSubscriptionId` via `client_reference_id`), `customer.subscription.updated` (`isPro` from `status === "active" || "trialing"`), `customer.subscription.deleted` (`isPro: false`), and logs `invoice.payment_failed` without revoking access immediately. `src/actions/billing.ts` adds `createCheckoutSession(plan)` (creates+persists a Stripe Customer on first call, then `stripe.checkout.sessions.create`) and `createBillingPortalSession()` (errors if no `stripeCustomerId` yet); both follow the existing `{ success, data|error }` action pattern. `useCreateCheckoutSession`/`useCreateBillingPortalSession` (`src/lib/mutations/billing.ts`, TanStack Query) redirect via `window.location.href` on success. `BillingCard` (`src/components/settings/BillingCard.tsx`) added to `/settings` between Editor preferences and Change password — free users see a monthly/yearly toggle, a usage section with `UsageBar`s for items/collections against `FREE_ITEM_LIMIT`/`FREE_COLLECTION_LIMIT` (`src/lib/limits.ts`), a feature list, and an Upgrade button; Pro users see a PRO badge and "Manage billing". `getProfileData` (`src/lib/db/profile.ts`) extended to return `isPro`/`hasStripeCustomer`/already-existing `totalItems`/`totalCollections`. Pro-aware UI: `isPro` is threaded server-side from `(shell)/layout.tsx`'s session through `DashboardShell` → `Desktop`/`MobileSheetController` → `Sidebar`/`Header` → `SidebarContent`/`CreateItemModal` (no client `useSession()`, since no `SessionProvider` is mounted) — `SidebarContent`'s File/Image PRO badges now only show for non-Pro users (`isPro={(slug === "files" || "images") && !userIsPro}`, an upgrade nudge rather than a permanent label), and `CreateItemModal`'s File/Image type-picker buttons are disabled with a PRO badge + tooltip for free users. `.env.production` had blank Stripe keys (Next.js loads `.env.production` over `.env` for production builds) which broke `npm run build` at module-eval time for the new webhook/billing routes; mirrored the same Stripe **test-mode** keys from `.env` into `.env.production` (gitignored, untracked) so the build check passes — real live keys still need to be swapped in before an actual production deploy. 8 new unit tests: `src/actions/billing.test.ts` (5: auth checks, customer creation vs. reuse, missing-customer portal error) and `src/app/api/webhooks/stripe/route.test.ts` (3: missing signature, invalid signature, unhandled event type). `npm run test` (209/209) and `npm run build` both pass. Full webhook wiring (event-to-field mapping) still needs manual verification with the Stripe CLI (`stripe listen`/`stripe trigger`) before this is considered fully verified, per the spec's own caveat.
