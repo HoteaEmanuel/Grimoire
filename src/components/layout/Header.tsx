@@ -21,9 +21,10 @@ function defaultTypeFromPath(pathname: string): CreateItemInput["typeSlug"] {
 
 interface HeaderProps {
   onMenuClick: () => void;
+  userIsPro: boolean;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, userIsPro }: HeaderProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
   const pathname = usePathname();
@@ -97,7 +98,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </header>
 
-      <CreateItemModal open={createOpen} onOpenChange={setCreateOpen} defaultTypeSlug={defaultTypeSlug} />
+      <CreateItemModal open={createOpen} onOpenChange={setCreateOpen} defaultTypeSlug={defaultTypeSlug} userIsPro={userIsPro} />
       <CreateCollectionModal open={createCollectionOpen} onOpenChange={setCreateCollectionOpen} />
     </>
   );

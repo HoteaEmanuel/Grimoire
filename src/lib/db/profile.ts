@@ -13,6 +13,8 @@ export type ProfileData = {
   itemsByType: ItemTypeBreakdown[];
   hasPassword: boolean;
   createdAt: Date;
+  isPro: boolean;
+  hasStripeCustomer: boolean;
 };
 
 export async function getProfileData(userId: string): Promise<ProfileData | null> {
@@ -20,7 +22,7 @@ export async function getProfileData(userId: string): Promise<ProfileData | null
     const [user, totalItems, totalCollections, grouped] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
-        select: { password: true, createdAt: true },
+        select: { password: true, createdAt: true, isPro: true, stripeCustomerId: true },
       }),
       prisma.item.count({ where: { userId } }),
       prisma.collection.count({ where: { userId } }),
@@ -52,6 +54,8 @@ export async function getProfileData(userId: string): Promise<ProfileData | null
       itemsByType,
       hasPassword: !!user.password,
       createdAt: user.createdAt,
+      isPro: user.isPro,
+      hasStripeCustomer: !!user.stripeCustomerId,
     };
   } catch (err) {
     console.error("[getProfileData]", err);

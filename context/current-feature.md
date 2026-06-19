@@ -1,16 +1,54 @@
-# Current Feature
+# Current Feature: Stripe Integration Phase 2 — Integration & UI
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Populated by /feature load -->
+- Stripe Dashboard setup: products/prices (Monthly $8/mo, Yearly $72/yr), webhook endpoint, Customer Portal config
+- `/api/webhooks/stripe` route handling subscription lifecycle events (`checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`)
+- `createCheckoutSession`/`createBillingPortalSession` server actions in `src/actions/billing.ts`
+- `BillingCard` settings UI for upgrading and managing a subscription
+- Pro-aware UI: gated type buttons in `CreateItemModal`, accurate PRO badges in the sidebar
 
 ## Notes
 
-<!-- Populated by /feature load -->
+Reference: `docs/stripe-integration-plan.md`, §4.1–4.3, implementation order steps 3, 5–6, 8.
+
+Prerequisite (done in Phase 1): `src/lib/stripe.ts`, Stripe env vars, `session.user.isPro` wired through NextAuth, `src/lib/limits.ts` enforcement.
+
+**Webhook handler** (`src/app/api/webhooks/stripe/route.ts`):
+- Verify `stripe-signature` via `stripe.webhooks.constructEvent`; 400 on missing/invalid
+- `checkout.session.completed` → read `client_reference_id` (user ID), set `isPro: true` + store `stripeCustomerId`/`stripeSubscriptionId`
+- `customer.subscription.deleted` → `updateMany` by `stripeSubscriptionId`, `isPro: false`
+- `customer.subscription.updated` → `updateMany` by `stripeSubscriptionId`, `isPro` based on `status === "active" || "trialing"`
+- `invoice.payment_failed` → log only, no immediate revoke (let subsequent `subscription.updated` handle it)
+- Catch errors, `console.error("[stripe-webhook] ...")`, return 500 (Stripe retries); otherwise 200 `{ received: true }`
+- Use `req.text()` for raw body (no body-parser config needed)
+
+**Billing actions** (`src/actions/billing.ts`):
+- `createCheckoutSession(plan: "monthly" | "yearly")` — auth check, create Stripe Customer if needed (persist immediately), `stripe.checkout.sessions.create({ mode: "subscription", ... client_reference_id: session.user.id })`, return `{ success, data: { url } }`
+- `createBillingPortalSession()` — requires existing `stripeCustomerId`, error otherwise
+
+**BillingCard** (`src/components/settings/BillingCard.tsx`):
+- Added to `/settings` between Editor preferences and Change password
+- Free: plan comparison + Upgrade → `createCheckoutSession` → redirect to `data.url`
+- Pro: "Manage billing" → `createBillingPortalSession` → redirect
+- Extend `getProfileData` to include `isPro`/`stripeCustomerId` if needed
+
+**Pro-aware UI**:
+- `CreateItemModal` — hide/disable File/Image buttons for non-Pro (read `isPro` from `useSession()`), with Pro badge + tooltip
+- `SidebarContent` — `isPro={(slug === "files" || "images") && !session.user.isPro}` so badge becomes upgrade nudge for free users only
+
+**Testing**:
+- Unit tests: checkout/portal action auth checks + missing-`stripeCustomerId` branch
+- Webhook signature rejection test (400)
+- Stripe CLI required for full verification (`stripe listen`, `stripe trigger ...`) — `npm run test` alone won't catch webhook wiring mistakes
+- Manual browser tests for checkout/cancel flows, Pro gate on `/api/upload`
+- `npm run build` passes
+
+`invoice.payment_failed` deliberately doesn't revoke `isPro` immediately — grace-period behavior is a follow-up, not part of this phase.
 
 ## History
 

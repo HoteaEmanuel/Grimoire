@@ -8,6 +8,7 @@ interface DashboardShellProps {
   sidebarItemTypes: SidebarItemType[];
   sidebarCollections: SidebarCollection[];
   user: { name: string; email: string; image?: string | null } | null;
+  userIsPro: boolean;
 }
 
 export function DashboardShell({
@@ -15,6 +16,7 @@ export function DashboardShell({
   sidebarItemTypes,
   sidebarCollections,
   user,
+  userIsPro,
 }: DashboardShellProps) {
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -22,6 +24,7 @@ export function DashboardShell({
         itemTypes={sidebarItemTypes}
         collections={sidebarCollections}
         user={user}
+        userIsPro={userIsPro}
       />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -29,6 +32,7 @@ export function DashboardShell({
           itemTypes={sidebarItemTypes}
           collections={sidebarCollections}
           user={user}
+          userIsPro={userIsPro}
         />
 
         <main className="flex-1 min-h-0 overflow-y-auto p-6">{children}</main>
