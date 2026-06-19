@@ -4,8 +4,9 @@ import { Star } from "lucide-react";
 import { getFavoriteItems } from "@/lib/db/items";
 import { getFavoriteCollections } from "@/lib/db/collections";
 import { getSession } from "@/lib/session";
-import { FavoriteItemRow } from "@/components/favorites/FavoriteItemRow";
-import { FavoriteCollectionRow } from "@/components/favorites/FavoriteCollectionRow";
+import { FavoriteItemsSection } from "@/components/favorites/FavoriteItemsSection";
+import { FavoriteCollectionsSection } from "@/components/favorites/FavoriteCollectionsSection";
+import { FavoritesCount } from "@/components/favorites/FavoritesCount";
 
 export default async function FavoritesPage() {
   const session = await getSession();
@@ -22,9 +23,7 @@ export default async function FavoritesPage() {
     <div className="p-6 font-mono max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Favorites</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {items.length + collections.length} favorited
-        </p>
+        <FavoritesCount items={items} collections={collections} />
       </div>
 
       {isEmpty ? (
@@ -39,31 +38,8 @@ export default async function FavoritesPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {items.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                Items ({items.length})
-              </h2>
-              <div className="border border-border/60 rounded-md divide-y divide-border/60">
-                {items.map((item) => (
-                  <FavoriteItemRow key={item.id} item={item} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {collections.length > 0 && (
-            <section>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                Collections ({collections.length})
-              </h2>
-              <div className="border border-border/60 rounded-md divide-y divide-border/60">
-                {collections.map((col) => (
-                  <FavoriteCollectionRow key={col.id} collection={col} />
-                ))}
-              </div>
-            </section>
-          )}
+          {items.length > 0 && <FavoriteItemsSection items={items} />}
+          {collections.length > 0 && <FavoriteCollectionsSection collections={collections} />}
         </div>
       )}
     </div>

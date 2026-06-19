@@ -1,16 +1,21 @@
-# Current Feature
+# Current Feature: Favorites Page Sorting
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- bullet points of what success looks like -->
+- Add client-side sorting controls to the `/favorites` page
+- Sort by Type, Name, and Date (added)
+- Sorting applies independently to the Items section and the Collections section
+- No page reload / server round-trip — sorting happens entirely in the browser
 
 ## Notes
 
-<!-- additional context, constraints, or details from spec -->
+- "Date" currently means date added/favorited — items are sorted by `updatedAt` desc and collections by `updatedAt` desc server-side (`getFavoriteItems`/`getFavoriteCollections`); client-side sort should default to this same order.
+- `FavoriteItemRow` already displays a type icon, title, type badge, and "date added"; `FavoriteCollectionRow` shows name + date — sort keys should reuse exactly what's already rendered (typeName, title/name, createdAt/updatedAt) rather than introducing new fields.
+- Page is currently a server component (`src/app/(shell)/favorites/page.tsx`) rendering data fetched server-side; introducing client-side sort state will require lifting the items/collections lists into a client component (or wrapping each section in one) since sort state needs `useState`.
 
 ## History
 
