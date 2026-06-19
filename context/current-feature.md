@@ -1,16 +1,25 @@
-# Current Feature
+# Current Feature: Favorites Page
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- bullet points of what success looks like -->
+- Add star icon button to TopBar linking to `/favorites`
+- Create `/favorites` route, protected (same auth pattern as `/profile`/`/settings`)
+- Fetch all of the user's favorited items and collections
+- Compact list view (VS Code/terminal style, not cards)
+- Each row shows: type icon, title, type badge, date added
+- Separate sections for items and collections, each with a count
+- Clicking an item opens `ItemDrawer`; clicking a collection navigates to `/collections/[id]`
+- Empty state when there are no favorites
+- Sort by most recently favorited (`updatedAt`)
 
 ## Notes
 
-<!-- additional context, constraints, or details from spec -->
+- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, no cards or heavy borders — clean lines only
+- Builds on existing `isFavorite` field already present on `Item`/`Collection` models
 
 ## History
 

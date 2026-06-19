@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Layers } from "lucide-react"
+import { Layers, Star } from "lucide-react"
 import type { CollectionTypeIcon } from "@/lib/db/collections"
 import { ICON_MAP } from "@/lib/item-types"
 import { CollectionCardMenu } from "@/components/collections/CollectionCardMenu"
@@ -71,9 +71,14 @@ export function CollectionCard({
         >
           <Layers size={14} style={{ color: accentColor ?? "var(--muted-foreground)" }} />
         </div>
-        <p className="text-lg font-semibold leading-tight group-hover:text-primary transition-colors duration-200">
-          {name}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-lg font-semibold leading-tight truncate group-hover:text-primary transition-colors duration-200">
+            {name}
+          </p>
+          {isFavorite && (
+            <Star size={12} className="shrink-0 fill-amber-500 text-amber-500" />
+          )}
+        </div>
         {description && (
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>
         )}

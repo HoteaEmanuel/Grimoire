@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Pin, ImageOff } from "lucide-react";
+import { Pin, Star, ImageOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ interface ImageThumbnailCardProps {
   title: string;
   fileUrl: string | null;
   isPinned?: boolean;
+  isFavorite?: boolean;
   createdAt: Date;
   onClick?: (id: string) => void;
   compact?: boolean;
@@ -20,6 +21,7 @@ export function ImageThumbnailCard({
   title,
   fileUrl,
   isPinned,
+  isFavorite,
   createdAt,
   onClick,
   compact = false,
@@ -46,9 +48,18 @@ export function ImageThumbnailCard({
           </div>
         )}
 
-        {isPinned && (
-          <div className="absolute top-2 right-2 bg-black/50 rounded p-1">
-            <Pin size={10} className="text-[#ec4899]" />
+        {(isPinned || isFavorite) && (
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            {isFavorite && (
+              <div className="bg-black/50 rounded p-1">
+                <Star size={10} className="fill-amber-500 text-amber-500" />
+              </div>
+            )}
+            {isPinned && (
+              <div className="bg-black/50 rounded p-1">
+                <Pin size={10} className="text-[#ec4899]" />
+              </div>
+            )}
           </div>
         )}
       </div>

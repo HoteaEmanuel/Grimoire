@@ -164,6 +164,62 @@ export async function getCollections(userId: string, page = 1): Promise<Paginate
   }
 }
 
+export async function getFavoriteCollections(userId: string): Promise<CollectionWithMeta[]> {
+  try {
+    const collections = await prisma.collection.findMany({
+      where: { userId, isFavorite: true },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isFavorite: true,
+        createdAt: true,
+        _count: { select: { items: true } },
+        items: {
+          take: 50,
+          select: {
+            item: {
+              select: {
+                itemType: { select: { id: true, color: true, icon: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return collections.map((col) => {
+      const typeCounts = new Map<string, { count: number; color: string; iconName: string }>();
+      for (const ic of col.items) {
+        const t = ic.item.itemType;
+        const existing = typeCounts.get(t.id);
+        if (existing) existing.count++;
+        else typeCounts.set(t.id, { count: 1, color: t.color, iconName: t.icon });
+      }
+
+      const typeIcons = Array.from(typeCounts.values()).map((v) => ({
+        iconName: v.iconName,
+        color: v.color,
+      }));
+
+      return {
+        id: col.id,
+        name: col.name,
+        description: col.description,
+        isFavorite: col.isFavorite,
+        itemCount: col._count.items,
+        dominantTypeColor: computeDominantTypeColor(col.items),
+        typeIcons,
+        createdAt: col.createdAt,
+      };
+    });
+  } catch (err) {
+    console.error("[getFavoriteCollections]", err);
+    return [];
+  }
+}
+
 export type CollectionDetail = {
   id: string;
   name: string;

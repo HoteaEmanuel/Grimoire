@@ -22,6 +22,7 @@ export function FileListWithDrawer({ items }: FileListWithDrawerProps) {
           fileSize={item.fileSize}
           fileUrl={item.fileUrl}
           isPinned={item.isPinned}
+          isFavorite={item.isFavorite}
           createdAt={item.createdAt}
           onClick={openDrawer}
         />

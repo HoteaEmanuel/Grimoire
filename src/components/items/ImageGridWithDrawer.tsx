@@ -20,6 +20,7 @@ export function ImageGridWithDrawer({ items }: ImageGridWithDrawerProps) {
           title={item.title}
           fileUrl={item.fileUrl}
           isPinned={item.isPinned}
+          isFavorite={item.isFavorite}
           createdAt={item.createdAt}
           onClick={openDrawer}
         />

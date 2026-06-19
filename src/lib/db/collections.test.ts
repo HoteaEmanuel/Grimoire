@@ -4,6 +4,7 @@ import {
   createCollection,
   getCollections,
   getCollectionDetail,
+  getFavoriteCollections,
   getSearchIndexCollections,
   updateCollection,
   deleteCollection,
@@ -119,6 +120,54 @@ describe("getCollections", () => {
     const result = await getCollections("user-1");
 
     expect(result).toEqual({ collections: [], totalCount: 0 });
+  });
+});
+
+describe("getFavoriteCollections", () => {
+  it("returns favorited collections ordered by most recently updated", async () => {
+    vi.mocked(prisma.collection.findMany).mockResolvedValue([
+      {
+        id: "col-1",
+        name: "React Patterns",
+        description: null,
+        isFavorite: true,
+        createdAt: new Date("2024-01-01"),
+        _count: { items: 2 },
+        items: [
+          { item: { itemType: { id: "type-1", color: "#3b82f6", icon: "Code" } } },
+          { item: { itemType: { id: "type-1", color: "#3b82f6", icon: "Code" } } },
+        ],
+      },
+    ] as never);
+
+    const result = await getFavoriteCollections("user-1");
+
+    expect(prisma.collection.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", isFavorite: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+    );
+    expect(result).toEqual([
+      {
+        id: "col-1",
+        name: "React Patterns",
+        description: null,
+        isFavorite: true,
+        itemCount: 2,
+        dominantTypeColor: "#3b82f6",
+        typeIcons: [{ iconName: "Code", color: "#3b82f6" }],
+        createdAt: new Date("2024-01-01"),
+      },
+    ]);
+  });
+
+  it("returns empty array when prisma throws", async () => {
+    vi.mocked(prisma.collection.findMany).mockRejectedValue(new Error("db error"));
+
+    const result = await getFavoriteCollections("user-1");
+
+    expect(result).toEqual([]);
   });
 });
 

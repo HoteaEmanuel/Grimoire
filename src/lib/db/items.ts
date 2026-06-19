@@ -220,6 +220,20 @@ export async function getItemStats(
   }
 }
 
+export async function getFavoriteItems(userId: string): Promise<ItemWithMeta[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { userId, isFavorite: true },
+      orderBy: { updatedAt: "desc" },
+      select: ITEM_CARD_SELECT,
+    });
+    return items.map(mapItemCard);
+  } catch (err) {
+    console.error("[getFavoriteItems]", err);
+    return [];
+  }
+}
+
 export async function getItemById(userId: string, itemId: string): Promise<ItemDetail | null> {
   try {
     const item = await prisma.item.findFirst({

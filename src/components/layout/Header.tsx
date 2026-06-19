@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
-import { Search, Plus, BookMarked, Menu } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, Plus, BookMarked, Menu, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateItemModal } from "@/components/items/CreateItemModal";
@@ -27,6 +27,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const defaultTypeSlug = defaultTypeFromPath(pathname);
 
   return (
@@ -56,6 +57,15 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/favorites")}
+            className="size-8 text-muted-foreground hover:text-foreground"
+            aria-label="Favorites"
+          >
+            <Star className="size-3.5" />
+          </Button>
           <Button
             size="sm"
             variant="outline"

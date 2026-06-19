@@ -25,6 +25,7 @@ export function ItemGridWithDrawer({ items, className }: ItemGridWithDrawerProps
               title={item.title}
               fileUrl={item.fileUrl}
               isPinned={item.isPinned}
+              isFavorite={item.isFavorite}
               createdAt={item.createdAt}
               onClick={openDrawer}
               compact
@@ -42,6 +43,7 @@ export function ItemGridWithDrawer({ items, className }: ItemGridWithDrawerProps
               fileSize={item.fileSize}
               fileUrl={item.fileUrl}
               isPinned={item.isPinned}
+              isFavorite={item.isFavorite}
               createdAt={item.createdAt}
               onClick={openDrawer}
             />
@@ -58,6 +60,7 @@ export function ItemGridWithDrawer({ items, className }: ItemGridWithDrawerProps
             typeColor={item.typeColor}
             tags={item.tags}
             isPinned={item.isPinned}
+            isFavorite={item.isFavorite}
             language={item.language}
             content={item.content}
             url={item.url}

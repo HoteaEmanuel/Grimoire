@@ -1,6 +1,6 @@
 "use client";
 
-import { Pin, Copy, Check } from "lucide-react";
+import { Pin, Star, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 
@@ -12,6 +12,7 @@ interface ItemCardProps {
   typeColor: string;
   tags: string[];
   isPinned?: boolean;
+  isFavorite?: boolean;
   language?: string | null;
   content?: string | null;
   url?: string | null;
@@ -26,6 +27,7 @@ export function ItemCard({
   typeColor,
   tags,
   isPinned,
+  isFavorite,
   language,
   content,
   url,
@@ -80,9 +82,10 @@ export function ItemCard({
               <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{description}</p>
             )}
           </div>
-          {isPinned && (
-            <Pin size={12} className="shrink-0 mt-0.5" style={{ color: typeColor }} />
-          )}
+          <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+            {isFavorite && <Star size={12} className="fill-amber-500 text-amber-500" />}
+            {isPinned && <Pin size={12} style={{ color: typeColor }} />}
+          </div>
         </div>
 
         {tags.length > 0 && (

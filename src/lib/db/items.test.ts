@@ -4,6 +4,7 @@ import {
   getItemById,
   getItemCardsByType,
   getItemCardsByCollection,
+  getFavoriteItems,
   getSearchIndexItems,
   updateItem,
   createItem,
@@ -385,6 +386,60 @@ describe("getItemCardsByType", () => {
     const result = await getItemCardsByType("user-1", "snippets");
 
     expect(result).toEqual({ items: [], totalCount: 0 });
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("getFavoriteItems", () => {
+  const mockFavoriteItems = [
+    {
+      id: "item-1",
+      title: "Favorited Snippet",
+      description: "A test",
+      content: "console.log('hi')",
+      url: null,
+      isPinned: false,
+      isFavorite: true,
+      language: "typescript",
+      lastUsedAt: new Date("2024-01-03"),
+      createdAt: new Date("2024-01-01"),
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      itemType: { name: "Snippet", slug: "snippets", color: "#3b82f6", icon: "Code" },
+      tags: [{ tag: { name: "react" } }],
+    },
+  ];
+
+  it("returns favorited items ordered by most recently updated", async () => {
+    vi.mocked(prisma.item.findMany).mockResolvedValue(mockFavoriteItems as never);
+
+    const result = await getFavoriteItems("user-1");
+
+    expect(prisma.item.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", isFavorite: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: "item-1",
+      title: "Favorited Snippet",
+      typeName: "Snippet",
+      isFavorite: true,
+      tags: ["react"],
+    });
+  });
+
+  it("returns empty array on DB failure", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(prisma.item.findMany).mockRejectedValue(new Error("DB error"));
+
+    const result = await getFavoriteItems("user-1");
+
+    expect(result).toEqual([]);
+    expect(consoleSpy).toHaveBeenCalledWith("[getFavoriteItems]", expect.any(Error));
     consoleSpy.mockRestore();
   });
 });
