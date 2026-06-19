@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!session.user.isPro) {
+    return NextResponse.json({ error: "Files and images are a Pro feature" }, { status: 403 });
+  }
 
   const { success, retryAfter } = await checkRateLimit(uploadLimiter, `upload:${session.user.id}`);
   if (!success) return rateLimitResponse(retryAfter);

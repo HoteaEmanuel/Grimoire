@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { createCollection, updateCollection, deleteCollection, toggleCollectionFavorite } from "./collections";
 
 vi.mock("@/lib/db/collections", () => ({
@@ -87,6 +88,39 @@ describe("createCollection", () => {
     const result = await createCollection({ name: "React Patterns" });
 
     expect(result).toEqual({ success: false, error: "Failed to create collection" });
+  });
+
+  describe("free-tier limits", () => {
+    it("succeeds when free user is under the collection limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: false } } as never);
+      vi.mocked(prisma.collection.count).mockResolvedValue(2);
+      vi.mocked(dbCreateCollection).mockResolvedValue(mockCollection);
+
+      const result = await createCollection({ name: "React Patterns" });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects when free user is at the collection limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: false } } as never);
+      vi.mocked(prisma.collection.count).mockResolvedValue(3);
+
+      const result = await createCollection({ name: "React Patterns" });
+
+      expect(result).toEqual({ success: false, error: "Free plan is limited to 3 collections" });
+      expect(dbCreateCollection).not.toHaveBeenCalled();
+    });
+
+    it("succeeds when Pro user is at the collection limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: true } } as never);
+      vi.mocked(prisma.collection.count).mockResolvedValue(10);
+      vi.mocked(dbCreateCollection).mockResolvedValue(mockCollection);
+
+      const result = await createCollection({ name: "React Patterns" });
+
+      expect(result.success).toBe(true);
+      expect(prisma.collection.count).not.toHaveBeenCalled();
+    });
   });
 });
 

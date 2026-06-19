@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { deleteR2Object, keyFromPublicUrl } from "@/lib/r2";
 import type { ItemDetail } from "@/lib/db/items";
 import { createItemSchema } from "@/lib/schemas/items";
+import { FREE_ITEM_LIMIT } from "@/lib/limits";
 
 export type { CreateItemInput } from "@/lib/schemas/items";
 
@@ -38,6 +39,16 @@ export async function createItem(formData: z.input<typeof createItemSchema>): Pr
   const isFile = parsed.data.typeSlug === "files" || parsed.data.typeSlug === "images";
   if (isFile && !parsed.data.fileUrl) {
     return { success: false, error: "File upload is required" };
+  }
+
+  if (!session.user.isPro) {
+    if (isFile) {
+      return { success: false, error: "Files and images are a Pro feature" };
+    }
+    const itemCount = await prisma.item.count({ where: { userId: session.user.id } });
+    if (itemCount >= FREE_ITEM_LIMIT) {
+      return { success: false, error: `Free plan is limited to ${FREE_ITEM_LIMIT} items` };
+    }
   }
 
   const created = await dbCreateItem(session.user.id, {

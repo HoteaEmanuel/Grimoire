@@ -9,6 +9,8 @@ import {
 } from "@/lib/db/collections";
 import type { CollectionWithMeta, CollectionDetail } from "@/lib/db/collections";
 import { createCollectionSchema } from "@/lib/schemas/collections";
+import { prisma } from "@/lib/prisma";
+import { FREE_COLLECTION_LIMIT } from "@/lib/limits";
 
 export type { CreateCollectionInput } from "@/lib/schemas/collections";
 
@@ -28,6 +30,13 @@ export async function createCollection(
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     return { success: false, error: first?.message ?? "Invalid input" };
+  }
+
+  if (!session.user.isPro) {
+    const collectionCount = await prisma.collection.count({ where: { userId: session.user.id } });
+    if (collectionCount >= FREE_COLLECTION_LIMIT) {
+      return { success: false, error: `Free plan is limited to ${FREE_COLLECTION_LIMIT} collections` };
+    }
   }
 
   const created = await dbCreateCollection(session.user.id, {

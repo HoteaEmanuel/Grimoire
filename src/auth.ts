@@ -12,7 +12,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: authConfig.pages,
   callbacks: {
-    jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.id = user.id
         token.emailVerified =
@@ -28,11 +28,21 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       } else if (user?.image) {
         token.picture = user.image
       }
+      // Re-sync isPro from the DB on every call so a Stripe webhook's update
+      // reaches the JWT-strategy session without a client-side update() call
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { isPro: true },
+        })
+        token.isPro = dbUser?.isPro ?? false
+      }
       return token
     },
     session({ session, token }) {
       if (token.id) session.user.id = token.id as string
       if (token.picture) session.user.image = token.picture as string
+      if (token.isPro !== undefined) session.user.isPro = token.isPro as boolean
       applyEmailVerified(session, token)
       return session
     },

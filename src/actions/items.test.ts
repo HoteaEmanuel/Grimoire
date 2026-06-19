@@ -305,6 +305,8 @@ describe("createItem server action", () => {
     });
 
     it("passes fileUrl, fileName, fileSize to db for file type", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: true } } as never);
+
       await createItem({
         typeSlug: "files",
         title: "My PDF",
@@ -325,6 +327,8 @@ describe("createItem server action", () => {
     });
 
     it("passes fileUrl, fileName, fileSize to db for image type", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: true } } as never);
+
       await createItem({
         typeSlug: "images",
         title: "My Photo",
@@ -374,6 +378,65 @@ describe("createItem server action", () => {
       const result = await createItem({ typeSlug: "snippets", title: "Title" });
 
       expect(result).toEqual({ success: false, error: "Failed to create item" });
+    });
+  });
+
+  describe("free-tier limits", () => {
+    it("succeeds when free user is under the item limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: false } } as never);
+      vi.mocked(prisma.item.count).mockResolvedValue(49);
+      vi.mocked(dbCreateItem).mockResolvedValue(mockCreatedItem);
+
+      const result = await createItem({ typeSlug: "snippets", title: "Title" });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects when free user is at the item limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: false } } as never);
+      vi.mocked(prisma.item.count).mockResolvedValue(50);
+
+      const result = await createItem({ typeSlug: "snippets", title: "Title" });
+
+      expect(result).toEqual({ success: false, error: "Free plan is limited to 50 items" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("succeeds when Pro user is at the item limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: true } } as never);
+      vi.mocked(prisma.item.count).mockResolvedValue(100);
+      vi.mocked(dbCreateItem).mockResolvedValue(mockCreatedItem);
+
+      const result = await createItem({ typeSlug: "snippets", title: "Title" });
+
+      expect(result.success).toBe(true);
+      expect(prisma.item.count).not.toHaveBeenCalled();
+    });
+
+    it("rejects file type for free user even under the item limit", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: false } } as never);
+
+      const result = await createItem({
+        typeSlug: "files",
+        title: "My File",
+        fileUrl: "https://pub-test.r2.dev/user-1/files/doc.pdf",
+      });
+
+      expect(result).toEqual({ success: false, error: "Files and images are a Pro feature" });
+      expect(dbCreateItem).not.toHaveBeenCalled();
+    });
+
+    it("succeeds creating a file item for a Pro user", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: true } } as never);
+      vi.mocked(dbCreateItem).mockResolvedValue(mockCreatedItem);
+
+      const result = await createItem({
+        typeSlug: "files",
+        title: "My File",
+        fileUrl: "https://pub-test.r2.dev/user-1/files/doc.pdf",
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 });
