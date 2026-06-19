@@ -6,13 +6,11 @@ Not Started
 
 ## Goals
 
-<!-- bullet points of what success looks like -->
-
 ## Notes
 
-<!-- additional context, constraints, or details from spec -->
-
 ## History
+
+- **Homepage Mockup - 2026-06-19** — Static marketing homepage prototype in `prototypes/homepage/` (`index.html`, `styles.css`, `script.js`), plain HTML/CSS/JS, not wired into the Next.js app. Consistent "Grimoire" branding and full in-world fantasy vocabulary (spells/incantations, grimoires, "Ask the oracle...", "Cast new spell", "PRO · ARCHMAGE", "Welcome back, Archmage"). Visual language matches the live app: `--ember`/`--arcane`/`--parchment`/`--rune` tokens, Cinzel small-caps headings, `tome-card`/`--shadow-tome`/`--shadow-glow`, exact item-type hex colors, near-black background. Rounded-square gold-bordered logo mark with open-book glyph in nav + footer. Hero "chaos to order" visual built around a central grimoire/spellbook illustration (ember glow, drifting embers/sparkles) instead of a plain arrow, with scattered-tool icons on the left and an in-world dashboard preview (stat-line, nav-rail teaser, evocatively-named grimoire cards) on the right. Chaos icons animate via `requestAnimationFrame` (drift, wall-bounce, rotate/scale pulse, mouse-repel). Sections: Nav (oracle search), Hero, Features grid (6 cards), AI section (checklist + code editor mockup), Pricing (Free vs Pro, monthly/yearly toggle), CTA banner, Footer. Item-type accent colors used on feature cards and dashboard-preview borders. Scroll fade-ins and navbar opacity-on-scroll. Responsive stacking on mobile.
 
 - **Pinned Items - 2026-06-19** — Made the existing Pin button in `ItemDrawer` functional. Added `toggleItemPin` (`src/lib/db/items.ts`, `updateMany` scoped by `userId`) and its server action (`src/actions/items.ts`), wired to the drawer via `useOptimisticToggle` with a `item-pin:<id>` store key and a success-toast param ("Item pinned"/"Item unpinned") added to the hook so favorite toggling (no success toast) stays unaffected. Renamed the shared `useFavoriteOverridesStore` → `useToggleOverridesStore` (`src/lib/stores/toggle-overrides-store.ts`) since it now backs both favorite and pin overrides. `ItemCard`, `ImageThumbnailCard`, and `FileListRow` now read the pin override directly so the pin badge updates instantly instead of going stale until a refresh. Added `PinnedItemsSection` (dashboard) which filters the Pinned Items section against the override store so unpinning an item removes it from that section live, matching the Favorites page's filter pattern. `getRecentItems` now orders `isPinned desc` first so pinned items float to the top of the dashboard's Recent Items feed too (the type/collection listings already had this ordering). 6 new unit tests covering `toggleItemPin` (DB function + server action: success, not-found, auth, DB failure).
 

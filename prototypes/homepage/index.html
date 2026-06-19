@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grimoire — Stop Losing Your Developer Knowledge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ════════════════ NAV ════════════════ -->
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#" class="logo">
+        <span class="logo-mark"><i data-lucide="book-open"></i></span>
+        <span class="logo-word">Grimoire</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+
+      <div class="nav-search">
+        <i data-lucide="search"></i>
+        <input type="text" placeholder="Ask the oracle..." readonly />
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div class="nav-actions">
+        <a href="#" class="btn btn-ghost">Sign In</a>
+        <a href="#" class="btn btn-primary">Get Started Free</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ════════════════ HERO ════════════════ -->
+    <section class="hero">
+      <div class="hero-text fade-in">
+        <span class="eyebrow">One grimoire. Every spell.</span>
+        <h1 class="hero-headline">Tame the Chaos.<br />Bind Your Knowledge.</h1>
+        <p class="hero-sub">
+          Snippets scattered across Notion. Prompts buried in chat history. Commands lost in your shell history.
+          Grimoire centralizes every spell you cast — searchable, tagged, and instantly summoned.
+        </p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary btn-lg">
+            Get Started Free
+          </a>
+          <a href="#" class="btn btn-secondary btn-lg">
+            <i data-lucide="wand-sparkles"></i>
+            Cast Your First Spell
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-visual fade-in">
+        <!-- Chaos -->
+        <div class="chaos-box" id="chaosBox">
+          <span class="visual-label">Your knowledge today...</span>
+          <div class="chaos-icons" id="chaosIcons">
+            <div class="chaos-icon" data-icon="notebook-pen"><i data-lucide="notebook-pen"></i><small>Notion</small></div>
+            <div class="chaos-icon" data-icon="github"><i data-lucide="github"></i><small>GitHub</small></div>
+            <div class="chaos-icon" data-icon="slack"><i data-lucide="slack"></i><small>Slack</small></div>
+            <div class="chaos-icon" data-icon="code-2"><i data-lucide="code-2"></i><small>VS Code</small></div>
+            <div class="chaos-icon" data-icon="app-window"><i data-lucide="app-window"></i><small>Tabs</small></div>
+            <div class="chaos-icon" data-icon="terminal"><i data-lucide="terminal"></i><small>Terminal</small></div>
+            <div class="chaos-icon" data-icon="file-text"><i data-lucide="file-text"></i><small>notes.txt</small></div>
+            <div class="chaos-icon" data-icon="bookmark"><i data-lucide="bookmark"></i><small>Bookmarks</small></div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="grimoire-wrap">
+          <span class="grimoire-arrow"><i data-lucide="arrow-right"></i></span>
+        </div>
+
+        <!-- Dashboard Preview — an actual open grimoire -->
+        <div class="dash-box">
+          <span class="visual-label">...with Grimoire</span>
+          <div class="grimoire-book">
+            <div class="book-cover-flap left"><span class="flap-sigil"><i data-lucide="book-open"></i></span></div>
+            <div class="book-spine-shadow"></div>
+            <div class="book-page page-left">
+              <div class="page-corner"></div>
+              <div class="page-stat">Your spellbook holds <strong>179 incantations</strong><br />across <strong>6 grimoires</strong></div>
+              <div class="page-divider"></div>
+              <ul class="page-rail">
+                <li class="active"><i class="dot dot-snippet"></i>Snippets</li>
+                <li><i class="dot dot-prompt"></i>Prompts</li>
+                <li><i class="dot dot-command"></i>Commands</li>
+                <li><i class="dot dot-note"></i>Notes</li>
+                <li><i class="dot dot-link"></i>Links</li>
+                <li class="locked">Files <em>PRO</em></li>
+                <li class="locked">Images <em>PRO</em></li>
+              </ul>
+            </div>
+            <div class="book-page page-right">
+              <div class="page-corner"></div>
+              <span class="page-heading">Grimoires</span>
+              <ul class="page-entries">
+                <li style="--accent: #3b82f6"><i class="entry-rune"></i><span class="entry-title">React Patterns</span><span class="entry-meta">24 spells</span></li>
+                <li style="--accent: #8b5cf6"><i class="entry-rune"></i><span class="entry-title">Prompt Library</span><span class="entry-meta">41 spells</span></li>
+                <li style="--accent: #f97316"><i class="entry-rune"></i><span class="entry-title">Context Tomes</span><span class="entry-meta">9 spells</span></li>
+                <li style="--accent: #10b981"><i class="entry-rune"></i><span class="entry-title">Inspiration Vault</span><span class="entry-meta">56 spells</span></li>
+              </ul>
+            </div>
+            <div class="book-cover-flap right"><span class="flap-sigil"><i data-lucide="book-open"></i></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ FEATURES ════════════════ -->
+    <section class="features" id="features">
+      <div class="section-head fade-in">
+        <span class="eyebrow">Capabilities</span>
+        <h2>Every Spell, One Spellbook</h2>
+        <p>Six kinds of knowledge, one searchable home.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card fade-in" style="--accent: #3b82f6">
+          <span class="feature-icon"><i data-lucide="code"></i></span>
+          <h3>Code Snippets</h3>
+          <p>Syntax-highlighted, language-tagged, one click from your clipboard.</p>
+        </div>
+        <div class="feature-card fade-in" style="--accent: #8b5cf6">
+          <span class="feature-icon"><i data-lucide="sparkles"></i></span>
+          <h3>AI Prompts</h3>
+          <p>Your best prompts, versioned and ready to summon on demand.</p>
+        </div>
+        <div class="feature-card fade-in" style="--accent: #f59e0b">
+          <span class="feature-icon"><i data-lucide="search"></i></span>
+          <h3>Instant Search</h3>
+          <p>Full-text search across titles, content, and tags — ⌘K and you're there.</p>
+        </div>
+        <div class="feature-card fade-in" style="--accent: #f97316">
+          <span class="feature-icon"><i data-lucide="terminal"></i></span>
+          <h3>Commands</h3>
+          <p>Every shell incantation you've ever needed twice, saved once.</p>
+        </div>
+        <div class="feature-card fade-in" style="--accent: #6b7280">
+          <span class="feature-icon"><i data-lucide="file"></i></span>
+          <h3>Files &amp; Docs</h3>
+          <p>Context files and reference docs, uploaded and instantly retrievable.</p>
+        </div>
+        <div class="feature-card fade-in" style="--accent: #10b981">
+          <span class="feature-icon"><i data-lucide="folder-heart"></i></span>
+          <h3>Collections</h3>
+          <p>Group any spell type into grimoires — by project, by stack, by mood.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ AI SECTION ════════════════ -->
+    <section class="ai-section">
+      <div class="ai-copy fade-in">
+        <span class="pro-badge">Pro Feature</span>
+        <h2>Let AI Tend Your Grimoire</h2>
+        <p>Upgrade to an Archmage and let AI organize, summarize, and explain every spell you cast.</p>
+        <ul class="ai-checklist">
+          <li><i data-lucide="check-circle-2"></i> Auto-tag suggestions on save</li>
+          <li><i data-lucide="check-circle-2"></i> One-line AI summaries for long items</li>
+          <li><i data-lucide="check-circle-2"></i> Explain this code, in plain English</li>
+          <li><i data-lucide="check-circle-2"></i> Prompt optimizer for clarity &amp; effectiveness</li>
+        </ul>
+      </div>
+
+      <div class="ai-demo fade-in">
+        <div class="code-mock">
+          <div class="code-mock-header">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+            <span class="code-mock-lang">typescript</span>
+          </div>
+          <pre class="code-mock-body"><code><span class="tok-kw">export function</span> <span class="tok-fn">useDebounce</span>&lt;T&gt;(value: T, delay = <span class="tok-num">300</span>) {
+  <span class="tok-kw">const</span> [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    <span class="tok-kw">const</span> id = setTimeout(() => setDebounced(value), delay);
+    <span class="tok-kw">return</span> () => clearTimeout(id);
+  }, [value, delay]);
+  <span class="tok-kw">return</span> debounced;
+}</code></pre>
+          <div class="code-mock-tags">
+            <span class="tag-label">AI Generated Tags</span>
+            <span class="tag">#react</span><span class="tag">#hooks</span><span class="tag">#performance</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ PRICING ════════════════ -->
+    <section class="pricing" id="pricing">
+      <div class="section-head fade-in">
+        <span class="eyebrow">Pricing</span>
+        <h2>Choose Your Path</h2>
+        <p>Start free. Ascend to Archmage whenever you're ready.</p>
+      </div>
+
+      <div class="pricing-toggle fade-in">
+        <span class="toggle-label active" data-period="monthly">Monthly</span>
+        <button class="toggle-switch" id="pricingToggle" aria-label="Toggle yearly pricing">
+          <span class="toggle-knob"></span>
+        </button>
+        <span class="toggle-label" data-period="yearly">Yearly <em>save 25%</em></span>
+      </div>
+
+      <div class="pricing-grid fade-in">
+        <div class="price-card">
+          <h3>Free</h3>
+          <p class="price"><span class="price-amount">$0</span><span class="price-period">/forever</span></p>
+          <ul class="price-features">
+            <li><i data-lucide="check"></i> 50 items</li>
+            <li><i data-lucide="check"></i> 3 collections</li>
+            <li><i data-lucide="check"></i> All spell types except files &amp; images</li>
+            <li><i data-lucide="check"></i> Basic search</li>
+          </ul>
+          <a href="#" class="btn btn-ghost btn-block">Start for Free</a>
+        </div>
+
+        <div class="price-card price-card-pro">
+          <span class="popular-badge">Most Popular</span>
+          <h3>Pro <span class="archmage-badge">PRO · ARCHMAGE</span></h3>
+          <p class="price">
+            <span class="price-amount" data-monthly="$8" data-yearly="$6">$8</span>
+            <span class="price-period" data-monthly="/mo" data-yearly="/mo, billed yearly">/mo</span>
+          </p>
+          <ul class="price-features">
+            <li><i data-lucide="check"></i> Unlimited items &amp; collections</li>
+            <li><i data-lucide="check"></i> Files &amp; image uploads</li>
+            <li><i data-lucide="check"></i> AI auto-tagging, summaries &amp; explain</li>
+            <li><i data-lucide="check"></i> AI prompt optimizer</li>
+            <li><i data-lucide="check"></i> Export (JSON / ZIP)</li>
+            <li><i data-lucide="check"></i> Priority support</li>
+          </ul>
+          <a href="#" class="btn btn-primary btn-block">Become an Archmage</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ CTA ════════════════ -->
+    <section class="cta fade-in">
+      <span class="cta-icon"><i data-lucide="book-open"></i></span>
+      <h2>Ready to Organize Your Knowledge?</h2>
+      <p>Every spell you've ever needed, one grimoire away.</p>
+      <a href="#" class="btn btn-primary btn-lg">Get Started Free</a>
+    </section>
+  </main>
+
+  <!-- ════════════════ FOOTER ════════════════ -->
+  <footer class="footer">
+    <div class="footer-top">
+      <a href="#" class="logo">
+        <span class="logo-mark"><i data-lucide="book-open"></i></span>
+        <span class="logo-word">Grimoire</span>
+      </a>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span id="footerYear"></span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
