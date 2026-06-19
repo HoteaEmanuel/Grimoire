@@ -11,18 +11,20 @@ interface MobileSheetControllerProps {
   itemTypes: SidebarItemType[];
   collections: SidebarCollection[];
   user: { name: string; email: string; image?: string | null } | null;
+  userIsPro: boolean;
 }
 
 export function MobileSheetController({
   itemTypes,
   collections,
   user,
+  userIsPro,
 }: MobileSheetControllerProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <>
-      <Header onMenuClick={() => setMobileOpen(true)} />
+      <Header onMenuClick={() => setMobileOpen(true)} userIsPro={userIsPro} />
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="left"
@@ -37,6 +39,7 @@ export function MobileSheetController({
             itemTypes={itemTypes}
             collections={collections}
             user={user}
+            userIsPro={userIsPro}
           />
         </SheetContent>
       </Sheet>

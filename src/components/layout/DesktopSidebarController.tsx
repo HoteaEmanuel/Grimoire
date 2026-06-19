@@ -9,12 +9,14 @@ interface DesktopSidebarControllerProps {
   itemTypes: SidebarItemType[];
   collections: SidebarCollection[];
   user: { name: string; email: string; image?: string | null } | null;
+  userIsPro: boolean;
 }
 
 export function DesktopSidebarController({
   itemTypes,
   collections,
   user,
+  userIsPro,
 }: DesktopSidebarControllerProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -25,6 +27,7 @@ export function DesktopSidebarController({
       itemTypes={itemTypes}
       collections={collections}
       user={user}
+      userIsPro={userIsPro}
     />
   );
 }

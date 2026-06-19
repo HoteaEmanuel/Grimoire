@@ -11,6 +11,7 @@ import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { EditorPreferencesHydrator } from "@/components/shared/EditorPreferencesHydrator";
 import { EditorPreferencesForm } from "@/components/settings/EditorPreferencesForm";
+import { BillingCard } from "@/components/settings/BillingCard";
 
 export default async function SettingsPage() {
   const session = await getSession();
@@ -41,6 +42,19 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent>
             <EditorPreferencesForm />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Billing</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BillingCard
+              isPro={profile.isPro}
+              totalItems={profile.totalItems}
+              totalCollections={profile.totalCollections}
+            />
           </CardContent>
         </Card>
 

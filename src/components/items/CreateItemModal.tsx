@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TagInput } from "@/components/shared/TagInput";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { useCreateItem } from "@/lib/mutations/items";
@@ -32,9 +34,10 @@ interface CreateItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultTypeSlug?: CreateItemInput["typeSlug"];
+  userIsPro: boolean;
 }
 
-export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippets" }: CreateItemModalProps) {
+export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippets", userIsPro }: CreateItemModalProps) {
   const router = useRouter();
   const [tags, setTags] = useState<string[]>([]);
 
@@ -107,15 +110,17 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
             {ALL_CREATE_TYPES.map((t) => {
               const Icon = t.icon;
               const selected = typeSlug === t.slug;
-              return (
+              const isLocked = FILE_TYPE_SLUGS.has(t.slug) && !userIsPro;
+              const button = (
                 <button
                   key={t.slug}
                   type="button"
                   {...register("typeSlug")}
+                  disabled={isLocked}
                   onClick={() => {
                     reset({ ...getValues(), typeSlug: t.slug as CreateItemInput["typeSlug"], url: "", content: "", language: "", fileUrl: null, fileName: null, fileSize: null });
                   }}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   style={
                     selected
                       ? { backgroundColor: t.color + "33", color: t.color, border: `1px solid ${t.color}66` }
@@ -124,7 +129,23 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
                 >
                   <Icon className="size-3.5" />
                   {t.name}
+                  {isLocked && (
+                    <Badge className="h-4 px-1 text-[8px] font-bold tracking-wider rounded-sm border bg-[oklch(0.62_0.18_290/0.15)] text-[oklch(0.75_0.16_290)] border-[oklch(0.62_0.18_290/0.35)]">
+                      PRO
+                    </Badge>
+                  )}
                 </button>
+              );
+
+              if (!isLocked) return button;
+
+              return (
+                <Tooltip key={t.slug}>
+                  <TooltipTrigger render={<span className="inline-block" />}>
+                    {button}
+                  </TooltipTrigger>
+                  <TooltipContent>Upgrade to Pro to upload {t.name.toLowerCase()}s</TooltipContent>
+                </Tooltip>
               );
             })}
           </div>

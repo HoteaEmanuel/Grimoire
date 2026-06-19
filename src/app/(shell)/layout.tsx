@@ -41,6 +41,7 @@ export default async function ShellLayout({
             }
           : null
       }
+      userIsPro={session?.user?.isPro ?? false}
     >
       <Suspense>
         <AuthToast />

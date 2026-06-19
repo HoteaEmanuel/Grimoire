@@ -19,6 +19,7 @@ interface SidebarContentProps {
   itemTypes: SidebarItemType[];
   collections: SidebarCollection[];
   user: { name: string; email: string; image?: string | null } | null;
+  userIsPro: boolean;
 }
 
 function CollectionSubLabel({
@@ -42,6 +43,7 @@ export function SidebarContent({
   itemTypes,
   collections,
   user,
+  userIsPro,
 }: SidebarContentProps) {
   const pathname = usePathname();
   const overrides = useToggleOverridesStore((s) => s.overrides);
@@ -71,7 +73,7 @@ export function SidebarContent({
                 count={type.count}
                 collapsed={sidebarCollapsed}
                 active={pathname === `/items/${type.slug}`}
-                isPro={type.slug === "files" || type.slug === "images"}
+                isPro={(type.slug === "files" || type.slug === "images") && !userIsPro}
                 onClick={onClose}
               />
             );
