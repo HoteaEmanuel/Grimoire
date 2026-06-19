@@ -1,27 +1,20 @@
-# Current Feature: Favorites Page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add star icon button to TopBar linking to `/favorites`
-- Create `/favorites` route, protected (same auth pattern as `/profile`/`/settings`)
-- Fetch all of the user's favorited items and collections
-- Compact list view (VS Code/terminal style, not cards)
-- Each row shows: type icon, title, type badge, date added
-- Separate sections for items and collections, each with a count
-- Clicking an item opens `ItemDrawer`; clicking a collection navigates to `/collections/[id]`
-- Empty state when there are no favorites
-- Sort by most recently favorited (`updatedAt`)
+<!-- bullet points of what success looks like -->
 
 ## Notes
 
-- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, no cards or heavy borders — clean lines only
-- Builds on existing `isFavorite` field already present on `Item`/`Collection` models
+<!-- additional context, constraints, or details from spec -->
 
 ## History
+
+- **Favorites Page - 2026-06-19** — Added a compact, terminal-style `/favorites` page listing all of the user's favorited items and collections, separated into sections with counts and sorted by most recently favorited (`updatedAt` desc). Star icon button added to the `Header` TopBar linking to it; route protected via `proxy.ts` matcher alongside `/profile`/`/items`/`/collections`. Added `getFavoriteItems` (`src/lib/db/items.ts`) and `getFavoriteCollections` (`src/lib/db/collections.ts`), both filtering `isFavorite: true`. Page renders inside the `(shell)` route group so it shares the sidebar/header and the already-mounted `ItemDrawer`. `FavoriteItemRow` (client, opens `ItemDrawer` via `useItemDrawerStore`) and `FavoriteCollectionRow` (`Link` to `/collections/[id]`) render dense single-line rows (`max-w-xl` container, `font-mono`) with type icon, title, type badge, and date added; empty state when there are no favorites. Also threaded favorite status through to a visible filled-star indicator on `ItemCard`, `CollectionCard`, `ImageThumbnailCard`, and `FileListRow` (previously `isFavorite` existed in the data but wasn't rendered on these cards), so favorited items/collections are now visually distinguishable everywhere they appear (dashboard, `/items/[type]`, `/collections`, `/collections/[id]`), not just on the new favorites page. 4 new unit tests across `src/lib/db/items.test.ts` and `src/lib/db/collections.test.ts` covering the two new DB functions (happy path + DB failure).
 
 - **Editor Preferences Settings - 2026-06-18** — Added an editor preferences section to `/settings`: font size and tab size dropdowns, word wrap toggle (default on), minimap toggle (default off), and theme dropdown (vs-dark/monokai/github-dark, default vs-dark). Stored as a JSON `editorPreferences` column on `User` (migration `add_editor_preferences`); `getEditorPreferences`/`updateEditorPreferences` in `src/lib/db/editor-preferences.ts` validate against `editorPreferencesSchema` (Zod) and fail open to `DEFAULT_EDITOR_PREFERENCES`. `updateEditorPreferences` server action (`src/actions/editor-preferences.ts`) does auth + Zod validation; `useUpdateEditorPreferences` (TanStack Query) toasts on success/error. Used Zustand (`useEditorPreferencesStore`) instead of the spec's suggested Context, for consistency with `useItemDrawerStore`/`useCommandPaletteStore` — hydrated server-side via a shared `EditorPreferencesHydrator` client component mounted in both `(shell)/layout.tsx` (so `CodeEditor` instances inside the item drawer/create modal pick it up) and `/settings/page.tsx` (since `/settings` lives outside the `(shell)` route group). `CodeEditor` now reads `fontSize`/`tabSize`/`wordWrap`/`minimap`/`theme` from the store; added `src/lib/monaco-themes.ts` with hand-defined Monaco theme rules for `monokai`/`github-dark` (not built into Monaco, unlike `vs-dark`), registered via `beforeMount`. `EditorPreferencesForm` (native `<select>`s matching the existing language-select pattern, shadcn `Switch` newly installed) auto-saves on every change — no save button. `MarkdownEditor` was left untouched since it doesn't use Monaco. 19 new unit tests across `src/lib/schemas/editor-preferences.test.ts` (8), `src/lib/db/editor-preferences.test.ts` (6), and `src/actions/editor-preferences.test.ts` (5).
 
