@@ -1,21 +1,16 @@
-# Current Feature: Favorites Page Sorting
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add client-side sorting controls to the `/favorites` page
-- Sort by Type, Name, and Date (added)
-- Sorting applies independently to the Items section and the Collections section
-- No page reload / server round-trip — sorting happens entirely in the browser
+<!-- bullet points of what success looks like -->
 
 ## Notes
 
-- "Date" currently means date added/favorited — items are sorted by `updatedAt` desc and collections by `updatedAt` desc server-side (`getFavoriteItems`/`getFavoriteCollections`); client-side sort should default to this same order.
-- `FavoriteItemRow` already displays a type icon, title, type badge, and "date added"; `FavoriteCollectionRow` shows name + date — sort keys should reuse exactly what's already rendered (typeName, title/name, createdAt/updatedAt) rather than introducing new fields.
-- Page is currently a server component (`src/app/(shell)/favorites/page.tsx`) rendering data fetched server-side; introducing client-side sort state will require lifting the items/collections lists into a client component (or wrapping each section in one) since sort state needs `useState`.
+<!-- additional context, constraints, or details from spec -->
 
 ## History
 
@@ -105,3 +100,5 @@ In Progress
 - **Global Search / Command Palette - 2026-06-18** — Added a global Cmd+K/Ctrl+K command palette using shadcn's `cmdk`-backed `Command` component. Added lightweight `getSearchIndexItems` (id, title, preview, type slug/color/icon) to `src/lib/db/items.ts` and `getSearchIndexCollections` (id, name, itemCount) to `src/lib/db/collections.ts` — both fetch the user's full dataset with minimal fields, pre-fetched once per page load in `src/app/(shell)/layout.tsx` alongside the existing sidebar queries. Created `useCommandPaletteStore` (Zustand, mirrors `useItemDrawerStore`) and `CommandPalette` (`src/components/search/CommandPalette.tsx`), mounted as a singleton next to `ItemDrawer`. Search is fully client-side (no API route) — `cmdk` fuzzy-matches against item titles (with description/content as secondary `keywords`) and collection names; a custom `strictFilter` wraps `cmdk`'s `defaultFilter` with a 0.3 score threshold so scattered low-confidence matches are hidden. Results are grouped into "Items" and "Collections" sections, each showing a type icon (via `ICON_MAP`) or item count; selecting an item opens it via `useItemDrawerStore.openDrawer`, selecting a collection navigates to `/collections/[id]`. `Header`'s search input is now `readOnly` with an `onClick` that opens the palette, and its placeholder shows a `⌘K` hint. Palette widened (`max-w-2xl`) and result list heightened (`max-h-112`) beyond shadcn defaults. Also made item-drawer collection chips (`ItemDrawerViewBody`) clickable — they close the drawer and navigate to the collection's page. 4 new unit tests across `items.test.ts` and `collections.test.ts` covering the two new search-index DB functions (happy path + DB failure).
 
 - **Collections Pages & Route Restructure - 2026-06-18** — Created `/collections` (list, reuses `CollectionCard`) and `/collections/[id]` (detail, items split into sections: generic grid first, then an "Images" section via `ImageGridWithDrawer`, then a "Files" section via `FileListWithDrawer`). Moved `dashboard`, `items`, and the new `collections` routes into a `src/app/(shell)/` route group so `/dashboard`, `/items/[type]`, `/collections`, and `/collections/[id]` are sibling top-level URLs (no `dashboard` URL prefix) while still sharing the sidebar/header shell layout. `dashboard/layout.tsx` moved to `(shell)/layout.tsx`. Updated `src/proxy.ts` matcher to also protect `/items` and `/collections`. Updated `SidebarContent` and `CollectionCard` links to the new paths. Added `getAllCollections` and `getCollectionDetail` to `src/lib/db/collections.ts`, and `getItemCardsByCollection` to `src/lib/db/items.ts`. 7 new unit tests across `collections.test.ts` (5) and `items.test.ts` (2); `setup.ts` Prisma mock extended with `collection.findFirst`.
+
+- **Favorites Page Sorting - 2026-06-19** — Added client-side sorting controls to the `/favorites` page, independently for Items and Collections sections. Extracted `FavoriteItemsSection` and `FavoriteCollectionsSection` (`src/components/favorites/`) from the page, each a client component holding its own `sortKey` state (`"date" | "name" | "type"`, default `"date"`) and a native `<select>` sort dropdown. Sort keys reuse existing fields — `typeName`/`title` for items, `name` for collections, `createdAt` for both — with type sort falling back to name as a tiebreaker. Both sections already filtered visible rows against `useFavoriteOverridesStore` for optimistic favorite/unfavorite; sorting is applied after that filter via `useMemo`. Extracted `FavoritesCount` to keep the header count reactive to the same store. `src/app/(shell)/favorites/page.tsx` now only fetches data server-side and renders the two section components — no server round-trip on sort change.
