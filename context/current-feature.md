@@ -1,28 +1,16 @@
-# Current Feature: Stripe Integration — Phase 1: Core Infrastructure
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Fix the `.env.example` secret leak (real Stripe test keys committed) — revert to blank placeholders, rotate the affected keys in the Stripe Dashboard
-- Install `stripe` SDK, add `src/lib/stripe.ts` singleton client (mirrors `src/lib/prisma.ts` pattern, throws if `STRIPE_SECRET_KEY` is unset)
-- Add Stripe env vars to `.env`, `.env.example`, `.env.production`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_ID_MONTHLY`, `STRIPE_PRICE_ID_YEARLY` (drop non-public `STRIPE_PUBLISHABLE_KEY`)
-- Expose `isPro` on the NextAuth session via DB-sync JWT pattern (`src/types/next-auth.d.ts`, `src/auth.ts` jwt + session callbacks)
-- Create `src/lib/limits.ts` with `FREE_ITEM_LIMIT = 50` and `FREE_COLLECTION_LIMIT = 3`
-- Wire limits enforcement into `createItem` (`src/actions/items.ts`) and `createCollection` (`src/actions/collections.ts`)
-- Gate file/image item creation server-side behind `isPro` in both the `createItem` action and `POST /api/upload` (defense in depth)
+<!-- Populated by /feature load -->
 
 ## Notes
 
-- Reference: `docs/stripe-integration-plan.md` (full research + plan), §4.1–4.2 and implementation steps 1–4 + 7 (limits module only — action wiring for checkout/billing is Phase 2)
-- Testable entirely with `npm run test` — does not require Stripe CLI, a webhook endpoint, or a live Checkout session
-- `session.user.isPro` will only ever be `true` in this phase via direct DB edits (Prisma Studio or a one-off script) since there's no checkout flow yet — expected, this phase tests gating logic in isolation
-- Cost note: jwt callback now does one extra indexed `findUnique` per JWT validation — acceptable at current scale
-- Out of scope (Phase 2): Stripe Dashboard product/price/webhook setup, `/api/webhooks/stripe`, `createCheckoutSession`/`createBillingPortalSession` actions, `BillingCard` UI + `/settings` integration, `CreateItemModal`/`SidebarContent` Pro-badge UI updates
-- Testing: unit tests for `createItem` (under-limit succeeds, at-limit rejects free, at-limit succeeds Pro, file/image rejects free, file/image succeeds Pro) and `createCollection` (under-limit succeeds, at-limit rejects free, at-limit succeeds Pro); `npm run test` + `npm run build` pass; manual smoke test of limit errors; confirm `.env.example` has no real key material before committing
-- Full spec: `context/features/stripe-integration-phase-1-spec.md`
+<!-- Populated by /feature load -->
 
 ## History
 
@@ -117,3 +105,5 @@ In Progress
 - **Pinned Items - 2026-06-19** — Made the existing Pin button in `ItemDrawer` functional. Added `toggleItemPin` (`src/lib/db/items.ts`, `updateMany` scoped by `userId`) and its server action (`src/actions/items.ts`), wired to the drawer via `useOptimisticToggle` with a `item-pin:<id>` store key and a success-toast param ("Item pinned"/"Item unpinned") added to the hook so favorite toggling (no success toast) stays unaffected. Renamed the shared `useFavoriteOverridesStore` → `useToggleOverridesStore` (`src/lib/stores/toggle-overrides-store.ts`) since it now backs both favorite and pin overrides. `ItemCard`, `ImageThumbnailCard`, and `FileListRow` now read the pin override directly so the pin badge updates instantly instead of going stale until a refresh. Added `PinnedItemsSection` (dashboard) which filters the Pinned Items section against the override store so unpinning an item removes it from that section live, matching the Favorites page's filter pattern. `getRecentItems` now orders `isPinned desc` first so pinned items float to the top of the dashboard's Recent Items feed too (the type/collection listings already had this ordering). 6 new unit tests covering `toggleItemPin` (DB function + server action: success, not-found, auth, DB failure).
 
 - **Homepage - 2026-06-19** — Built the real marketing homepage at `src/app/page.tsx`, ported from the static `prototypes/homepage/` mockup into Next.js + Tailwind v4 + shadcn/ui. 8 sections under `src/components/home/` (`Nav`, `Hero`, `HeroVisual`, `Features`, `AiSection`, `Pricing`, `Cta`, `Footer`), server components by default with `'use client'` only for `Nav`, `HeroVisual`, `Pricing`, and a shared `FadeInSection` IntersectionObserver wrapper. Reused existing design tokens, `tome-card`, shadcn `Button`, `SYSTEM_ITEM_TYPES`/`ICON_MAP`, and `lucide-react` icons (no CDN script). Confirmed Cinzel registered as a `next/font/google` variable in the root layout. Public unauthenticated route, no app-shell layout.
+
+- **Stripe Integration Phase 1: Core Infrastructure - 2026-06-19** — Laid the foundation for Stripe subscriptions, ahead of any checkout/webhook flow. Installed `stripe` SDK; added `src/lib/stripe.ts` singleton (mirrors `src/lib/prisma.ts` pattern, throws if `STRIPE_SECRET_KEY` is unset, API version `2026-05-27.dahlia`). Added `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PUBLISHABLE_KEY`/`STRIPE_PRICE_ID_MONTHLY`/`STRIPE_PRICE_ID_YEARLY` consistently across `.env`, `.env.example`, `.env.production`. Exposed `isPro` on the NextAuth session: `src/types/next-auth.d.ts` augments `Session.user`/`JWT`, and `src/auth.ts`'s `jwt` callback re-queries `isPro` from Prisma on every call (one extra indexed `findUnique`) so a future Stripe webhook's DB update reaches the JWT-strategy session without a client-side `update()`. Added `src/lib/limits.ts` (`FREE_ITEM_LIMIT = 50`, `FREE_COLLECTION_LIMIT = 3`) and wired enforcement into `createItem`/`createCollection` server actions plus a Pro gate on file/image item creation (action + `POST /api/upload`, defense in depth). 9 new unit tests across `items.test.ts` (5) and `collections.test.ts` (3 + fixed 2 existing file/image tests to set `isPro: true`) covering under-limit/at-limit/Pro-bypass and file-type gating. No real Stripe secrets were found leaked in git history — `.env` is gitignored and untracked, so the spec's "rotate keys" step didn't apply. `npm run test` (200/200) and `npm run build` both pass. Phase 2 (webhooks, checkout/billing actions, billing UI) is separately spec'd.
