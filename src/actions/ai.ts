@@ -6,8 +6,10 @@ import { checkRateLimit, aiFeatureLimiter } from "@/lib/rate-limit";
 import {
   generateAutoTagsSchema,
   generateDescriptionSchema,
+  explainCodeSchema,
   type GenerateAutoTagsInput,
   type GenerateDescriptionInput,
+  type ExplainCodeInput,
 } from "@/lib/schemas/ai";
 
 const MAX_CONTENT_LENGTH = 2000;
@@ -150,6 +152,69 @@ export async function generateDescription(
 
     const output = JSON.parse(response.output_text) as { summary: string };
     return { success: true, data: { summary: output.summary.trim() } };
+  } catch {
+    return { success: false, error: "AI service is temporarily unavailable" };
+  }
+}
+
+const EXPLANATION_SCHEMA = {
+  type: "json_schema" as const,
+  name: "code_explanation",
+  strict: true,
+  schema: {
+    type: "object",
+    properties: {
+      explanation: { type: "string" },
+    },
+    required: ["explanation"],
+    additionalProperties: false,
+  },
+};
+
+type ExplainCodeResult =
+  | { success: true; data: { explanation: string } }
+  | { success: false; error: string };
+
+export async function explainCode(input: ExplainCodeInput): Promise<ExplainCodeResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!session.user.isPro) {
+    return { success: false, error: "AI code explanations are a Pro feature" };
+  }
+
+  const parsed = explainCodeSchema.safeParse(input);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return { success: false, error: first?.message ?? "Invalid input" };
+  }
+
+  const { success, retryAfter } = await checkRateLimit(aiFeatureLimiter, session.user.id);
+  if (!success) {
+    const minutes = Math.ceil(retryAfter / 60);
+    return {
+      success: false,
+      error: `Too many AI requests. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+    };
+  }
+
+  const truncatedCode = parsed.data.code.slice(0, MAX_CONTENT_LENGTH);
+  const languageLine = parsed.data.language ? `Language: ${parsed.data.language}\n\n` : "";
+
+  try {
+    const response = await openai.responses.create({
+      model: AI_MODEL,
+      instructions:
+        "You are a code-explanation assistant for a developer knowledge-base app. Explain what the given code or command does in plain English, in about 200-300 words, covering its purpose, key logic, and any notable concepts or gotchas. Use markdown formatting (e.g. backticks for identifiers, short lists where helpful). Do not repeat the full code verbatim.",
+      input: `${languageLine}Code:\n${truncatedCode}`,
+      reasoning: { effort: "minimal" },
+      text: { format: EXPLANATION_SCHEMA },
+    });
+
+    const output = JSON.parse(response.output_text) as { explanation: string };
+    return { success: true, data: { explanation: output.explanation.trim() } };
   } catch {
     return { success: false, error: "AI service is temporarily unavailable" };
   }

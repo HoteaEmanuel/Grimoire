@@ -162,7 +162,7 @@ export function ItemDrawer({ userIsPro }: ItemDrawerProps) {
                 userIsPro={userIsPro}
               />
             ) : (
-              <ItemDrawerViewBody item={item} />
+              <ItemDrawerViewBody item={item} userIsPro={userIsPro} />
             )}
           </div>
 

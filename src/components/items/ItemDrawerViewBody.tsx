@@ -15,9 +15,10 @@ const MARKDOWN_TYPES = new Set(["prompts", "notes"]);
 
 interface ItemDrawerViewBodyProps {
   item: ItemDetail;
+  userIsPro: boolean;
 }
 
-export function ItemDrawerViewBody({ item }: ItemDrawerViewBodyProps) {
+export function ItemDrawerViewBody({ item, userIsPro }: ItemDrawerViewBodyProps) {
   const router = useRouter();
   const closeDrawer = useItemDrawerStore((state) => state.closeDrawer);
 
@@ -34,7 +35,13 @@ export function ItemDrawerViewBody({ item }: ItemDrawerViewBodyProps) {
 
       {item.content && (
         CODE_TYPES.has(item.typeSlug) ? (
-          <CodeEditor value={item.content} language={item.language ?? undefined} readOnly />
+          <CodeEditor
+            value={item.content}
+            language={item.language ?? undefined}
+            readOnly
+            explainEnabled
+            isPro={userIsPro}
+          />
         ) : MARKDOWN_TYPES.has(item.typeSlug) ? (
           <MarkdownEditor value={item.content} readOnly />
         ) : (
