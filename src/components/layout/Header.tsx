@@ -33,7 +33,7 @@ export function Header({ onMenuClick, userIsPro }: HeaderProps) {
 
   return (
     <>
-      <header className="h-13 shrink-0 border-b border-border bg-background/80 backdrop-blur-sm flex items-center gap-3 px-4">
+      <header className="h-13 shrink-0 border-b border-border bg-background/80 backdrop-blur-sm relative flex items-center gap-3 px-4">
         <Button
           variant="ghost"
           size="icon"
@@ -47,8 +47,8 @@ export function Header({ onMenuClick, userIsPro }: HeaderProps) {
           GRIMOIRE
         </span>
 
-        <div className="hidden sm:block flex-1 max-w-lg relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+        <div className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4">
+          <Search className="absolute left-7 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search your grimoire... (⌘K)"
             readOnly
@@ -58,6 +58,16 @@ export function Header({ onMenuClick, userIsPro }: HeaderProps) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          {!userIsPro && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/upgrade")}
+              className="h-8 px-2 sm:px-3 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Upgrade
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"

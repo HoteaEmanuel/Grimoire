@@ -13,7 +13,8 @@ export const proxy = auth(function middleware(req) {
     nextUrl.pathname.startsWith("/settings") ||
     nextUrl.pathname.startsWith("/items") ||
     nextUrl.pathname.startsWith("/collections") ||
-    nextUrl.pathname.startsWith("/favorites")
+    nextUrl.pathname.startsWith("/favorites") ||
+    nextUrl.pathname.startsWith("/upgrade")
 
   if (isProtected) {
     if (!isLoggedIn) {

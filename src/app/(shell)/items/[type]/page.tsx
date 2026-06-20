@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { SYSTEM_ITEM_TYPES } from "@/lib/item-types";
 import { ITEMS_PER_PAGE } from "@/lib/constants";
 import { getItemCardsByType } from "@/lib/db/items";
@@ -18,10 +18,14 @@ export default async function ItemTypePage({
   const typeDef = SYSTEM_ITEM_TYPES.find((t) => t.slug === type);
   if (!typeDef) notFound();
 
-  const page = Math.max(1, Number(pageParam) || 1);
-
   const session = await getSession();
   const userId = session?.user?.id ?? "";
+
+  if ("isPro" in typeDef && typeDef.isPro && !session?.user?.isPro) {
+    redirect("/upgrade");
+  }
+
+  const page = Math.max(1, Number(pageParam) || 1);
 
   const { items, totalCount } = await getItemCardsByType(userId, type, page);
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));

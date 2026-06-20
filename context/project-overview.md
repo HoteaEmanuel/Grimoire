@@ -447,8 +447,8 @@ erDiagram
 /collections                    → All collections
 /collections/[id]               → Single collection view
 /dashboard/search               → Search results
-/dashboard/settings             → Account, preferences, billing
-/dashboard/settings/billing     → Stripe portal / upgrade
+/settings             → Account, preferences, billing
+/settings/billing     → Stripe portal / upgrade
 ```
 
 > `/dashboard`, `/items/*`, and `/collections/*` are sibling top-level URLs sharing the same sidebar+header shell layout via a Next.js route group (`src/app/(shell)/`) — the `dashboard` segment is a URL path, not a layout boundary.
