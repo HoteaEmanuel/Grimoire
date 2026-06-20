@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TagInput } from "@/components/shared/TagInput";
+import { TagSuggestions } from "@/components/shared/TagSuggestions";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { useCreateItem } from "@/lib/mutations/items";
 import { CodeEditor } from "@/components/ui/code-editor";
@@ -55,6 +56,7 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
   });
 
   const typeSlug = useWatch({ control, name: "typeSlug", defaultValue: "snippets" });
+  const titleValue = useWatch({ control, name: "title", defaultValue: "" });
   const collectionIds = useWatch({ control, name: "collectionIds", defaultValue: [] });
   const contentValue = useWatch({ control, name: "content", defaultValue: "" });
   const languageValue = useWatch({ control, name: "language", defaultValue: "" });
@@ -268,6 +270,13 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
               Tags
             </label>
             <TagInput tags={tags} onChange={setTags} />
+            <TagSuggestions
+              title={titleValue ?? ""}
+              content={contentValue ?? undefined}
+              existingTags={tags}
+              onAccept={(tag) => setTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]))}
+              isPro={userIsPro}
+            />
           </div>
 
           {/* Collections */}

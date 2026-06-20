@@ -1,16 +1,30 @@
-# Current Feature
+# Current Feature: AI Auto-Tagging
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Populated by /feature load -->
+- Establish the OpenAI foundation (client utility with `AI_MODEL` constant, server action pattern, AI rate limit config) since this is the first AI feature
+- Create `generateAutoTags` server action: auth check, Pro gating, Zod validation, rate limiting (20 req/hr per user)
+- Use the OpenAI **Responses API** (`client.responses.create`) with `gpt-5-nano` — officially recommended for new projects and specifically for reasoning models like gpt-5-nano (better cache utilization, better reasoning-model performance vs. Chat Completions, which remains supported but is the legacy path) — with strict `json_schema` structured output via `text.format` for the tag list
+- Add "Suggest Tags" button (Sparkles icon, ghost variant) near the tags input in both the create item dialog and item drawer edit mode
+- Suggest 3-5 freeform tag suggestions based on item title + content (content truncated to 2000 chars before the API call)
+- Display suggestions as badges with per-tag accept (check) / reject (X) controls; accepted tags merge into the item's tag list
+- Hide the Suggest Tags button for free users (UI gating) in addition to server-side Pro gating
+- Surface errors (Pro gating, rate limit, AI service failure) via toast
+- Add unit tests for the server action
 
 ## Notes
 
-<!-- Populated by /feature load -->
+- `OPENAI_API_KEY` is already set in `.env`
+- **SDK gotcha (final)**: use the Responses API (`client.responses.create`), not Chat Completions — it's OpenAI's recommended path for all new projects and especially for reasoning models (GPT-5 family, which includes gpt-5-nano). Chat Completions isn't deprecated, just the legacy path. The empty-content risk (GPT-5-family reasoning tokens consuming the entire output budget before visible output is produced) affects **both** APIs equally — avoid it by leaving `max_output_tokens` unset/generous and/or setting `reasoning: { effort: "minimal" }`.
+- Use strict `json_schema` structured output via `text.format` (`{ type: "json_schema", strict: true, schema: {...} }`) — guarantees `{"tags": [...]}` shape, content lands in `response.output_text`
+- Always lowercase-normalize tags after receiving them
+- Tags are freeform — not constrained to existing tags in the DB
+- `isPro` is available server-side via session but isn't currently passed to the create/edit item UI components — server-side gating in the action is the enforcement boundary; UI-level button hiding requires threading `isPro` as a prop (or fetching client-side)
+- Full architectural context (SDK setup pattern, server action shape, rate-limit extension, cost/security considerations) is in `docs/ai-integration-plan.md`, produced by an earlier `/research` pass — follow its patterns for consistency, but this spec's Responses-API gotchas override anything in that doc that assumes Chat Completions
 
 ## History
 

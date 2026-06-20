@@ -47,7 +47,7 @@ export default async function ShellLayout({
         <AuthToast />
       </Suspense>
       {children}
-      <ItemDrawer />
+      <ItemDrawer userIsPro={session?.user?.isPro ?? false} />
       <CommandPalette items={searchItems} collections={searchCollections} />
       <EditorPreferencesHydrator preferences={editorPreferences} />
     </DashboardShell>

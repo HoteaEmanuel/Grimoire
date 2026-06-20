@@ -45,7 +45,11 @@ function DrawerSkeleton() {
   );
 }
 
-export function ItemDrawer() {
+interface ItemDrawerProps {
+  userIsPro: boolean;
+}
+
+export function ItemDrawer({ userIsPro }: ItemDrawerProps) {
   const { selectedId, open, closeDrawer } = useItemDrawerStore();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -155,6 +159,7 @@ export function ItemDrawer() {
                 onTagsChange={onTagsChange}
                 onCollectionIdsChange={onCollectionIdsChange}
                 collectionSelectContainer={drawerContentEl}
+                userIsPro={userIsPro}
               />
             ) : (
               <ItemDrawerViewBody item={item} />

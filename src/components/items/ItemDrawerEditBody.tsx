@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TagInput } from "@/components/shared/TagInput";
+import { TagSuggestions } from "@/components/shared/TagSuggestions";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { SUPPORTED_LANGUAGES } from "@/lib/item-types";
 import type { ItemDetail } from "@/lib/db/items";
@@ -21,6 +22,7 @@ interface ItemDrawerEditBodyProps {
   onTagsChange: (tags: string[]) => void;
   onCollectionIdsChange: (collectionIds: string[]) => void;
   collectionSelectContainer?: HTMLElement | null;
+  userIsPro: boolean;
 }
 
 export function ItemDrawerEditBody({
@@ -30,6 +32,7 @@ export function ItemDrawerEditBody({
   onTagsChange,
   onCollectionIdsChange,
   collectionSelectContainer,
+  userIsPro,
 }: ItemDrawerEditBodyProps) {
   return (
     <div className="space-y-4">
@@ -100,6 +103,13 @@ export function ItemDrawerEditBody({
       <div className="space-y-1.5">
         <label className="text-xs text-muted-foreground uppercase tracking-wider">Tags</label>
         <TagInput tags={editState.tags} onChange={onTagsChange} />
+        <TagSuggestions
+          title={editState.title}
+          content={editState.content || undefined}
+          existingTags={editState.tags}
+          onAccept={(tag) => onTagsChange(editState.tags.includes(tag) ? editState.tags : [...editState.tags, tag])}
+          isPro={userIsPro}
+        />
       </div>
 
       <div className="space-y-1.5">

@@ -20,6 +20,7 @@ export const resetPasswordLimiter = makeRatelimit(5, "15 m")
 export const resendVerificationLimiter = makeRatelimit(5, "15 m")
 export const changePasswordLimiter = makeRatelimit(5, "15 m")
 export const uploadLimiter = makeRatelimit(20, "1 h")
+export const aiFeatureLimiter = makeRatelimit(20, "1 h")
 
 export function getIP(req: Request): string {
   const forwarded = req.headers.get("x-forwarded-for")
