@@ -22,3 +22,10 @@ export const explainCodeSchema = z.object({
 });
 
 export type ExplainCodeInput = z.input<typeof explainCodeSchema>;
+
+export const optimizePromptSchema = z.object({
+  title: z.string().trim().min(1, "Title is required"),
+  content: z.string().trim().min(1, "Content is required"),
+});
+
+export type OptimizePromptInput = z.input<typeof optimizePromptSchema>;

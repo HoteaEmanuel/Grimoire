@@ -7,6 +7,7 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TagInput } from "@/components/shared/TagInput";
 import { TagSuggestions } from "@/components/shared/TagSuggestions";
 import { GenerateDescriptionButton } from "@/components/shared/GenerateDescriptionButton";
+import { PromptOptimizerButton } from "@/components/shared/PromptOptimizerButton";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { SUPPORTED_LANGUAGES } from "@/lib/item-types";
 import type { ItemDetail } from "@/lib/db/items";
@@ -59,6 +60,14 @@ export function ItemDrawerEditBody({
       {TEXT_TYPES.has(item.typeSlug) && (
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground uppercase tracking-wider">Content</label>
+          {item.typeSlug === "prompts" && (
+            <PromptOptimizerButton
+              title={editState.title}
+              content={editState.content}
+              onAccept={(optimized) => onFieldChange("content", optimized)}
+              isPro={userIsPro}
+            />
+          )}
           {CODE_TYPES.has(item.typeSlug) ? (
             <CodeEditor
               value={editState.content}

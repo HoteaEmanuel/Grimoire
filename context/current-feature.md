@@ -1,16 +1,27 @@
-# Current Feature
+# Current Feature: AI Prompt Optimizer
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Populated by /feature load -->
+- Fourth AI feature, reusing the existing OpenAI foundation (`src/lib/openai.ts`, `AI_MODEL`, `aiFeatureLimiter`) exactly as the prior three (auto-tagging, description generator, explain code) do — no new client or limiter.
+- New `optimizePrompt` server action in `src/actions/ai.ts` following the identical shape as `generateDescription`/`explainCode`: auth check → Pro gate → Zod validation → rate limit → OpenAI Responses API call with `reasoning: { effort: "minimal" }` and a strict `json_schema` (`prompt_optimization`) returning `{ optimized: string }`.
+- Zod schema `optimizePromptSchema` in `src/lib/schemas/ai.ts` (title + content, content required and non-empty — there must be a prompt to optimize).
+- Only available for the `prompts` item type, and only in the item drawer's edit mode (`ItemDrawerEditBody`) — not in `CreateItemModal`, since the feature optimizes an *existing* prompt's content rather than generating from scratch.
+- UI: a Sparkles icon button (mirrors `GenerateDescriptionButton`'s style/placement — ghost, icon-sm, tooltip, hidden for free users, disabled while pending or while content is empty) next to the "Content" label for prompts, above the `MarkdownEditor`.
+- Unlike `GenerateDescriptionButton` (which silently overwrites the field), this must offer an accept/reject choice: clicking the button generates the optimized version and shows it for comparison (e.g. side-by-side or before/after) with explicit "Use this version" / "Discard" actions. The original content must remain untouched in the editor until the user explicitly accepts.
+- `useOptimizePrompt` TanStack Query mutation in `src/lib/mutations/ai.ts`, mirroring `useGenerateDescription`/`useExplainCode` (no success toast, error toast only).
+- Unit tests in `src/actions/ai.test.ts` for `optimizePrompt` mirroring the existing AI action test coverage (auth, Pro gating, validation, rate limit, success, content truncation, AI-service failure).
 
 ## Notes
 
-<!-- Populated by /feature load -->
+- Follow the same OpenAI Responses API pattern already established by `generateAutoTags`/`generateDescription`/`explainCode` in `src/actions/ai.ts` — see that file for the exact shape (auth → Pro gate → Zod → rate limit → `openai.responses.create` with strict `json_schema` via `text.format`).
+- Content should be truncated to `MAX_CONTENT_LENGTH` (2000 chars) before the call, same as the other three AI actions.
+- The instructions prompt should ask the model to rewrite the given prompt to be clearer, more specific, and more effective for an LLM to act on, while preserving its original intent — return only the rewritten prompt text.
+- Since this needs a comparison/accept UI (not a silent overwrite like description), the new shared component should be its own component (e.g. `PromptOptimizerButton` or similar in `src/components/shared/`), not a reuse of `GenerateDescriptionButton`.
+- Scope is the item drawer's edit mode only, for the `prompts` type — confirm this is acceptable scope before also wiring it into `CreateItemModal` if the user wants it there too.
 
 ## History
 

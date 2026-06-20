@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { auth } from "@/auth";
-import { generateAutoTags, generateDescription, explainCode } from "./ai";
+import { generateAutoTags, generateDescription, explainCode, optimizePrompt } from "./ai";
 
 vi.mock("@/lib/openai", () => ({
   openai: { responses: { create: vi.fn() } },
@@ -302,6 +302,81 @@ describe("explainCode", () => {
     vi.mocked(openai.responses.create).mockRejectedValue(new Error("network error"));
 
     const result = await explainCode({ code: "const x = 1;" });
+
+    expect(result).toEqual({ success: false, error: "AI service is temporarily unavailable" });
+  });
+});
+
+describe("optimizePrompt", () => {
+  it("returns Unauthorized when no session", async () => {
+    vi.mocked(auth).mockResolvedValue(null);
+
+    const result = await optimizePrompt({ title: "Test", content: "Write a poem" });
+
+    expect(result).toEqual({ success: false, error: "Unauthorized" });
+  });
+
+  it("returns a Pro-gating error for free users", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "user-1", isPro: false } } as never);
+
+    const result = await optimizePrompt({ title: "Test", content: "Write a poem" });
+
+    expect(result).toEqual({ success: false, error: "AI prompt optimization is a Pro feature" });
+    expect(openai.responses.create).not.toHaveBeenCalled();
+  });
+
+  it("returns a validation error for empty content", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+
+    const result = await optimizePrompt({ title: "Test", content: "" });
+
+    expect(result.success).toBe(false);
+    expect(openai.responses.create).not.toHaveBeenCalled();
+  });
+
+  it("returns a rate-limit error when the limiter rejects the request", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(checkRateLimit).mockResolvedValue({ success: false, retryAfter: 120 });
+
+    const result = await optimizePrompt({ title: "Test", content: "Write a poem" });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Too many AI requests. Try again in 2 minutes.",
+    });
+    expect(openai.responses.create).not.toHaveBeenCalled();
+  });
+
+  it("returns the optimized prompt on success", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(openai.responses.create).mockResolvedValue({
+      output_text: JSON.stringify({ optimized: "  Write a four-line poem about the ocean.  " }),
+    } as never);
+
+    const result = await optimizePrompt({ title: "Poem prompt", content: "Write a poem" });
+
+    expect(result).toEqual({ success: true, data: { optimized: "Write a four-line poem about the ocean." } });
+  });
+
+  it("truncates content to 2000 chars before sending to the model", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(openai.responses.create).mockResolvedValue({
+      output_text: JSON.stringify({ optimized: "optimized" }),
+    } as never);
+
+    const longContent = "a".repeat(3000);
+    await optimizePrompt({ title: "Test", content: longContent });
+
+    const call = vi.mocked(openai.responses.create).mock.calls[0]![0] as { input: string };
+    expect(call.input).toContain("a".repeat(2000));
+    expect(call.input).not.toContain("a".repeat(2001));
+  });
+
+  it("returns a generic error when the AI service throws", async () => {
+    vi.mocked(auth).mockResolvedValue(mockSession as never);
+    vi.mocked(openai.responses.create).mockRejectedValue(new Error("network error"));
+
+    const result = await optimizePrompt({ title: "Test", content: "Write a poem" });
 
     expect(result).toEqual({ success: false, error: "AI service is temporarily unavailable" });
   });

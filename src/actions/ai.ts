@@ -7,9 +7,11 @@ import {
   generateAutoTagsSchema,
   generateDescriptionSchema,
   explainCodeSchema,
+  optimizePromptSchema,
   type GenerateAutoTagsInput,
   type GenerateDescriptionInput,
   type ExplainCodeInput,
+  type OptimizePromptInput,
 } from "@/lib/schemas/ai";
 
 const MAX_CONTENT_LENGTH = 2000;
@@ -215,6 +217,68 @@ export async function explainCode(input: ExplainCodeInput): Promise<ExplainCodeR
 
     const output = JSON.parse(response.output_text) as { explanation: string };
     return { success: true, data: { explanation: output.explanation.trim() } };
+  } catch {
+    return { success: false, error: "AI service is temporarily unavailable" };
+  }
+}
+
+const PROMPT_OPTIMIZATION_SCHEMA = {
+  type: "json_schema" as const,
+  name: "prompt_optimization",
+  strict: true,
+  schema: {
+    type: "object",
+    properties: {
+      optimized: { type: "string" },
+    },
+    required: ["optimized"],
+    additionalProperties: false,
+  },
+};
+
+type OptimizePromptResult =
+  | { success: true; data: { optimized: string } }
+  | { success: false; error: string };
+
+export async function optimizePrompt(input: OptimizePromptInput): Promise<OptimizePromptResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!session.user.isPro) {
+    return { success: false, error: "AI prompt optimization is a Pro feature" };
+  }
+
+  const parsed = optimizePromptSchema.safeParse(input);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return { success: false, error: first?.message ?? "Invalid input" };
+  }
+
+  const { success, retryAfter } = await checkRateLimit(aiFeatureLimiter, session.user.id);
+  if (!success) {
+    const minutes = Math.ceil(retryAfter / 60);
+    return {
+      success: false,
+      error: `Too many AI requests. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+    };
+  }
+
+  const truncatedContent = parsed.data.content.slice(0, MAX_CONTENT_LENGTH);
+
+  try {
+    const response = await openai.responses.create({
+      model: AI_MODEL,
+      instructions:
+        "You are a prompt-engineering assistant for a developer knowledge-base app. Rewrite the given AI prompt to be clearer, more specific, and more effective for an LLM to act on, while preserving its original intent. Return only the rewritten prompt text, with no preamble or explanation.",
+      input: `Title: ${parsed.data.title}\n\nPrompt:\n${truncatedContent}`,
+      reasoning: { effort: "minimal" },
+      text: { format: PROMPT_OPTIMIZATION_SCHEMA },
+    });
+
+    const output = JSON.parse(response.output_text) as { optimized: string };
+    return { success: true, data: { optimized: output.optimized.trim() } };
   } catch {
     return { success: false, error: "AI service is temporarily unavailable" };
   }
