@@ -6,6 +6,7 @@ import { CodeEditor } from "@/components/ui/code-editor";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { TagInput } from "@/components/shared/TagInput";
 import { TagSuggestions } from "@/components/shared/TagSuggestions";
+import { GenerateDescriptionButton } from "@/components/shared/GenerateDescriptionButton";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { SUPPORTED_LANGUAGES } from "@/lib/item-types";
 import type { ItemDetail } from "@/lib/db/items";
@@ -37,7 +38,17 @@ export function ItemDrawerEditBody({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
+          <GenerateDescriptionButton
+            title={editState.title}
+            content={editState.content || undefined}
+            url={editState.url || undefined}
+            fileName={item.fileName || undefined}
+            onGenerated={(summary) => onFieldChange("description", summary)}
+            isPro={userIsPro}
+          />
+        </div>
         <Textarea
           value={editState.description}
           onChange={(e) => onFieldChange("description", e.target.value)}

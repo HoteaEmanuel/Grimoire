@@ -1,16 +1,30 @@
-# Current Feature
+# Current Feature: AI Description Generator
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Populated by /feature load -->
+- Add an icon button (Sparkles, ghost variant, small) next to the Description label/input in both `CreateItemModal` and `ItemDrawerEditBody`
+- Generate a good, concise 1-2 sentence description/summary on click, using whatever is currently in the form — no save required first
+- Works across all item types (snippets, prompts, notes, commands, links, files, images), using whatever fields are actually available for that type: title + content for text types, title + url for links, title + fileName for files/images
+- New server action (e.g. `generateDescription`) in `src/actions/ai.ts`, following the exact same shape as `generateAutoTags`: auth check → Pro gate → Zod validation → rate limit (reuse the existing `aiFeatureLimiter`, same 20/hr budget — no new limiter needed) → OpenAI Responses API call
+- Truncate content to 2000 chars before the API call, consistent with the auto-tag feature
+- Use the Responses API (`client.responses.create`) with `gpt-5-nano`, `reasoning: { effort: "minimal" }`, and strict `json_schema` structured output (`{ summary: string }`) — same pattern established by the auto-tagging feature
+- On success, populate the Description field directly with the generated summary (simpler than the tag-suggestion accept/reject UI, since this is a single field the user can still freely edit or revert manually before saving)
+- Hide the button entirely for free users (UI gating), in addition to server-side Pro gating
+- Surface errors (Pro gating, rate limit, AI service failure) via toast, consistent with the tag-suggestion error handling
+- Add unit tests for the new server action
 
 ## Notes
 
-<!-- Populated by /feature load -->
+- This is the second AI feature — the OpenAI foundation (`src/lib/openai.ts`, `AI_MODEL` constant, `aiFeatureLimiter`) already exists from AI Auto-Tagging and should be reused as-is, not recreated
+- Follow the exact same server-action structure as `generateAutoTags` (`src/actions/ai.ts`) for consistency — auth/Pro/Zod/rate-limit ordering, error message style, try/catch around the OpenAI call
+- Reuse the Responses API gotchas already documented from the auto-tagging feature: use `text.format` with `type: "json_schema"` + `strict: true`, not `json_object`; set `reasoning: { effort: "minimal" }` to avoid the reasoning-token-budget empty-output trap (affects both Chat Completions and Responses API)
+- Unlike tags, there's no accept/reject list — the field is just filled in; the user can edit or undo by hand since nothing is persisted until they hit Save/Create anyway
+- `isPro` is already threaded into both `CreateItemModal` and `ItemDrawerEditBody` from the auto-tagging work — reuse it directly, no new prop plumbing needed
+- For types with little/no content (e.g. a link with just a title and URL, or a file with just a filename), the model should still produce a reasonable best-effort summary from whatever's available rather than erroring
 
 ## History
 

@@ -353,7 +353,7 @@ describe("getItemCardsByType", () => {
     expect(prisma.item.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1", itemType: { slug: "snippets" } },
-        orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
         skip: 0,
         take: 21,
       }),
@@ -464,7 +464,7 @@ describe("getSearchIndexItems", () => {
     },
   ];
 
-  it("returns lightweight mapped items ordered by lastUsedAt", async () => {
+  it("returns lightweight mapped items ordered by updatedAt", async () => {
     vi.mocked(prisma.item.findMany).mockResolvedValue(mockSearchItems as never);
 
     const result = await getSearchIndexItems("user-1");
@@ -472,7 +472,7 @@ describe("getSearchIndexItems", () => {
     expect(prisma.item.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1" },
-        orderBy: { lastUsedAt: "desc" },
+        orderBy: { updatedAt: "desc" },
       }),
     );
     expect(result).toEqual([
@@ -596,7 +596,7 @@ describe("getItemCardsByCollection", () => {
     expect(prisma.item.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1", collections: { some: { collectionId: "col-1" } } },
-        orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
         skip: 0,
         take: 21,
       }),

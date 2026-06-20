@@ -177,7 +177,7 @@ export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
   try {
     const items = await prisma.item.findMany({
       where: { userId, isPinned: true },
-      orderBy: { lastUsedAt: "desc" },
+      orderBy: { updatedAt: "desc" },
       select: ITEM_CARD_SELECT,
     });
     return items.map(mapItemCard);
@@ -194,7 +194,7 @@ export async function getRecentItems(
   try {
     const items = await prisma.item.findMany({
       where: { userId },
-      orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }],
+      orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
       take: limit,
       select: ITEM_CARD_SELECT,
     });
@@ -263,7 +263,7 @@ export async function getItemCardsByType(
     const [items, totalCount] = await Promise.all([
       prisma.item.findMany({
         where,
-        orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
         select: ITEM_CARD_SELECT,
         skip: (page - 1) * ITEMS_PER_PAGE,
         take: ITEMS_PER_PAGE,
@@ -287,7 +287,7 @@ export async function getItemCardsByCollection(
     const [items, totalCount] = await Promise.all([
       prisma.item.findMany({
         where,
-        orderBy: [{ isPinned: "desc" }, { lastUsedAt: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
         select: ITEM_CARD_SELECT,
         skip: (page - 1) * ITEMS_PER_PAGE,
         take: ITEMS_PER_PAGE,
@@ -485,7 +485,7 @@ export async function getSearchIndexItems(userId: string): Promise<SearchIndexIt
   try {
     const items = await prisma.item.findMany({
       where: { userId },
-      orderBy: { lastUsedAt: "desc" },
+      orderBy: { updatedAt: "desc" },
       select: {
         id: true,
         title: true,

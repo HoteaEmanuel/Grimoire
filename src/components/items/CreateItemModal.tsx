@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TagInput } from "@/components/shared/TagInput";
 import { TagSuggestions } from "@/components/shared/TagSuggestions";
+import { GenerateDescriptionButton } from "@/components/shared/GenerateDescriptionButton";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { useCreateItem } from "@/lib/mutations/items";
 import { CodeEditor } from "@/components/ui/code-editor";
@@ -59,6 +60,7 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
   const titleValue = useWatch({ control, name: "title", defaultValue: "" });
   const collectionIds = useWatch({ control, name: "collectionIds", defaultValue: [] });
   const contentValue = useWatch({ control, name: "content", defaultValue: "" });
+  const urlValue = useWatch({ control, name: "url", defaultValue: "" });
   const languageValue = useWatch({ control, name: "language", defaultValue: "" });
   const fileUrl = useWatch({ control, name: "fileUrl" });
   const fileName = useWatch({ control, name: "fileName" });
@@ -170,9 +172,19 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
 
           {/* Description */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Description
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground">
+                Description
+              </label>
+              <GenerateDescriptionButton
+                title={titleValue ?? ""}
+                content={contentValue ?? undefined}
+                url={urlValue ?? undefined}
+                fileName={fileName ?? undefined}
+                onGenerated={(summary) => setValue("description", summary)}
+                isPro={userIsPro}
+              />
+            </div>
             <Input
               {...register("description")}
               placeholder="Optional short description"
