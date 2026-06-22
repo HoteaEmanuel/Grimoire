@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { auth } from "@/auth";
 import {
   updateItem as dbUpdateItem,
   createItem as dbCreateItem,
@@ -13,6 +12,7 @@ import { deleteR2Object, keyFromPublicUrl } from "@/lib/r2";
 import type { ItemDetail } from "@/lib/db/items";
 import { createItemSchema } from "@/lib/schemas/items";
 import { FREE_ITEM_LIMIT } from "@/lib/limits";
+import { requireUserId, parseOrError } from "@/lib/auth-helpers";
 
 export type { CreateItemInput } from "@/lib/schemas/items";
 
@@ -21,15 +21,14 @@ type CreateItemResult =
   | { success: false; error: string };
 
 export async function createItem(formData: z.input<typeof createItemSchema>): Promise<CreateItemResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
-  const parsed = createItemSchema.safeParse(formData);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return { success: false, error: first?.message ?? "Invalid input" };
+  const parsed = parseOrError(createItemSchema, formData);
+  if (!parsed.ok) {
+    return { success: false, error: parsed.error };
   }
 
   if (parsed.data.typeSlug === "links" && !parsed.data.url) {
@@ -41,17 +40,17 @@ export async function createItem(formData: z.input<typeof createItemSchema>): Pr
     return { success: false, error: "File upload is required" };
   }
 
-  if (!session.user.isPro) {
+  if (!auth.isPro) {
     if (isFile) {
       return { success: false, error: "Files and images are a Pro feature" };
     }
-    const itemCount = await prisma.item.count({ where: { userId: session.user.id } });
+    const itemCount = await prisma.item.count({ where: { userId: auth.userId } });
     if (itemCount >= FREE_ITEM_LIMIT) {
       return { success: false, error: `Free plan is limited to ${FREE_ITEM_LIMIT} items` };
     }
   }
 
-  const created = await dbCreateItem(session.user.id, {
+  const created = await dbCreateItem(auth.userId, {
     typeSlug: parsed.data.typeSlug,
     title: parsed.data.title,
     description: parsed.data.description ?? null,
@@ -97,15 +96,14 @@ export async function updateItem(
   itemId: string,
   formData: UpdateItemInput,
 ): Promise<UpdateItemResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
-  const parsed = updateItemSchema.safeParse(formData);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return { success: false, error: first?.message ?? "Invalid input" };
+  const parsed = parseOrError(updateItemSchema, formData);
+  if (!parsed.ok) {
+    return { success: false, error: parsed.error };
   }
 
   const data = {
@@ -118,7 +116,7 @@ export async function updateItem(
     collectionIds: parsed.data.collectionIds,
   };
 
-  const updated = await dbUpdateItem(session.user.id, itemId, data);
+  const updated = await dbUpdateItem(auth.userId, itemId, data);
   if (!updated) {
     return { success: false, error: "Failed to save changes" };
   }
@@ -132,12 +130,12 @@ export async function toggleItemFavorite(
   itemId: string,
   isFavorite: boolean,
 ): Promise<ToggleFavoriteResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
-  const updated = await dbToggleItemFavorite(session.user.id, itemId, isFavorite);
+  const updated = await dbToggleItemFavorite(auth.userId, itemId, isFavorite);
   if (!updated) {
     return { success: false, error: "Failed to update favorite" };
   }
@@ -148,12 +146,12 @@ export async function toggleItemFavorite(
 type TogglePinResult = { success: true } | { success: false; error: string };
 
 export async function toggleItemPin(itemId: string, isPinned: boolean): Promise<TogglePinResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
-  const updated = await dbToggleItemPin(session.user.id, itemId, isPinned);
+  const updated = await dbToggleItemPin(auth.userId, itemId, isPinned);
   if (!updated) {
     return { success: false, error: "Failed to update pin" };
   }
@@ -164,14 +162,14 @@ export async function toggleItemPin(itemId: string, isPinned: boolean): Promise<
 type DeleteItemResult = { success: true } | { success: false; error: string };
 
 export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
   try {
     const item = await prisma.item.findFirst({
-      where: { id: itemId, userId: session.user.id },
+      where: { id: itemId, userId: auth.userId },
       select: { fileUrl: true },
     });
 
@@ -180,7 +178,7 @@ export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
     }
 
     const deleted = await prisma.item.deleteMany({
-      where: { id: itemId, userId: session.user.id },
+      where: { id: itemId, userId: auth.userId },
     });
 
     if (deleted.count === 0) {

@@ -41,6 +41,18 @@ export async function checkRateLimit(
   }
 }
 
+export async function checkAiRateLimit(userId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { success, retryAfter } = await checkRateLimit(aiFeatureLimiter, userId)
+  if (!success) {
+    const minutes = Math.ceil(retryAfter / 60)
+    return {
+      ok: false,
+      error: `Too many AI requests. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+    }
+  }
+  return { ok: true }
+}
+
 export function rateLimitResponse(retryAfter: number, message?: string) {
   const minutes = Math.ceil(retryAfter / 60)
   const body = {

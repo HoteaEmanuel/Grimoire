@@ -8,18 +8,17 @@ vi.mock("@/lib/openai", () => ({
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
-  aiFeatureLimiter: {},
-  checkRateLimit: vi.fn(),
+  checkAiRateLimit: vi.fn(),
 }));
 
 import { openai } from "@/lib/openai";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkAiRateLimit } from "@/lib/rate-limit";
 
 const mockSession = { user: { id: "user-1", isPro: true } };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(checkRateLimit).mockResolvedValue({ success: true, retryAfter: 0 });
+  vi.mocked(checkAiRateLimit).mockResolvedValue({ ok: true });
 });
 
 describe("generateAutoTags", () => {
@@ -51,7 +50,10 @@ describe("generateAutoTags", () => {
 
   it("returns a rate-limit error when the limiter rejects the request", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(checkRateLimit).mockResolvedValue({ success: false, retryAfter: 120 });
+    vi.mocked(checkAiRateLimit).mockResolvedValue({
+      ok: false,
+      error: "Too many AI requests. Try again in 2 minutes.",
+    });
 
     const result = await generateAutoTags({ title: "Test" });
 
@@ -137,7 +139,10 @@ describe("generateDescription", () => {
 
   it("returns a rate-limit error when the limiter rejects the request", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(checkRateLimit).mockResolvedValue({ success: false, retryAfter: 120 });
+    vi.mocked(checkAiRateLimit).mockResolvedValue({
+      ok: false,
+      error: "Too many AI requests. Try again in 2 minutes.",
+    });
 
     const result = await generateDescription({ title: "Test" });
 
@@ -237,7 +242,10 @@ describe("explainCode", () => {
 
   it("returns a rate-limit error when the limiter rejects the request", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(checkRateLimit).mockResolvedValue({ success: false, retryAfter: 120 });
+    vi.mocked(checkAiRateLimit).mockResolvedValue({
+      ok: false,
+      error: "Too many AI requests. Try again in 2 minutes.",
+    });
 
     const result = await explainCode({ code: "const x = 1;" });
 
@@ -336,7 +344,10 @@ describe("optimizePrompt", () => {
 
   it("returns a rate-limit error when the limiter rejects the request", async () => {
     vi.mocked(auth).mockResolvedValue(mockSession as never);
-    vi.mocked(checkRateLimit).mockResolvedValue({ success: false, retryAfter: 120 });
+    vi.mocked(checkAiRateLimit).mockResolvedValue({
+      ok: false,
+      error: "Too many AI requests. Try again in 2 minutes.",
+    });
 
     const result = await optimizePrompt({ title: "Test", content: "Write a poem" });
 

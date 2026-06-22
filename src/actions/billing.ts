@@ -1,8 +1,8 @@
 "use server";
 
-import { auth } from "@/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { requireUserId } from "@/lib/auth-helpers";
 
 const PLAN_PRICE_IDS = {
   monthly: process.env.STRIPE_PRICE_ID_MONTHLY!,
@@ -12,13 +12,13 @@ const PLAN_PRICE_IDS = {
 type BillingResult = { success: true; data: { url: string } } | { success: false; error: string };
 
 export async function createCheckoutSession(plan: "monthly" | "yearly"): Promise<BillingResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: auth.userId },
     select: { stripeCustomerId: true, email: true },
   });
   if (!user) {
@@ -29,11 +29,11 @@ export async function createCheckoutSession(plan: "monthly" | "yearly"): Promise
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: user.email,
-      metadata: { userId: session.user.id },
+      metadata: { userId: auth.userId },
     });
     customerId = customer.id;
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       data: { stripeCustomerId: customerId },
     });
   }
@@ -44,7 +44,7 @@ export async function createCheckoutSession(plan: "monthly" | "yearly"): Promise
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: PLAN_PRICE_IDS[plan], quantity: 1 }],
-    client_reference_id: session.user.id,
+    client_reference_id: auth.userId,
     success_url: `${baseUrl}/settings?checkout=success`,
     cancel_url: `${baseUrl}/settings?checkout=cancelled`,
   });
@@ -57,13 +57,13 @@ export async function createCheckoutSession(plan: "monthly" | "yearly"): Promise
 }
 
 export async function createBillingPortalSession(): Promise<BillingResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
+  const auth = await requireUserId();
+  if (!auth.ok) {
+    return { success: false, error: auth.error };
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: auth.userId },
     select: { stripeCustomerId: true },
   });
   if (!user?.stripeCustomerId) {
