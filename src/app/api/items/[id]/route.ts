@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { requireUserIdOrResponse } from "@/lib/auth-helpers";
 import { getItemById } from "@/lib/db/items";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getSession();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireUserIdOrResponse();
+  if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;
-  const item = await getItemById(session.user.id, id);
+  const item = await getItemById(auth.userId, id);
 
   if (!item) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getSession } from "@/lib/session";
+import { requireUserIdOrResponse } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { changePasswordSchema } from "@/lib/schemas/auth";
 import { changePasswordLimiter, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { internalErrorResponse } from "@/lib/api-response";
 
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireUserIdOrResponse();
+  if (auth instanceof NextResponse) return auth;
 
-  const { success, retryAfter } = await checkRateLimit(changePasswordLimiter, session.user.id);
+  const { success, retryAfter } = await checkRateLimit(changePasswordLimiter, auth.userId);
   if (!success) return rateLimitResponse(retryAfter);
 
   try {
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
     const { currentPassword, newPassword } = parsed.data;
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       select: { password: true },
     });
 
@@ -38,10 +37,10 @@ export async function POST(req: Request) {
     }
 
     const hashed = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({ where: { id: session.user.id }, data: { password: hashed } });
+    await prisma.user.update({ where: { id: auth.userId }, data: { password: hashed } });
 
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return internalErrorResponse();
   }
 }

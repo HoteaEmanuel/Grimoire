@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
+import { requireUserIdOrResponse } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 
 export async function DELETE() {
-  const session = await getSession();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireUserIdOrResponse();
+  if (auth instanceof NextResponse) return auth;
 
-  await prisma.user.delete({ where: { id: session.user.id } });
+  await prisma.user.delete({ where: { id: auth.userId } });
 
   return NextResponse.json({ success: true });
 }

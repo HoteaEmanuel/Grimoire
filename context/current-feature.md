@@ -1,16 +1,21 @@
-# Current Feature
+# Current Feature: API Route Auth/Error Cleanup
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Populated by /feature load -->
+- Add `requireUserIdOrResponse()` to `src/lib/auth-helpers.ts` — wraps existing `requireUserId()` and returns a ready-made 401 `NextResponse` on failure, or `{ userId, isPro }` on success
+- Replace hand-rolled session-check/401 boilerplate with `requireUserIdOrResponse()` in the 6 API routes that duplicate it: `src/app/api/profile/delete-account/route.ts`, `src/app/api/profile/change-password/route.ts`, `src/app/api/items/[id]/route.ts`, `src/app/api/download/[...key]/route.ts`, `src/app/api/collections/route.ts`, `src/app/api/upload/route.ts`
+- This also unifies the inconsistent `getSession()` vs `auth()` usage across these routes onto one source of truth
+- Add a small `internalErrorResponse()` helper (e.g. in `src/lib/api-response.ts`) for the repeated `{ error: "Internal server error" }, { status: 500 }` catch-all, and use it in the 5 routes that duplicate it: `src/app/api/profile/change-password/route.ts`, `src/app/api/auth/register/route.ts`, `src/app/api/auth/reset-password/route.ts`, `src/app/api/auth/forgot-password/route.ts`, `src/app/api/auth/resend-verification/route.ts`
 
 ## Notes
 
-<!-- Populated by /feature load -->
+- Source: `refactor-scanner` agent scan of `src/app/api` (2026-06-22)
+- Rate-limit-check-then-respond pattern across multiple auth routes is already well-factored via `checkRateLimit`/`rateLimitResponse` — no action needed there
+- Token-hash-and-expiry-check duplication between `verify-email` and `reset-password` is borderline (only 2 occurrences, differing details) — not in scope for this pass; revisit if a third token-consuming flow is added later
 
 ## History
 

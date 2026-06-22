@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requireUserIdOrResponse } from "@/lib/auth-helpers";
 import { getObjectStream } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 
@@ -7,16 +7,14 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ key: string[] }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireUserIdOrResponse();
+  if (auth instanceof NextResponse) return auth;
 
   const { key: segments } = await params;
   const key = segments.join("/");
 
   // Verify ownership: the key starts with userId/
-  if (!key.startsWith(`${session.user.id}/`)) {
+  if (!key.startsWith(`${auth.userId}/`)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -28,7 +26,7 @@ export async function GET(
   // Confirm the item exists in DB
   const fileUrl = `${r2PublicUrl}/${key}`;
   const item = await prisma.item.findFirst({
-    where: { userId: session.user.id, fileUrl },
+    where: { userId: auth.userId, fileUrl },
     select: { id: true, fileName: true },
   });
 

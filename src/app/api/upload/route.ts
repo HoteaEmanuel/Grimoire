@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requireUserIdOrResponse } from "@/lib/auth-helpers";
 import { putObject, getPublicUrl } from "@/lib/r2";
 import { uploadLimiter, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { randomUUID } from "crypto";
@@ -25,15 +25,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
   }
 
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.user.isPro) {
+  const authResult = await requireUserIdOrResponse();
+  if (authResult instanceof NextResponse) return authResult;
+  if (!authResult.isPro) {
     return NextResponse.json({ error: "Files and images are a Pro feature" }, { status: 403 });
   }
 
-  const { success, retryAfter } = await checkRateLimit(uploadLimiter, `upload:${session.user.id}`);
+  const { success, retryAfter } = await checkRateLimit(uploadLimiter, `upload:${authResult.userId}`);
   if (!success) return rateLimitResponse(retryAfter);
 
   const formData = await req.formData().catch(() => null);
@@ -69,7 +67,7 @@ export async function POST(req: NextRequest) {
   }
 
   const safeName = path.basename(file.name).replace(/[^a-zA-Z0-9._-]/g, "_");
-  const key = `${session.user.id}/${typeSlug}/${randomUUID()}-${safeName}`;
+  const key = `${authResult.userId}/${typeSlug}/${randomUUID()}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   try {

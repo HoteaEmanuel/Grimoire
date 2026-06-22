@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { sendPasswordResetEmail } from "@/lib/email"
 import { RESET_PREFIX, hashToken } from "@/lib/auth-constants"
 import { forgotPasswordLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
+import { internalErrorResponse } from "@/lib/api-response"
 
 const schema = z.object({ email: z.email() })
 
@@ -49,6 +50,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return internalErrorResponse()
   }
 }

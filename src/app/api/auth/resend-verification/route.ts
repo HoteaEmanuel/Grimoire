@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { sendVerificationEmail } from "@/lib/email"
 import { hashToken } from "@/lib/auth-constants"
 import { resendVerificationLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
+import { internalErrorResponse } from "@/lib/api-response"
 
 const schema = z.object({ email: z.email() })
 
@@ -60,6 +61,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return internalErrorResponse()
   }
 }

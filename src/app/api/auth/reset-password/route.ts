@@ -4,6 +4,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { RESET_PREFIX, hashToken, safeCompare } from "@/lib/auth-constants"
 import { resetPasswordLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
+import { internalErrorResponse } from "@/lib/api-response"
 
 const schema = z.object({
   token: z.string().min(1),
@@ -57,6 +58,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return internalErrorResponse()
   }
 }

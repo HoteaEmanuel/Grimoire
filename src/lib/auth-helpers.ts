@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 type RequireUserResult =
@@ -11,6 +12,16 @@ export async function requireUserId(): Promise<RequireUserResult> {
     return { ok: false, error: "Unauthorized" };
   }
   return { ok: true, userId: session.user.id, isPro: session.user.isPro };
+}
+
+export async function requireUserIdOrResponse(): Promise<
+  { userId: string; isPro: boolean } | NextResponse
+> {
+  const result = await requireUserId();
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 401 });
+  }
+  return { userId: result.userId, isPro: result.isPro };
 }
 
 type ParseResult<T> = { ok: true; data: T } | { ok: false; error: string };

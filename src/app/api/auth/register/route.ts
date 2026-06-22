@@ -6,6 +6,7 @@ import { registerSchema } from "@/lib/schemas/auth"
 import { sendVerificationEmail } from "@/lib/email"
 import { hashToken } from "@/lib/auth-constants"
 import { registerLimiter, getIP, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
+import { internalErrorResponse } from "@/lib/api-response"
 
 export async function POST(req: Request) {
   const { success, retryAfter } = await checkRateLimit(registerLimiter, getIP(req))
@@ -63,6 +64,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, verified: !verificationEnabled }, { status: 201 })
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return internalErrorResponse()
   }
 }
