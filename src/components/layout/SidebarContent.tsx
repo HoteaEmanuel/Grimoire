@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type { SidebarItemType } from "@/lib/db/items";
 import type { SidebarCollection } from "@/lib/db/collections";
@@ -59,6 +60,23 @@ export function SidebarContent({
   return (
     <>
       <nav className="flex-1 overflow-y-auto py-3 space-y-4">
+        <div
+          className={
+            sidebarCollapsed
+              ? "flex flex-col items-center px-1"
+              : "px-2"
+          }
+        >
+          <SidebarNavItem
+            href="/dashboard"
+            icon={Home}
+            label="Home"
+            collapsed={sidebarCollapsed}
+            active={pathname === "/dashboard"}
+            onClick={onClose}
+          />
+        </div>
+
         <SidebarSection title="Items" collapsed={sidebarCollapsed}>
           {itemTypes.map((type) => {
             const Icon = ICON_MAP[type.icon];
