@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: "#pricing", label: "Pricing" },
 ];
 
-export function Nav() {
+export function Nav({ variant = "marketing" }: { variant?: "marketing" | "minimal" }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function Nav() {
           : "bg-background/40 border-b border-transparent"
       )}
     >
-      <div className="max-w-7xl mx-auto px-8 py-3.5 flex items-center gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center gap-4 sm:gap-8">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <span className="flex size-8.5 items-center justify-center rounded-md border-[1.5px] border-ember bg-card text-ember shadow-[0_0_12px_-2px_var(--ember)]">
             <BookOpen className="size-4" />
@@ -39,22 +39,27 @@ export function Nav() {
           </span>
         </Link>
 
-        <nav className="hidden md:flex gap-6 text-sm text-muted-foreground">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-ember transition-colors">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        {variant === "marketing" && (
+          <>
+            <nav className="hidden md:flex gap-6 text-sm text-muted-foreground">
+              {NAV_LINKS.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-ember transition-colors">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
 
-        <div className="ml-auto flex items-center gap-3">
-          <Button variant="ghost" nativeButton={false} render={<Link href="/sign-in" />}>
-            Sign In
-          </Button>
-          <Button nativeButton={false} render={<Link href="/register" />}>
-            Get Started Free
-          </Button>
-        </div>
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <Button variant="ghost" nativeButton={false} render={<Link href="/sign-in" />}>
+                Sign In
+              </Button>
+              <Button nativeButton={false} render={<Link href="/register" />}>
+                <span className="hidden sm:inline">Get Started Free</span>
+                <span className="sm:hidden">Get Started</span>
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

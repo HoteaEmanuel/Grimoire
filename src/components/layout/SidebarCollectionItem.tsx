@@ -16,6 +16,7 @@ interface SidebarCollectionItemProps {
   color: string;
   isFavorite?: boolean;
   collapsed: boolean;
+  active?: boolean;
   onClick?: () => void;
 }
 
@@ -25,6 +26,7 @@ export function SidebarCollectionItem({
   color,
   isFavorite,
   collapsed,
+  active,
   onClick,
 }: SidebarCollectionItemProps) {
   const item = (
@@ -35,6 +37,7 @@ export function SidebarCollectionItem({
         buttonVariants({ variant: "ghost", size: "sm" }),
         "w-full text-sm font-normal text-sidebar-foreground/85",
         "hover:text-sidebar-foreground hover:bg-white/8",
+        active && "bg-white/10 text-sidebar-foreground font-medium",
         collapsed
           ? "h-9 w-9 justify-center px-0"
           : "justify-start gap-2.5 h-8 px-2",

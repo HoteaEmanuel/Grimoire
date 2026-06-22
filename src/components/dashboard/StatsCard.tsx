@@ -21,21 +21,21 @@ export function StatsCard({ label, value, icon: Icon, iconColor }: StatsCardProp
         style={{ boxShadow: `0 0 28px 2px ${iconColor}40` }}
       />
 
-      <div className="p-5 flex items-center gap-5">
+      <div className="p-4 sm:p-5 flex items-center gap-3 sm:gap-5">
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
           style={{
             background: `linear-gradient(135deg, ${iconColor}25, ${iconColor}0d)`,
             boxShadow: `0 0 12px -2px ${iconColor}50`,
           }}
         >
-          <Icon size={22} style={{ color: iconColor }} />
+          <Icon size={20} className="sm:size-5.5" style={{ color: iconColor }} />
         </div>
-        <div>
-          <p className="text-3xl font-bold leading-none tracking-tight" style={{ color: iconColor }}>
+        <div className="min-w-0">
+          <p className="text-2xl sm:text-3xl font-bold leading-none tracking-tight" style={{ color: iconColor }}>
             {value}
           </p>
-          <p className="text-md text-muted-foreground mt-1.5 font-medium">{label}</p>
+          <p className="text-sm sm:text-md text-muted-foreground mt-1.5 font-medium wrap-break-word">{label}</p>
         </div>
       </div>
     </div>

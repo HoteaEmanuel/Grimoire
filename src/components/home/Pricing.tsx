@@ -86,7 +86,7 @@ export function Pricing() {
             ))}
           </ul>
           <Button
-            variant="ghost"
+            variant="outline"
             className="w-full justify-center"
             nativeButton={false}
             render={<Link href="/register" />}

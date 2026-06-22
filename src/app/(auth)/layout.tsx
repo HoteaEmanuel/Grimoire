@@ -9,7 +9,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 pt-24">
-      <Nav />
+      <Nav variant="minimal" />
       <Suspense>
         <AuthToast />
       </Suspense>

@@ -101,6 +101,7 @@ export function SidebarContent({
                   color={col.dominantTypeColor}
                   isFavorite
                   collapsed={sidebarCollapsed}
+                  active={pathname === `/collections/${col.id}`}
                   onClick={onClose}
                 />
               ))}
@@ -121,6 +122,7 @@ export function SidebarContent({
                   color={col.dominantTypeColor}
                   isFavorite={false}
                   collapsed={sidebarCollapsed}
+                  active={pathname === `/collections/${col.id}`}
                   onClick={onClose}
                 />
               ))}
