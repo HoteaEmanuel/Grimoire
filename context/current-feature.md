@@ -1,21 +1,16 @@
-# Current Feature: API Route Auth/Error Cleanup
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add `requireUserIdOrResponse()` to `src/lib/auth-helpers.ts` — wraps existing `requireUserId()` and returns a ready-made 401 `NextResponse` on failure, or `{ userId, isPro }` on success
-- Replace hand-rolled session-check/401 boilerplate with `requireUserIdOrResponse()` in the 6 API routes that duplicate it: `src/app/api/profile/delete-account/route.ts`, `src/app/api/profile/change-password/route.ts`, `src/app/api/items/[id]/route.ts`, `src/app/api/download/[...key]/route.ts`, `src/app/api/collections/route.ts`, `src/app/api/upload/route.ts`
-- This also unifies the inconsistent `getSession()` vs `auth()` usage across these routes onto one source of truth
-- Add a small `internalErrorResponse()` helper (e.g. in `src/lib/api-response.ts`) for the repeated `{ error: "Internal server error" }, { status: 500 }` catch-all, and use it in the 5 routes that duplicate it: `src/app/api/profile/change-password/route.ts`, `src/app/api/auth/register/route.ts`, `src/app/api/auth/reset-password/route.ts`, `src/app/api/auth/forgot-password/route.ts`, `src/app/api/auth/resend-verification/route.ts`
+<!-- Populated by /feature load -->
 
 ## Notes
 
-- Source: `refactor-scanner` agent scan of `src/app/api` (2026-06-22)
-- Rate-limit-check-then-respond pattern across multiple auth routes is already well-factored via `checkRateLimit`/`rateLimitResponse` — no action needed there
-- Token-hash-and-expiry-check duplication between `verify-email` and `reset-password` is borderline (only 2 occurrences, differing details) — not in scope for this pass; revisit if a third token-consuming flow is added later
+<!-- Populated by /feature load -->
 
 ## History
 
@@ -130,3 +125,5 @@ In Progress
 - **Refactor Scanner + Server Action Cleanup + Sidebar Home Link - 2026-06-22** — Created `.claude/agents/refactor-scanner.md`, a subagent that scans `src/actions`/`src/components`/`src/lib`/`src/app/api`/`src/hooks` (or `all`) for duplicate code and recommends concrete shared-utility/component/hook extractions, with a tailored checklist per folder type. Ran it against `src/actions` and applied its three findings: added `requireUserId()` (auth check, returns `userId`/`isPro`) and `parseOrError()` (generic Zod-parse-then-first-error) to a new `src/lib/auth-helpers.ts`, and `checkAiRateLimit()` to `src/lib/rate-limit.ts` (wraps `checkRateLimit` + the "Too many AI requests" error formatting). Refactored all 16 Server Actions across `items.ts`, `collections.ts`, `billing.ts`, `editor-preferences.ts`, and `ai.ts` to use these helpers, removing ~100 lines of copy-pasted auth/validation/rate-limit boilerplate. Updated `ai.test.ts` to mock `checkAiRateLimit` directly instead of the lower-level `checkRateLimit`. Also added a "Home" link to the sidebar (`SidebarContent.tsx`) above the Items section, reusing `SidebarNavItem` (Lucide `Home` icon, links to `/dashboard`, active-state + collapsed-sidebar support). `npm run test` (242/242) and `npm run build` both pass.
 
 - **Component Duplication Cleanup - 2026-06-22** — Addressed all 3 `refactor-scanner` findings from a scan of `src/components`. Added `CODE_TYPE_SLUGS`/`MARKDOWN_TYPE_SLUGS`/`TEXT_TYPE_SLUGS`/`FILE_TYPE_SLUGS` to `src/lib/item-types.ts` and extracted `ItemContentEditor` (`mode: "view" | "edit"`) to replace duplicated content-editor type-branching in `CreateItemModal`, `ItemDrawerEditBody`, and `ItemDrawerViewBody`. Extracted `ConfirmDeleteDialog` (supports both controlled `open`/`onOpenChange` and uncontrolled `trigger` usage) to replace duplicated `AlertDialog` boilerplate in `DeleteCollectionDialog`, `DeleteAccountDialog`, and `ItemDrawer`'s inline delete confirmation. Extracted `FavoriteStar` to replace the repeated filled-star class string across 8 components, fixing an amber-500/yellow-400 color inconsistency on the favorites page along the way. While testing the extracted delete dialog, discovered and fixed a pre-existing bug: vaul's `Drawer` sets `body.style.pointerEvents = 'none'` for its entire open duration as its own focus-trap technique, and Base UI's `AlertDialog` (nested inside the open Drawer for the delete confirmation) didn't counteract this on its own overlay/popup — so clicks on the confirm dialog were silently swallowed, falling through to whatever was visually behind it. Fixed by adding `pointer-events-auto` to `AlertDialogOverlay` and `AlertDialogContent` in `src/components/ui/alert-dialog.tsx`, mirroring how vaul's own `DrawerOverlay` already opts back into interactivity. `npm run test` (242/242) and `npm run build` both pass.
+
+- **API Route Auth/Error Cleanup - 2026-06-22** — Addressed both actionable findings from a `refactor-scanner` scan of `src/app/api`. Added `requireUserIdOrResponse()` to `src/lib/auth-helpers.ts` (wraps the existing `requireUserId()`, returning a ready-made 401 `NextResponse` on failure or `{ userId, isPro }` on success) and adopted it in the 6 routes that previously hand-rolled the session-check/401 block: `profile/delete-account`, `profile/change-password`, `items/[id]`, `download/[...key]`, `collections`, `upload` — this also unifies the routes' inconsistent `getSession()` vs `auth()` usage onto one source of truth. Added `internalErrorResponse()` to a new `src/lib/api-response.ts` for the repeated `{ error: "Internal server error" }, { status: 500 }` catch-all, adopted in 5 routes: `profile/change-password`, `auth/register`, `auth/reset-password`, `auth/forgot-password`, `auth/resend-verification`. Two findings were explicitly left out of scope per the scan: the rate-limit-check-then-respond pattern (`checkRateLimit`/`rateLimitResponse`) is already well-factored, and the token-hash-and-expiry-check duplication between `verify-email`/`reset-password` is borderline (only 2 occurrences, differing details) — revisit if a third token-consuming flow is added. `npm run test` (242/242) and `npm run build` both pass.
