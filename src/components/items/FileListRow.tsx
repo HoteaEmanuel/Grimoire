@@ -1,8 +1,9 @@
 "use client";
 
 import { FileIcon, defaultStyles } from "react-file-icon";
-import { Download, Pin, Star } from "lucide-react";
+import { Download, Pin } from "lucide-react";
 import { formatDate, formatFileSize } from "@/lib/utils";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 
 function getExt(fileName: string | null): string {
@@ -63,7 +64,7 @@ export function FileListRow({
           <span className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-150">
             {title}
           </span>
-          {isFavorite && <Star size={11} className="shrink-0 fill-amber-500 text-amber-500" />}
+          {isFavorite && <FavoriteStar filled size={11} className="shrink-0" />}
           {pinned && <Pin size={11} className="shrink-0 text-muted-foreground/50" />}
           {extLabel && (
             <span className="shrink-0 text-[10px] font-mono font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white/6 text-muted-foreground/60">

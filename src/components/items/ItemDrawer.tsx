@@ -14,16 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
 import { useState } from "react";
 import { ItemDrawerViewBody } from "./ItemDrawerViewBody";
 import { ItemDrawerEditBody } from "./ItemDrawerEditBody";
@@ -242,29 +233,22 @@ export function ItemDrawer({ userIsPro }: ItemDrawerProps) {
         </DrawerContent>
       </Drawer>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete item?</AlertDialogTitle>
-            <AlertDialogDescription>
-              <strong className="text-foreground">{item?.title}</strong> will be permanently
-              deleted. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                setDeleteDialogOpen(false);
-                if (item) deleteMutation.mutate(item.id);
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete item?"
+        description={
+          <>
+            <strong className="text-foreground">{item?.title}</strong> will be permanently
+            deleted. This action cannot be undone.
+          </>
+        }
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          setDeleteDialogOpen(false);
+          if (item) deleteMutation.mutate(item.id);
+        }}
+      />
     </>
   );
 }

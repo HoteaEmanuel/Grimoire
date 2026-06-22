@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Star } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { EditCollectionModal } from "@/components/collections/EditCollectionModal";
 import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
@@ -31,7 +32,7 @@ export function CollectionDetailActions({ collection }: CollectionDetailActionsP
           Edit
         </Button>
         <Button variant="outline" size="sm" onClick={toggleFavorite}>
-          <Star className={isFavorite ? "size-4 fill-amber-500 text-amber-500" : "size-4"} />
+          <FavoriteStar filled={isFavorite} className="size-4" />
           {isFavorite ? "Unfavorite" : "Favorite"}
         </Button>
         <Button variant="outline" className="text-red-500" size="sm" onClick={() => setDeleteOpen(true)}>

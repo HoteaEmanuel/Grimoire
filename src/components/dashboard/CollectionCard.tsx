@@ -1,7 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Layers, Star } from "lucide-react"
+import { Layers } from "lucide-react"
+import { FavoriteStar } from "@/components/shared/FavoriteStar"
 import type { CollectionTypeIcon } from "@/lib/db/collections"
 import { ICON_MAP } from "@/lib/item-types"
 import { CollectionCardMenu } from "@/components/collections/CollectionCardMenu"
@@ -85,9 +86,7 @@ export function CollectionCard({
           <p className="text-lg font-semibold leading-tight truncate group-hover:text-primary transition-colors duration-200">
             {name}
           </p>
-          {favorite && (
-            <Star size={12} className="shrink-0 fill-amber-500 text-amber-500" />
-          )}
+          {favorite && <FavoriteStar filled size={12} className="shrink-0" />}
         </div>
         {description && (
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>

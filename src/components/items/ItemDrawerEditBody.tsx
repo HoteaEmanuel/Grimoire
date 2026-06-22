@@ -2,20 +2,15 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { CodeEditor } from "@/components/ui/code-editor";
-import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { ItemContentEditor } from "@/components/shared/ItemContentEditor";
 import { TagInput } from "@/components/shared/TagInput";
 import { TagSuggestions } from "@/components/shared/TagSuggestions";
 import { GenerateDescriptionButton } from "@/components/shared/GenerateDescriptionButton";
 import { PromptOptimizerButton } from "@/components/shared/PromptOptimizerButton";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
-import { SUPPORTED_LANGUAGES } from "@/lib/item-types";
+import { SUPPORTED_LANGUAGES, CODE_TYPE_SLUGS, TEXT_TYPE_SLUGS } from "@/lib/item-types";
 import type { ItemDetail } from "@/lib/db/items";
 import type { EditState } from "./item-drawer-types";
-
-const CODE_TYPES = new Set(["snippets", "commands"]);
-const MARKDOWN_TYPES = new Set(["prompts", "notes"]);
-const TEXT_TYPES = new Set(["snippets", "prompts", "commands", "notes"]);
 
 interface ItemDrawerEditBodyProps {
   item: ItemDetail;
@@ -57,7 +52,7 @@ export function ItemDrawerEditBody({
         />
       </div>
 
-      {TEXT_TYPES.has(item.typeSlug) && (
+      {TEXT_TYPE_SLUGS.has(item.typeSlug) && (
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground uppercase tracking-wider">Content</label>
           {item.typeSlug === "prompts" && (
@@ -68,29 +63,18 @@ export function ItemDrawerEditBody({
               isPro={userIsPro}
             />
           )}
-          {CODE_TYPES.has(item.typeSlug) ? (
-            <CodeEditor
-              value={editState.content}
-              onChange={(v) => onFieldChange("content", v)}
-              language={editState.language || undefined}
-            />
-          ) : MARKDOWN_TYPES.has(item.typeSlug) ? (
-            <MarkdownEditor
-              value={editState.content}
-              onChange={(v) => onFieldChange("content", v)}
-              placeholder="Write markdown here…"
-            />
-          ) : (
-            <Textarea
-              value={editState.content}
-              onChange={(e) => onFieldChange("content", e.target.value)}
-              placeholder="Content"
-            />
-          )}
+          <ItemContentEditor
+            typeSlug={item.typeSlug}
+            value={editState.content}
+            mode="edit"
+            onChange={(v) => onFieldChange("content", v)}
+            language={editState.language || undefined}
+            placeholder="Write markdown here…"
+          />
         </div>
       )}
 
-      {CODE_TYPES.has(item.typeSlug) && (
+      {CODE_TYPE_SLUGS.has(item.typeSlug) && (
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground uppercase tracking-wider">Language</label>
           <select

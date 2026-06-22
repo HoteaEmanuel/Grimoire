@@ -26,6 +26,11 @@ export const SUPPORTED_LANGUAGES = [
   "typescript", "xml", "yaml",
 ] as const;
 
+export const TEXT_TYPE_SLUGS = new Set(["snippets", "prompts", "notes", "commands"]);
+export const CODE_TYPE_SLUGS = new Set(["snippets", "commands"]);
+export const MARKDOWN_TYPE_SLUGS = new Set(["prompts", "notes"]);
+export const FILE_TYPE_SLUGS = new Set(["files", "images"]);
+
 export const SYSTEM_ITEM_TYPES = [
   { name: "Snippet", slug: "snippets", icon: Code, color: "#3b82f6", contentKind: "TEXT" },
   { name: "Prompt", slug: "prompts", icon: Sparkles, color: "#8b5cf6", contentKind: "TEXT" },

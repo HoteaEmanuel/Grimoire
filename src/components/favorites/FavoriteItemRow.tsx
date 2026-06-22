@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
 import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
 import { toggleItemFavorite } from "@/actions/items";
@@ -49,9 +49,7 @@ export function FavoriteItemRow({ item }: { item: ItemWithMeta }) {
         aria-label={isFavorite ? "Unfavorite" : "Favorite"}
         className="shrink-0"
       >
-        <Star
-          className={`size-3.5 ${isFavorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`}
-        />
+        <FavoriteStar filled={isFavorite} className="size-3.5" emptyClassName="text-muted-foreground/40" />
       </Button>
     </div>
   );

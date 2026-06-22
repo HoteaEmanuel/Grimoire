@@ -1,16 +1,18 @@
-# Current Feature
+# Current Feature: Component Duplication Cleanup
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Populated by /feature load -->
+- Centralize `CODE_TYPE_SLUGS`/`MARKDOWN_TYPE_SLUGS`/`TEXT_TYPE_SLUGS` constants in `src/lib/item-types.ts` and extract a shared `ItemContentEditor` component (`mode: "view" | "edit"`) to replace duplicated content-editor type-branching logic in `CreateItemModal.tsx`, `ItemDrawerEditBody.tsx`, and `ItemDrawerViewBody.tsx`.
+- Extract a shared `ConfirmDeleteDialog` component to replace duplicated `AlertDialog` boilerplate in `DeleteCollectionDialog.tsx`, `DeleteAccountDialog.tsx`, and the inline delete dialog in `ItemDrawer.tsx`.
+- Extract a shared `FavoriteStar` component to replace the repeated filled-star class string in `ItemCard.tsx`, `CollectionCard.tsx`, `FileListRow.tsx`, `ImageThumbnailCard.tsx`, `CollectionCardMenu.tsx`, `CollectionDetailActions.tsx`, `FavoriteItemRow.tsx`, and `FavoriteCollectionRow.tsx`; also fix the existing amber-500/yellow-400 color inconsistency between the favorites page and everywhere else.
 
 ## Notes
 
-<!-- Populated by /feature load -->
+Findings sourced from the `refactor-scanner` subagent run against `src/components` on 2026-06-22. No other duplication was found in `ui/`, `home/`, `auth/`, or skeleton components — those are out of scope for this pass.
 
 ## History
 

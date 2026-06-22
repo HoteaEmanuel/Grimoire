@@ -20,17 +20,18 @@ import { TagSuggestions } from "@/components/shared/TagSuggestions";
 import { GenerateDescriptionButton } from "@/components/shared/GenerateDescriptionButton";
 import { CollectionSelect } from "@/components/shared/CollectionSelect";
 import { useCreateItem } from "@/lib/mutations/items";
-import { CodeEditor } from "@/components/ui/code-editor";
-import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { ItemContentEditor } from "@/components/shared/ItemContentEditor";
 import { FileUpload } from "@/components/ui/file-upload";
-import { SYSTEM_ITEM_TYPES, SUPPORTED_LANGUAGES } from "@/lib/item-types";
+import {
+  SYSTEM_ITEM_TYPES,
+  SUPPORTED_LANGUAGES,
+  TEXT_TYPE_SLUGS,
+  CODE_TYPE_SLUGS,
+  FILE_TYPE_SLUGS,
+} from "@/lib/item-types";
 import { createItemSchema, type CreateItemInput } from "@/lib/schemas/items";
 
 const ALL_CREATE_TYPES = SYSTEM_ITEM_TYPES;
-const TEXT_TYPE_SLUGS = new Set(["snippets", "prompts", "notes", "commands"]);
-const CODE_TYPE_SLUGS = new Set(["snippets", "commands"]);
-const MARKDOWN_TYPE_SLUGS = new Set(["prompts", "notes"]);
-const FILE_TYPE_SLUGS = new Set(["files", "images"]);
 
 interface CreateItemModalProps {
   open: boolean;
@@ -224,19 +225,14 @@ export function CreateItemModal({ open, onOpenChange, defaultTypeSlug = "snippet
               <label className="text-xs font-medium text-muted-foreground">
                 Content
               </label>
-              {CODE_TYPE_SLUGS.has(typeSlug) ? (
-                <CodeEditor
-                  value={contentValue ?? ""}
-                  onChange={(v) => setValue("content", v)}
-                  language={languageValue || undefined}
-                />
-              ) : MARKDOWN_TYPE_SLUGS.has(typeSlug) ? (
-                <MarkdownEditor
-                  value={contentValue ?? ""}
-                  onChange={(v) => setValue("content", v)}
-                  placeholder="Write markdown here…"
-                />
-              ) : null}
+              <ItemContentEditor
+                typeSlug={typeSlug}
+                value={contentValue ?? ""}
+                mode="edit"
+                onChange={(v) => setValue("content", v)}
+                language={languageValue || undefined}
+                placeholder="Write markdown here…"
+              />
             </div>
           )}
 

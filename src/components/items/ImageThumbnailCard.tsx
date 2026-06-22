@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Pin, Star, ImageOff } from "lucide-react";
+import { Pin, ImageOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { formatDate } from "@/lib/utils";
 import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
 
@@ -56,7 +57,7 @@ export function ImageThumbnailCard({
           <div className="absolute top-2 right-2 flex items-center gap-1">
             {isFavorite && (
               <div className="bg-black/50 rounded p-1">
-                <Star size={10} className="fill-amber-500 text-amber-500" />
+                <FavoriteStar filled size={10} />
               </div>
             )}
             {pinned && (

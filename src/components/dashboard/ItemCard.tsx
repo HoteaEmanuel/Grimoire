@@ -1,7 +1,8 @@
 "use client";
 
-import { Pin, Star, Copy, Check } from "lucide-react";
+import { Pin, Copy, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
 import { useToggleOverridesStore } from "@/lib/stores/toggle-overrides-store";
@@ -106,10 +107,7 @@ export function ItemCard({
                 aria-label={favorite ? "Unfavorite" : "Favorite"}
                 className={`transition-opacity ${favorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
               >
-                <Star
-                  size={12}
-                  className={favorite ? "fill-amber-500 text-amber-500" : "text-muted-foreground"}
-                />
+                <FavoriteStar filled={favorite} size={12} emptyClassName="text-muted-foreground" />
               </button>
             )}
             {pinned && <Pin size={12} style={{ color: typeColor }} />}

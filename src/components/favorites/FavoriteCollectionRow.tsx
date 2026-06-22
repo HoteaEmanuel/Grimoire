@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Folder, Star } from "lucide-react";
+import { Folder } from "lucide-react";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
 import { toggleCollectionFavorite } from "@/actions/collections";
 import { Button } from "@/components/ui/button";
@@ -44,9 +45,7 @@ export function FavoriteCollectionRow({ collection }: { collection: CollectionWi
         aria-label={isFavorite ? "Unfavorite" : "Favorite"}
         className="shrink-0"
       >
-        <Star
-          className={`size-3.5 ${isFavorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`}
-        />
+        <FavoriteStar filled={isFavorite} className="size-3.5" emptyClassName="text-muted-foreground/40" />
       </Button>
     </div>
   );

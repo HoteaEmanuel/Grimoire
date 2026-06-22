@@ -3,15 +3,11 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Globe, FolderOpen, Tag, Calendar, Download } from "lucide-react";
-import { CodeEditor } from "@/components/ui/code-editor";
-import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { ItemContentEditor } from "@/components/shared/ItemContentEditor";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatFileSize } from "@/lib/utils";
 import { useItemDrawerStore } from "@/lib/stores/item-drawer-store";
 import type { ItemDetail } from "@/lib/db/items";
-
-const CODE_TYPES = new Set(["snippets", "commands"]);
-const MARKDOWN_TYPES = new Set(["prompts", "notes"]);
 
 interface ItemDrawerViewBodyProps {
   item: ItemDetail;
@@ -34,23 +30,14 @@ export function ItemDrawerViewBody({ item, userIsPro }: ItemDrawerViewBodyProps)
       )}
 
       {item.content && (
-        CODE_TYPES.has(item.typeSlug) ? (
-          <CodeEditor
-            value={item.content}
-            language={item.language ?? undefined}
-            readOnly
-            explainEnabled
-            isPro={userIsPro}
-          />
-        ) : MARKDOWN_TYPES.has(item.typeSlug) ? (
-          <MarkdownEditor value={item.content} readOnly />
-        ) : (
-          <div className="rounded-lg bg-background/60 border border-border p-4">
-            <pre className="text-xs font-mono text-foreground/80 whitespace-pre-wrap break-all">
-              {item.content}
-            </pre>
-          </div>
-        )
+        <ItemContentEditor
+          typeSlug={item.typeSlug}
+          value={item.content}
+          mode="view"
+          language={item.language ?? undefined}
+          explainEnabled
+          isPro={userIsPro}
+        />
       )}
 
       {item.url && (

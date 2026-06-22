@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Pencil, Trash2, Star } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +43,7 @@ export function CollectionCardMenu({ collection, onToggleFavorite }: CollectionC
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onToggleFavorite}>
-            <Star className={collection.isFavorite ? "size-4 fill-amber-500 text-amber-500" : "size-4"} />
+            <FavoriteStar filled={collection.isFavorite} className="size-4" />
             {collection.isFavorite ? "Unfavorite" : "Favorite"}
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
